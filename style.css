@@ -1,0 +1,1581 @@
+/* ==========================================================================
+   CHICHESTER JAMIA CENTRE — STYLESHEET
+   Design System, Dark/Light Themes, Brick Wall Grid & Impact Slider
+   ========================================================================== */
+
+/* Theme Variables */
+:root {
+  /* Constant Accent Colors */
+  --accent-gold: #f59e0b;
+  --accent-gold-dark: #b45309;
+  --accent-gold-light: #fbbf24;
+  --accent-gold-subtle: rgba(245, 158, 11, 0.12);
+
+  --gofundme-green: #02a95c;
+  --gofundme-green-dark: #028a4b;
+  --gofundme-bg: #eafaf1;
+
+  /* Typography */
+  --font-main: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  --font-arabic: 'Amiri', serif;
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 9999px;
+
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Theme (Default) */
+[data-theme="dark"] {
+  --primary-emerald: #059669;
+  --primary-emerald-dark: #064e3b;
+  --primary-emerald-light: #34d399;
+  --primary-emerald-subtle: rgba(5, 150, 105, 0.15);
+
+  --bg-main: #0b1120;
+  --bg-card: #131d33;
+  --bg-card-hover: #1e2c4d;
+  --bg-secondary: #0f172a;
+
+  --text-dark: #f8fafc;
+  --text-muted: #94a3b8;
+  --border-light: rgba(255, 255, 255, 0.1);
+  --border-gold: rgba(245, 158, 11, 0.35);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-gold: 0 8px 26px rgba(245, 158, 11, 0.3);
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --primary-emerald: #047857;
+  --primary-emerald-dark: #064e3b;
+  --primary-emerald-light: #10b981;
+  --primary-emerald-subtle: #ecfdf5;
+
+  --bg-main: #fdfbf7;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8fafc;
+  --bg-secondary: #f8f6f0;
+
+  --text-dark: #0f172a;
+  --text-muted: #64748b;
+  --border-light: #e2e8f0;
+  --border-gold: rgba(245, 158, 11, 0.4);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12);
+  --shadow-gold: 0 8px 24px rgba(245, 158, 11, 0.25);
+}
+
+/* Reset & Global */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: var(--bg-main);
+  color: var(--text-dark);
+  line-height: 1.6;
+  overflow-x: hidden;
+  padding-bottom: 70px;
+  transition: background-color var(--transition-normal), color var(--transition-normal);
+  -webkit-font-smoothing: antialiased;
+}
+
+@media (min-width: 769px) {
+  body { padding-bottom: 0; }
+}
+
+.container {
+  width: 92%;
+  max-width: 1240px;
+  margin: 0 auto;
+}
+
+a {
+  color: var(--primary-emerald-light);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--accent-gold-light);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  background: none;
+}
+
+/* ==========================================================================
+   ANNOUNCEMENT BAR & JUMU'AH TIMER
+   ========================================================================== */
+.announcement-bar {
+  background: linear-gradient(90deg, #064e3b 0%, #047857 50%, #064e3b 100%);
+  color: #ffffff;
+  padding: 8px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.ann-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ann-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge-charity {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--accent-gold-light);
+  border: 1px solid var(--accent-gold);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.jumuah-pill {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  color: #e2e8f0;
+}
+
+.jumuah-pill strong {
+  color: var(--accent-gold-light);
+}
+
+.ann-text {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.ann-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.currency-selector-mini select {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.currency-selector-mini select option {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.btn-top-gofundme {
+  background: var(--gofundme-green);
+  color: #ffffff;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-top-bank {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   HEADER & THEME TOGGLE
+   ========================================================================== */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(11, 17, 32, 0.95);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-light);
+  padding: 12px 0;
+  transition: background-color var(--transition-normal);
+}
+
+[data-theme="light"] .site-header {
+  background: rgba(253, 251, 247, 0.96);
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon-wrap {
+  width: 44px;
+  height: 44px;
+  background: #0f172a;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: 1.5px solid var(--accent-gold);
+}
+
+.brand-name {
+  font-family: var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  line-height: 1.1;
+}
+
+.brand-tagline {
+  font-size: 0.76rem;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.nav-link {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  padding: 4px 0;
+}
+
+.nav-link.highlight-gold {
+  color: var(--accent-gold);
+  font-weight: 700;
+}
+
+.nav-link.highlight-gfm {
+  color: var(--gofundme-green);
+  font-weight: 800;
+}
+
+.btn-theme-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--border-light);
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: transform var(--transition-fast);
+}
+
+.btn-theme-toggle:hover {
+  transform: rotate(20deg);
+}
+
+[data-theme="dark"] .theme-icon-light { display: none; }
+[data-theme="dark"] .theme-icon-dark { display: block; }
+[data-theme="light"] .theme-icon-light { display: block; }
+[data-theme="light"] .theme-icon-dark { display: none; }
+
+.mobile-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  width: 38px;
+  height: 38px;
+  justify-content: center;
+  align-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+}
+
+.mobile-toggle span {
+  width: 20px;
+  height: 2.5px;
+  background: var(--text-dark);
+  border-radius: 2px;
+}
+
+/* Mobile Drawer */
+.mobile-menu-drawer {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-card);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+}
+
+.mobile-menu-drawer.active {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.drawer-close {
+  font-size: 2rem;
+  color: var(--text-dark);
+}
+
+.drawer-body {
+  padding: 20px;
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-link {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+}
+
+.btn-gofundme {
+  background: var(--gofundme-green);
+  color: #ffffff;
+}
+
+.btn-gofundme:hover {
+  background: var(--gofundme-green-dark);
+  color: #ffffff;
+}
+
+.btn-emerald {
+  background: linear-gradient(135deg, var(--primary-emerald) 0%, var(--primary-emerald-dark) 100%);
+  color: #ffffff;
+}
+
+.btn-gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  color: #ffffff;
+}
+
+.btn-outline-light {
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-glass {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--accent-gold-light);
+  border: 1px solid var(--accent-gold);
+}
+
+.btn-block { width: 100%; }
+.btn-lg { padding: 14px 26px; font-size: 1rem; }
+.btn-xl { padding: 16px 28px; font-size: 1.05rem; }
+
+/* ==========================================================================
+   HERO SECTION
+   ========================================================================== */
+.hero-section {
+  position: relative;
+  background: radial-gradient(circle at 70% 20%, #1e293b 0%, #080d1a 100%);
+  color: #ffffff;
+  padding: 50px 0 70px;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 36px;
+  align-items: center;
+}
+
+.hero-title {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 18px;
+}
+
+.gold-text-glow {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.audio-spiritual-bar {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 12px 18px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.asb-icon-play {
+  width: 40px;
+  height: 40px;
+  background: var(--accent-gold);
+  color: #0f172a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.asb-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--accent-gold-light);
+  display: block;
+}
+
+.asb-sub {
+  font-size: 0.78rem;
+  color: #cbd5e1;
+  font-style: italic;
+}
+
+.hidden { display: none !important; }
+
+/* Fundraiser Card */
+.hero-fundraiser-card {
+  background: var(--bg-card);
+  color: var(--text-dark);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  box-shadow: var(--shadow-lg);
+  border: 1.5px solid var(--border-gold);
+}
+
+.raised-value {
+  font-family: var(--font-heading);
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: var(--primary-emerald-light);
+}
+
+.progress-bar-outer {
+  width: 100%;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+[data-theme="light"] .progress-bar-outer {
+  background: #e2e8f0;
+}
+
+.progress-bar-inner {
+  height: 100%;
+  background: linear-gradient(90deg, #02a95c 0%, #047857 50%, #f59e0b 100%);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+}
+
+.fund-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  background: var(--bg-secondary);
+  padding: 10px;
+  border-radius: var(--radius-md);
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.preset-btn {
+  background: var(--bg-main);
+  border: 1.5px solid var(--border-light);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.preset-btn:hover, .preset-btn.active {
+  border-color: var(--accent-gold);
+  background: var(--accent-gold-subtle);
+  color: var(--accent-gold-light);
+}
+
+/* ==========================================================================
+   INTERACTIVE BRICK BUILDER ("WALL OF BRICKS")
+   ========================================================================== */
+.brick-builder-section {
+  padding: 70px 0;
+  background: var(--bg-secondary);
+}
+
+.brick-builder-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow-lg);
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.bb-header-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.bb-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 0.85rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+}
+
+.legend-box.funded { background: var(--primary-emerald); }
+.legend-box.selected { background: var(--accent-gold); box-shadow: 0 0 8px var(--accent-gold); }
+.legend-box.available { background: var(--bg-secondary); border: 1px dashed var(--border-light); }
+
+.bb-status-bubble {
+  background: var(--accent-gold-subtle);
+  border: 1px solid var(--accent-gold);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: 0.88rem;
+  color: var(--text-dark);
+}
+
+.brick-interactive-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 16px;
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.brick-unit {
+  height: 48px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+  text-align: center;
+  padding: 2px;
+  position: relative;
+}
+
+.brick-unit.funded {
+  background: linear-gradient(135deg, var(--primary-emerald-dark) 0%, var(--primary-emerald) 100%);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.brick-unit.available {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-muted);
+}
+
+.brick-unit.available:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-gold);
+  background: var(--accent-gold-subtle);
+  color: var(--text-dark);
+}
+
+.brick-unit.selected {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  color: #ffffff;
+  border: 1px solid #fef3c7;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  transform: scale(1.05);
+  z-index: 2;
+}
+
+.bb-actions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.bb-preview-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 280px;
+}
+
+/* ==========================================================================
+   SADAQAH IMPACT SLIDER
+   ========================================================================== */
+.impact-section {
+  padding: 70px 0;
+  background: var(--bg-main);
+}
+
+.impact-slider-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: var(--shadow-lg);
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.impact-controls-wrap {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.impact-amount-display span {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.impact-amount-display h2 {
+  font-family: var(--font-heading);
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 4px 0 16px;
+}
+
+.impact-range {
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-full);
+  outline: none;
+  background: #e2e8f0;
+  accent-color: var(--accent-gold);
+  cursor: pointer;
+}
+
+[data-theme="dark"] .impact-range {
+  background: #1e293b;
+}
+
+.range-milestones {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.impact-cards-result {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.impact-item-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.iic-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.iic-info strong {
+  display: block;
+  font-size: 1rem;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.iic-info p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+/* ==========================================================================
+   FLOOR PLAN & ISOMETRIC CUTAWAY
+   ========================================================================== */
+.floorplan-section {
+  padding: 70px 0;
+  background: var(--bg-secondary);
+}
+
+.floorplan-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.floor-nav-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-main);
+  padding: 6px;
+  border-radius: var(--radius-md);
+}
+
+.floor-tab {
+  padding: 12px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.floor-tab.active {
+  background: var(--bg-card);
+  color: var(--accent-gold);
+  box-shadow: var(--shadow-sm);
+}
+
+.floor-plan-view {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.fp-image-wrap {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.fp-specs-list {
+  list-style: none;
+  margin-top: 14px;
+}
+
+.fp-specs-list li {
+  font-size: 0.88rem;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-dark);
+}
+
+/* ==========================================================================
+   PRAYERS & QIBLA COMPASS
+   ========================================================================== */
+.prayers-section {
+  padding: 70px 0;
+  background: linear-gradient(135deg, #080d1a 0%, #111c33 100%);
+  color: #ffffff;
+}
+
+.prayers-qibla-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 28px;
+}
+
+.prayer-widget-wrap {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+
+.prayer-times-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.pt-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+
+.pt-card.active-prayer {
+  background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-dark) 100%);
+  color: #0f172a;
+}
+
+/* Qibla Compass */
+.qibla-widget-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.compass-circle-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
+
+.compass-ring {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  border: 3px solid rgba(245, 158, 11, 0.4);
+  position: relative;
+  background: radial-gradient(circle, rgba(15, 23, 42, 0.8) 0%, rgba(2, 6, 23, 0.95) 100%);
+  box-shadow: 0 0 24px rgba(245, 158, 11, 0.2);
+}
+
+.compass-dir {
+  position: absolute;
+  font-weight: 800;
+  font-size: 0.8rem;
+  color: var(--accent-gold-light);
+}
+
+.compass-dir.north { top: 6px; left: 50%; transform: translateX(-50%); color: #ef4444; }
+.compass-dir.south { bottom: 6px; left: 50%; transform: translateX(-50%); }
+.compass-dir.east { right: 8px; top: 50%; transform: translateY(-50%); }
+.compass-dir.west { left: 8px; top: 50%; transform: translateY(-50%); }
+
+.compass-needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 110px;
+  margin-top: -55px;
+  margin-left: -2px;
+  transform: rotate(119deg);
+  transform-origin: center center;
+  transition: transform 1.2s ease;
+}
+
+.north-tip {
+  position: absolute;
+  top: -12px;
+  left: -6px;
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+}
+
+.compass-qibla-marker {
+  position: absolute;
+  bottom: 25px;
+  right: 18px;
+  background: var(--accent-gold);
+  color: #0f172a;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+/* ==========================================================================
+   PRINTABLE CERTIFICATE MODAL
+   ========================================================================== */
+.certificate-modal-card {
+  max-width: 680px;
+  padding: 24px;
+}
+
+.certificate-frame {
+  border: 4px double var(--accent-gold);
+  padding: 12px;
+  background: #fffdfa;
+  color: #0f172a;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.cert-border-inner {
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  padding: 24px;
+  text-align: center;
+}
+
+.cert-header h2 {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  color: #064e3b;
+  margin: 6px 0 2px;
+}
+
+.cert-title-badge {
+  display: inline-block;
+  background: var(--accent-gold);
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.9rem;
+  padding: 4px 18px;
+  border-radius: var(--radius-full);
+  margin: 12px 0;
+  letter-spacing: 0.05em;
+}
+
+.cert-hadith {
+  font-family: var(--font-arabic);
+  font-size: 1rem;
+  color: #78350f;
+  margin-bottom: 14px;
+}
+
+.cert-donor-name {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  color: #064e3b;
+  border-bottom: 2px solid var(--accent-gold);
+  display: inline-block;
+  padding: 4px 20px;
+  margin: 8px 0 14px;
+}
+
+.cert-meta-box {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  background: #f8f6f0;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  margin: 16px 0;
+  font-size: 0.8rem;
+}
+
+.cert-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 20px;
+  font-size: 0.75rem;
+}
+
+.sig-line {
+  width: 140px;
+  height: 1px;
+  background: #0f172a;
+  margin-bottom: 4px;
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #printableCertificate, #printableCertificate * { visibility: visible; }
+  #printableCertificate { position: absolute; left: 0; top: 0; width: 100%; }
+}
+
+/* ==========================================================================
+   BACK TO TOP BUTTON
+   ========================================================================== */
+.back-to-top {
+  position: fixed;
+  bottom: 85px;
+  left: 20px;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 800;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.back-to-top.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.progress-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: rotate(-90deg);
+}
+
+.progress-ring-circle {
+  stroke-dasharray: 125.6;
+  stroke-dashoffset: 125.6;
+  transition: stroke-dashoffset 0.1s ease;
+}
+
+.btt-arrow {
+  font-weight: 800;
+  color: var(--accent-gold);
+  font-size: 1.1rem;
+}
+
+/* ==========================================================================
+   AI CHATBOT FLOATING & VOICE
+   ========================================================================== */
+.ai-chatbot-floating-wrap {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+}
+
+.ai-chat-trigger {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  color: #ffffff;
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-full);
+  padding: 10px 18px 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.ai-chat-window {
+  position: absolute;
+  bottom: 60px;
+  right: 0;
+  width: 390px;
+  max-width: 90vw;
+  height: 530px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-gold);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(20px) scale(0.95);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.ai-chat-window.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.ai-chat-header {
+  background: #0f172a;
+  color: #ffffff;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.ai-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ai-sound-toggle {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+}
+
+.ai-chat-body {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: var(--bg-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ai-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 85%;
+}
+
+.ai-msg.bot { align-self: flex-start; }
+.ai-msg.user { align-self: flex-end; }
+
+.ai-msg-bubble {
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.ai-msg.bot .ai-msg-bubble {
+  background: var(--bg-card);
+  color: var(--text-dark);
+  border: 1px solid var(--border-light);
+  border-top-left-radius: 4px;
+}
+
+.ai-msg.user .ai-msg-bubble {
+  background: var(--primary-emerald);
+  color: #ffffff;
+  border-top-right-radius: 4px;
+}
+
+.ai-quick-chips {
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.chip-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  flex-shrink: 0;
+}
+
+.ai-chat-input-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-light);
+  gap: 8px;
+}
+
+.ai-chat-control {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  font-size: 0.88rem;
+  background: var(--bg-main);
+  color: var(--text-dark);
+  outline: none;
+}
+
+.btn-ai-send {
+  width: 36px;
+  height: 36px;
+  background: var(--primary-emerald);
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   BANK DETAILS & DONATE PORTAL
+   ========================================================================== */
+.bank-spotlight-section { padding: 60px 0; background: var(--bg-main); }
+.flyer-spotlight-box {
+  background: var(--bg-card);
+  border: 2px solid var(--accent-gold);
+  border-radius: var(--radius-lg);
+  padding: 36px;
+  box-shadow: var(--shadow-lg);
+}
+
+.bank-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.bank-detail-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.bank-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 16px 20px;
+  border-radius: var(--radius-md);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.bank-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.donate-section { padding: 70px 0; background: var(--bg-secondary); }
+.donation-portal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 32px;
+  max-width: 860px;
+  margin: 0 auto;
+}
+
+.portal-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 26px;
+  background: var(--bg-secondary);
+  padding: 4px;
+  border-radius: var(--radius-md);
+}
+
+.portal-tab {
+  padding: 12px 10px;
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.portal-tab.active {
+  background: var(--bg-card);
+  color: var(--accent-gold);
+  box-shadow: var(--shadow-sm);
+}
+
+.category-radio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.cat-radio-card {
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.cat-radio-card input { display: none; }
+.cat-radio-card:hover, .cat-radio-card.active {
+  border-color: var(--accent-gold);
+  background: var(--accent-gold-subtle);
+}
+
+.amount-pills-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.amount-pill {
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-light);
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text-dark);
+}
+
+.amount-pill:hover, .amount-pill.active {
+  background: var(--accent-gold);
+  border-color: var(--accent-gold);
+  color: #0f172a;
+}
+
+.custom-amount-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.currency-symbol {
+  position: absolute;
+  left: 14px;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--text-dark);
+}
+
+.gbp-text {
+  position: absolute;
+  right: 14px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  font-size: 0.95rem;
+  background: var(--bg-main);
+  color: var(--text-dark);
+}
+
+.form-control-sm { padding: 8px 12px; font-size: 0.88rem; }
+.amount-field {
+  padding-left: 34px;
+  padding-right: 50px;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.gift-aid-box {
+  background: var(--accent-gold-subtle);
+  border: 1.5px solid var(--accent-gold);
+  border-radius: var(--radius-md);
+  padding: 18px;
+}
+
+.form-row { display: flex; gap: 14px; }
+.col-half { flex: 1; }
+
+.payment-methods-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.pay-method-card {
+  background: var(--bg-secondary);
+  border: 1.5px solid var(--border-light);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.pay-method-card input { display: none; }
+.pay-method-card:hover, .pay-method-card.active {
+  border-color: var(--primary-emerald);
+  background: var(--primary-emerald-subtle);
+}
+
+/* ==========================================================================
+   BREAKDOWN & DONOR WALL & FAQ
+   ========================================================================== */
+.breakdown-section { padding: 70px 0; background: var(--bg-main); }
+.breakdown-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; }
+.bd-chart-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 28px; border: 1px solid var(--border-light); }
+.brick-calculator-card { background: #0f172a; color: #ffffff; border-radius: var(--radius-lg); padding: 28px; border: 1px solid var(--accent-gold); }
+
+.brick-stat-box { background: rgba(255, 255, 255, 0.06); padding: 14px; border-radius: var(--radius-md); margin-bottom: 20px; }
+.bs-row { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+.brick-counter-control { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+.btn-step { width: 40px; height: 40px; background: var(--accent-gold); color: #0f172a; font-weight: 800; font-size: 1.3rem; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; }
+.brick-counter-control input { flex: 1; text-align: center; font-size: 1.3rem; font-weight: 800; background: #ffffff; color: #0f172a; border-radius: var(--radius-sm); padding: 4px; }
+
+.donor-wall-section { padding: 70px 0; background: var(--bg-secondary); }
+.donor-cards-slider { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.donor-card-item { background: var(--bg-card); border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 18px; }
+.dci-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+
+.faq-section { padding: 70px 0; background: var(--bg-main); }
+.faq-accordion-wrap { max-width: 800px; margin: 0 auto; }
+.faq-item { border: 1px solid var(--border-light); border-radius: var(--radius-md); margin-bottom: 10px; overflow: hidden; }
+.faq-question { width: 100%; padding: 16px 20px; text-align: left; font-weight: 700; font-size: 1rem; color: var(--text-dark); display: flex; justify-content: space-between; align-items: center; background: var(--bg-card); }
+.faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease, padding 0.3s ease; background: var(--bg-secondary); }
+.faq-item.active .faq-answer { max-height: 300px; padding: 16px 20px; }
+
+/* Contact & Footer */
+.contact-section { padding: 70px 0; background: var(--bg-card); }
+.contact-card-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 36px; }
+.newsletter-box { background: var(--bg-secondary); border: 1px solid var(--border-light); border-radius: var(--radius-lg); padding: 28px; }
+
+.site-footer { background: #080d1a; color: #94a3b8; padding: 50px 0 0; font-size: 0.88rem; }
+.footer-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 30px; padding-bottom: 40px; }
+.footer-links { list-style: none; }
+.footer-links li { margin-bottom: 8px; }
+.footer-links a { color: #94a3b8; }
+.footer-links a:hover { color: #ffffff; }
+.footer-bottom { border-top: 1px solid rgba(255, 255, 255, 0.1); padding: 20px 0; font-size: 0.8rem; }
+.fb-flex { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+
+/* Modals & Sticky */
+.mobile-sticky-bar { display: none; position: fixed; bottom: 0; left: 0; right: 0; background: rgba(11, 17, 32, 0.96); backdrop-filter: blur(10px); z-index: 900; border-top: 1px solid var(--border-gold); padding: 8px 12px; }
+@media (max-width: 768px) { .mobile-sticky-bar { display: block; } }
+.msb-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+.msb-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.75rem; color: #ffffff; }
+.msb-ai { background: #1e293b; border: 1px solid var(--accent-gold); }
+.msb-gfm { background: var(--gofundme-green); }
+.msb-donate { background: var(--primary-emerald); }
+
+.modal-backdrop { position: fixed; inset: 0; background: rgba(8, 13, 26, 0.85); backdrop-filter: blur(6px); z-index: 1100; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity var(--transition-fast); }
+.modal-backdrop.active { opacity: 1; pointer-events: auto; }
+.modal-card { background: var(--bg-card); border-radius: var(--radius-lg); padding: 30px; max-width: 500px; width: 100%; position: relative; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5); }
+.modal-close { position: absolute; top: 14px; right: 18px; font-size: 1.8rem; color: var(--text-muted); }
+.spinner-ring { width: 48px; height: 48px; border: 4px solid var(--border-light); border-top-color: var(--primary-emerald); border-radius: 50%; animation: spinRing 1s linear infinite; margin: 0 auto 16px; }
+@keyframes spinRing { 100% { transform: rotate(360deg); } }
+
+.toast-container { position: fixed; bottom: 80px; right: 20px; z-index: 1200; display: flex; flex-direction: column; gap: 8px; }
+@media (min-width: 769px) { .toast-container { bottom: 24px; } }
+.toast { background: #0f172a; color: #ffffff; padding: 12px 18px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg); font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 8px; border-left: 4px solid var(--accent-gold); }
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .hero-grid, .breakdown-grid, .floor-plan-view, .prayers-qibla-grid, .contact-card-grid { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 768px) {
+  .main-nav { display: none; }
+  .mobile-toggle { display: flex; }
+  .ann-actions { display: none; }
+  .hero-title { font-size: 2.2rem; }
+  .form-row { flex-direction: column; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .cert-meta-box { grid-template-columns: 1fr 1fr; }
+}

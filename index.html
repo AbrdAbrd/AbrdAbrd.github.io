@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <title>Help Establish the First Masjid in Chichester | Chichester Jamia Centre</title>
+  <meta name="description" content="Chichester Jamia Centre (Charity No: 1148130) is raising £580,000 to establish the first permanent Masjid & Islamic Community Centre in Chichester, West Sussex. Interactive brick builder, Zakat calculator, AI Assistant & GoFundMe." />
+  <meta name="keywords" content="Chichester Masjid, Chichester Jamia Centre, Mosque Chichester, GoFundMe Chichester Mosque, Islamic Fundraising UK, Sadaqah Jariyah, Charity 1148130, AI Assistant" />
+  
+  <!-- Open Graph / Social Media -->
+  <meta property="og:title" content="Help Establish the First Masjid in Chichester — Chichester Jamia Centre" />
+  <meta property="og:description" content="We require £580,000 for the property and refurbishment of Chichester's first official Masjid and Community Hub. Charity Reg No. 1148130." />
+  <meta property="og:image" content="assets/building.jpg" />
+  <meta property="og:url" content="https://www.gofundme.com/f/chichester-mosque" />
+  <meta property="og:type" content="website" />
+
+  <!-- Theme Color for Mobile Browsers -->
+  <meta name="theme-color" content="#064e3b" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <div class="announcement-bar">
+    <div class="container ann-content">
+      <div class="ann-left">
+        <span class="badge-charity">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          UK Charity No. 1148130
+        </span>
+        <span class="jumuah-pill">
+          🕌 Next Jumu'ah: <strong id="nextJumuahTimer">Friday 1:15 PM</strong>
+        </span>
+      </div>
+
+      <p class="ann-text">🕋 <strong>Historic Appeal:</strong> Secure Chichester's 1st Masjid. Goal: £580,000</p>
+      
+      <div class="ann-actions">
+        <!-- Currency Selector -->
+        <div class="currency-selector-mini">
+          <label for="currencySelect">Currency:</label>
+          <select id="currencySelect" aria-label="Currency Selector">
+            <option value="GBP" selected>GBP (£)</option>
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="SAR">SAR (﷼)</option>
+            <option value="AED">AED (د.إ)</option>
+          </select>
+        </div>
+
+        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn-top-gofundme">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+          GoFundMe
+        </a>
+
+        <button id="quickCopyBankTop" class="btn-top-bank" title="Click to copy full Lloyds bank info">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 2 0 0 1 2-2h9a2 2 2 0 0 1 2 2v1"></path></svg>
+          Sort: 30-99-50 / Acc: 34785863
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header / Navigation -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-container">
+      <a href="#" class="brand-logo">
+        <div class="logo-icon-wrap">
+          <svg class="crescent-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M50 10 C30 10 15 25 15 48 C15 70 30 85 50 85 C40 75 38 60 42 45 C46 30 58 18 50 10 Z" fill="url(#goldGradient)" />
+            <path d="M55 25 L58 35 L68 35 L60 41 L63 51 L55 45 L47 51 L50 41 L42 35 L52 35 Z" fill="#F59E0B" />
+            <defs>
+              <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#F59E0B" />
+                <stop offset="100%" stop-color="#B45309" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-name">CHICHESTER JAMIA CENTRE</span>
+          <span class="brand-tagline">Masjid & Islamic Community Hub</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" id="mainNav">
+        <a href="#about" class="nav-link">Vision</a>
+        <a href="#floorplan" class="nav-link">Floor Plans</a>
+        <a href="#brick-builder" class="nav-link highlight-gold">Brick Builder</a>
+        <a href="#impact-calculator" class="nav-link">Sadaqah Impact</a>
+        <a href="#target" class="nav-link">£580k Target</a>
+        <a href="#gofundme-section" class="nav-link highlight-gfm">GoFundMe</a>
+        <a href="#donate" class="nav-link">Donate</a>
+        <a href="#bank-details" class="nav-link">Bank Info</a>
+        <a href="#prayers" class="nav-link">Prayers & Qibla</a>
+        <a href="#calculator" class="nav-link">Zakat</a>
+        <a href="#faq" class="nav-link">FAQs</a>
+      </nav>
+
+      <div class="header-cta-group">
+        <!-- Dark/Light Theme Toggle -->
+        <button id="themeToggleBtn" class="btn-theme-toggle" aria-label="Toggle Dark/Light Mode" title="Toggle Theme">
+          <span class="theme-icon-dark">🌙</span>
+          <span class="theme-icon-light">☀️</span>
+        </button>
+
+        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn btn-gofundme-sm">
+          <span class="gfm-heart">❤️</span> GoFundMe
+        </a>
+        <a href="#donate" class="btn btn-emerald pulse-btn">
+          <span>Donate Now</span>
+        </a>
+        <button class="mobile-toggle" id="mobileToggle" aria-label="Toggle Mobile Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu Overlay -->
+  <div class="mobile-menu-drawer" id="mobileMenuDrawer">
+    <div class="drawer-header">
+      <div class="brand-logo">
+        <span class="brand-name">CHICHESTER JAMIA CENTRE</span>
+      </div>
+      <button class="drawer-close" id="closeDrawerBtn">&times;</button>
+    </div>
+    <div class="drawer-body">
+      <div class="drawer-charity-badge">
+        <span>Registered UK Charity No. 1148130</span>
+      </div>
+      <nav class="drawer-nav">
+        <a href="#about" class="drawer-link">Our Project Vision</a>
+        <a href="#floorplan" class="drawer-link">Architectural Floor Plans</a>
+        <a href="#brick-builder" class="drawer-link highlight-gold">Interactive Brick Builder</a>
+        <a href="#impact-calculator" class="drawer-link">Sadaqah Impact Calculator</a>
+        <a href="#target" class="drawer-link">£580,000 Target Breakdown</a>
+        <a href="#gofundme-section" class="drawer-link gfm-link">❤️ GoFundMe Official Page</a>
+        <a href="#donate" class="drawer-link">Donate Online & Gift Aid</a>
+        <a href="#bank-details" class="drawer-link">Lloyds Bank Details</a>
+        <a href="#prayers" class="drawer-link">Prayer Times & Qibla Compass</a>
+        <a href="#calculator" class="drawer-link">Zakat Calculator</a>
+        <a href="#faq" class="drawer-link">Frequently Asked Questions</a>
+        <a href="#contact" class="drawer-link">Contact & Location</a>
+      </nav>
+      <div class="drawer-actions mt-4">
+        <button id="openAiChatbotBtnMobile" class="btn btn-gold btn-block btn-lg mb-2">
+          <span>🤖 Open Jamia AI Assistant</span>
+        </button>
+        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn btn-gofundme btn-block btn-lg">
+          <span>Donate on GoFundMe</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-bg-overlay"></div>
+    <div class="container hero-grid">
+      
+      <!-- Hero Left Column -->
+      <div class="hero-content">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          <span>Historic Appeal for West Sussex</span>
+        </div>
+
+        <h1 class="hero-title">
+          Help Establish the <span class="gold-text-glow">First Masjid</span> in Chichester
+        </h1>
+
+        <p class="hero-description">
+          Chichester Jamia Centre (Charity No: 1148130) is securing a permanent property to serve hundreds of Muslim families, NHS doctors & nurses at St Richard's Hospital, and university students. We urgently require <strong>£580,000</strong> to complete the purchase and refurbishment.
+        </p>
+
+        <!-- Hadith Card -->
+        <div class="hadith-card">
+          <div class="hadith-arabic">«مَنْ بَنَى مَسْجِدًا لِلَّهِ كَمَفْحَصِ قَطَاةٍ أَوْ أَصْغَرَ بَنَى اللَّهُ لَهُ بَيْتًا فِي الْجَنَّةِ»</div>
+          <blockquote class="hadith-quote">
+            "Whoever builds a mosque for the sake of Allah, like a sparrow's nest for Allah or even smaller, Allah will build for him a house in Paradise."
+          </blockquote>
+          <div class="hadith-source">— Sunan Ibn Majah 738</div>
+        </div>
+
+        <!-- Audio Quranic Recitation & Spiritual Bar -->
+        <div class="audio-spiritual-bar mb-4">
+          <div class="asb-icon-play" id="btnPlayAudio" title="Play Quranic Recitation">
+            <svg class="play-icon" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <svg class="pause-icon hidden" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </div>
+          <div class="asb-info">
+            <span class="asb-title">Quran Recitation — Surah Al-Baqarah (2:261)</span>
+            <span class="asb-sub">"The example of those who spend in the way of Allah is like a seed..."</span>
+          </div>
+          <audio id="quranAudio" src="https://cdn.islamicfinder.org/quran/audio/128/ar.alafasy/002261.mp3" preload="none"></audio>
+        </div>
+
+        <!-- Hero Actions -->
+        <div class="hero-actions">
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn btn-gofundme btn-lg glow-gfm">
+            <svg class="gfm-logo-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <span>Donate via GoFundMe</span>
+          </a>
+
+          <a href="#donate" class="btn btn-gold btn-lg glow-effect">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <span>Donate Online (Gift Aid)</span>
+          </a>
+
+          <a href="#brick-builder" class="btn btn-outline-light btn-lg">
+            <span>🧱 Build A Brick</span>
+          </a>
+
+          <button id="triggerAiChatHero" class="btn btn-glass btn-lg">
+            <span>🤖 Ask Jamia AI</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Hero Right Column: Live Fundraiser Card -->
+      <div class="hero-fundraiser-card" id="fundraiserCard">
+        <div class="card-glass-header">
+          <div class="card-status"><span class="pulse-green"></span> Campaign Active</div>
+          <span class="card-reg">Charity Reg: <strong>1148130</strong></span>
+        </div>
+
+        <div class="fund-progress-wrap">
+          <div class="fund-amount-group">
+            <div class="raised-block">
+              <span class="fund-label">Total Raised</span>
+              <h2 class="raised-value" id="raisedDisplay">£324,850</h2>
+            </div>
+            <div class="target-block">
+              <span class="fund-label">Target Goal</span>
+              <h2 class="target-value" id="targetDisplay">£580,000</h2>
+            </div>
+          </div>
+
+          <!-- Interactive Bar -->
+          <div class="progress-bar-outer">
+            <div class="progress-bar-inner" id="progressBarFill" style="width: 56%;">
+              <span class="progress-percent" id="percentDisplay">56.0%</span>
+            </div>
+          </div>
+
+          <div class="milestones-row">
+            <div class="milestone-item reached">
+              <span class="m-dot"></span>
+              <span class="m-text">Deposit</span>
+            </div>
+            <div class="milestone-item reached">
+              <span class="m-dot"></span>
+              <span class="m-text">Legal Fees</span>
+            </div>
+            <div class="milestone-item active">
+              <span class="m-dot"></span>
+              <span class="m-text">Purchase (£420k)</span>
+            </div>
+            <div class="milestone-item">
+              <span class="m-dot"></span>
+              <span class="m-text">Refurbish (£580k)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="fund-stats-grid">
+          <div class="f-stat">
+            <span class="f-num" id="donorCount">542</span>
+            <span class="f-lbl">Donors</span>
+          </div>
+          <div class="f-stat">
+            <span class="f-num" id="remainingDisplay">£255,150</span>
+            <span class="f-lbl">Remaining</span>
+          </div>
+          <div class="f-stat">
+            <span class="f-num" id="bricksFundedHeader">3,248</span>
+            <span class="f-lbl">Bricks Funded</span>
+          </div>
+        </div>
+
+        <!-- Quick Presets -->
+        <div class="quick-preset-container">
+          <span class="preset-title">Select Donation Amount:</span>
+          <div class="preset-grid">
+            <button class="preset-btn" data-amount="25">£25</button>
+            <button class="preset-btn" data-amount="50">£50</button>
+            <button class="preset-btn active" data-amount="100">£100 <small>(1 Brick)</small></button>
+            <button class="preset-btn" data-amount="250">£250</button>
+            <button class="preset-btn" data-amount="500">£500 <small>(1 Musalla)</small></button>
+            <button class="preset-btn" data-amount="1000">£1,000</button>
+          </div>
+        </div>
+
+        <div class="card-action-dual">
+          <a href="#donate" class="btn btn-emerald btn-block btn-xl pulse-btn">
+            <span>Donate £100 Online</span>
+          </a>
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn btn-gofundme btn-block btn-xl">
+            <span>Or Donate via GoFundMe ↗</span>
+          </a>
+        </div>
+
+        <div class="card-security-note">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>100% Verified • Official UK Charity Account</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION: INTERACTIVE BRICK BUILDER ("Wall of Bricks") -->
+  <section class="section brick-builder-section" id="brick-builder">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Visual Mosque Builder</span>
+        <h2 class="section-title">The Foundation Brick Wall</h2>
+        <p class="section-desc">Click any available brick to sponsor it for <strong>£100</strong>. See your name inscribed as a foundation pillar of Chichester's first Masjid.</p>
+      </div>
+
+      <div class="brick-builder-card">
+        <div class="bb-header-info">
+          <div class="bb-legend">
+            <div class="legend-item"><span class="legend-box funded"></span> Funded Brick</div>
+            <div class="legend-item"><span class="legend-box selected"></span> Your Selected Brick</div>
+            <div class="legend-item"><span class="legend-box available"></span> Click to Sponsor (£100)</div>
+          </div>
+          <div class="bb-status-bubble" id="brickSelectionStatus">
+            <span>Selected: <strong>1 Brick (£100)</strong></span>
+          </div>
+        </div>
+
+        <!-- Interactive Visual Bricks Grid -->
+        <div class="brick-interactive-wall" id="brickGridContainer">
+          <!-- 60 interactive bricks generated dynamically by JS -->
+        </div>
+
+        <div class="bb-actions-footer">
+          <div class="bb-preview-text">
+            <span>Inscribe Brick under Name:</span>
+            <input type="text" id="brickInscribeName" placeholder="e.g. In Memory of Our Parents / Dr. A. Khan" class="form-control form-control-sm">
+          </div>
+          <button class="btn btn-gold btn-lg" id="btnConfirmBrickSponsor">
+            <span>Sponsor Selected Bricks Now (<span id="bbActionCost">£100</span>)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: SADAQAH JARIYAH IMPACT SLIDER -->
+  <section class="section impact-section" id="impact-calculator">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">See Your Eternal Reward</span>
+        <h2 class="section-title">Interactive Sadaqah Jariyah Calculator</h2>
+        <p class="section-desc">Move the slider to see how your contribution directly transforms Chichester Jamia Centre.</p>
+      </div>
+
+      <div class="impact-slider-card">
+        <div class="impact-controls-wrap">
+          <div class="impact-amount-display">
+            <span>Your Donation Impact:</span>
+            <h2 id="impactAmountValue" class="gold-text-glow">£250</h2>
+          </div>
+          
+          <div class="slider-input-container">
+            <input type="range" id="impactRangeSlider" min="25" max="2500" step="25" value="250" class="impact-range">
+            <div class="range-milestones">
+              <span>£25</span>
+              <span>£100</span>
+              <span>£250</span>
+              <span>£500</span>
+              <span>£1,000</span>
+              <span>£2,500</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="impact-cards-result" id="impactResultCards">
+          <!-- Dynamic cards populated by app.js -->
+        </div>
+
+        <div class="impact-cta-row text-center mt-4">
+          <button class="btn btn-emerald btn-lg pulse-btn" id="btnApplyImpactToDonate">
+            <span>Pledge <strong id="btnImpactAmountText">£250</strong> for this Impact</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: GoFundMe Official Appeal Integration Banner -->
+  <section class="section gofundme-integration-section" id="gofundme-section">
+    <div class="container">
+      <div class="gofundme-spotlight-card">
+        <div class="gfm-card-left">
+          <div class="gfm-badge-pill">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            Official GoFundMe Campaign
+          </div>
+          <h2>Support Chichester Mosque on GoFundMe</h2>
+          <p class="gfm-desc">Prefer to donate through GoFundMe? You can support our official campaign page directly. All donations raised on GoFundMe go directly to Chichester Jamia Centre for property purchase and refurbishments.</p>
+          
+          <div class="gfm-link-box">
+            <span class="gfm-url-text">https://www.gofundme.com/f/chichester-mosque</span>
+            <button class="btn-copy-gfm" id="copyGfmUrlBtn" data-copy="https://www.gofundme.com/f/chichester-mosque">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              Copy Link
+            </button>
+          </div>
+        </div>
+
+        <div class="gfm-card-right">
+          <div class="gfm-cta-box text-center">
+            <div class="gfm-heart-icon">❤️</div>
+            <h3>Join 500+ Supporters</h3>
+            <p>Every contribution counts, no matter how small.</p>
+            <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn btn-gofundme btn-block btn-xl mt-3 glow-gfm">
+              <span>Open GoFundMe Campaign ↗</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bank Details Highlight Section -->
+  <section class="section bank-spotlight-section" id="bank-details">
+    <div class="container">
+      <div class="flyer-spotlight-box">
+        <div class="spotlight-header">
+          <div class="spotlight-badge">Direct Bank Transfer</div>
+          <h2>CHICHESTER JAMIA CENTRE</h2>
+          <p>Donate directly to our official UK Lloyds Bank account with zero processing fees!</p>
+        </div>
+
+        <div class="bank-cards-grid">
+          <div class="bank-detail-card">
+            <div class="bd-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div class="bd-info">
+              <span class="bd-label">Bank Name</span>
+              <strong class="bd-value">Lloyds Bank</strong>
+            </div>
+          </div>
+
+          <div class="bank-detail-card highlight-card">
+            <div class="bd-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            </div>
+            <div class="bd-info">
+              <span class="bd-label">Sort Code</span>
+              <strong class="bd-value sort-code-value">30-99-50</strong>
+            </div>
+            <button class="btn-copy-sm" id="copySortCodeBtn" data-copy="30-99-50">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+
+          <div class="bank-detail-card highlight-card">
+            <div class="bd-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            </div>
+            <div class="bd-info">
+              <span class="bd-label">Account Number</span>
+              <strong class="bd-value account-no-value">34785863</strong>
+            </div>
+            <button class="btn-copy-sm" id="copyAccNoBtn" data-copy="34785863">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy</span>
+            </button>
+          </div>
+
+          <div class="bank-detail-card">
+            <div class="bd-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="bd-info">
+              <span class="bd-label">Account Name</span>
+              <strong class="bd-value">Chichester Jamia Centre</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="bank-footer-note">
+          <span class="reference-tag">Reference Payment as: <strong>MASJID</strong></span>
+          <div class="bank-actions-group">
+            <button class="btn btn-gold btn-sm" id="copyAllBankDetails">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>Copy Full Bank Details</span>
+            </button>
+            <button class="btn btn-outline-light btn-sm" id="btnOpenCertBlank">
+              <span>📜 Sample Gift Certificate</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Interactive Online Donation Portal -->
+  <section class="section donate-section" id="donate">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Make Your Contribution</span>
+        <h2 class="section-title">Online Donation Portal</h2>
+        <p class="section-desc">Fast, secure, and UK Gift Aid enabled. Every pound brings us closer to establishing Chichester's first permanent Masjid.</p>
+      </div>
+
+      <div class="donation-portal-card">
+        
+        <!-- Tab Controls -->
+        <div class="portal-tabs">
+          <button class="portal-tab active" data-tab="tab-one-off">Single Donation</button>
+          <button class="portal-tab" data-tab="tab-monthly">Monthly Standing Order</button>
+          <button class="portal-tab" data-tab="tab-brick">Sponsor a Brick (£100)</button>
+          <button class="portal-tab" data-tab="tab-musalla">Sponsor a Musalla (£500)</button>
+        </div>
+
+        <form id="donationForm" class="portal-form">
+
+          <!-- Step 1: Intention & Category -->
+          <div class="form-group">
+            <label class="form-label">1. Select Donation Purpose / Intention:</label>
+            <div class="category-radio-grid">
+              <label class="cat-radio-card active">
+                <input type="radio" name="purpose" value="Masjid Property Fund" checked>
+                <span class="radio-icon">🕋</span>
+                <span class="radio-text">
+                  <strong>Property & Refurbishment Fund</strong>
+                  <small>General contribution to £580k goal</small>
+                </span>
+              </label>
+
+              <label class="cat-radio-card">
+                <input type="radio" name="purpose" value="Buy a Brick (£100)">
+                <span class="radio-icon">🧱</span>
+                <span class="radio-text">
+                  <strong>Buy a Brick (£100)</strong>
+                  <small>Sadaqah Jariyah for yourself or family</small>
+                </span>
+              </label>
+
+              <label class="cat-radio-card">
+                <input type="radio" name="purpose" value="Sponsor Prayer Space (£500)">
+                <span class="radio-icon">🕌</span>
+                <span class="radio-text">
+                  <strong>Sponsor 1 Musalla (£500)</strong>
+                  <small>Fund a dedicated prayer space in main hall</small>
+                </span>
+              </label>
+
+              <label class="cat-radio-card">
+                <input type="radio" name="purpose" value="In Memory of Loved One">
+                <span class="radio-icon">🤲</span>
+                <span class="radio-text">
+                  <strong>In Memory of Deceased (Marhoom)</strong>
+                  <small>Continuous reward for departed loved ones</small>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Step 2: Amount Selector -->
+          <div class="form-group mt-4">
+            <label class="form-label">2. Select or Enter Amount (<span class="currency-label-text">GBP £</span>):</label>
+            <div class="amount-pills-row">
+              <button type="button" class="amount-pill" data-val="25">£25</button>
+              <button type="button" class="amount-pill" data-val="50">£50</button>
+              <button type="button" class="amount-pill active" data-val="100">£100</button>
+              <button type="button" class="amount-pill" data-val="250">£250</button>
+              <button type="button" class="amount-pill" data-val="500">£500</button>
+              <button type="button" class="amount-pill" data-val="1000">£1,000</button>
+              <button type="button" class="amount-pill" data-val="2500">£2,500</button>
+            </div>
+
+            <div class="custom-amount-input-wrap mt-3">
+              <span class="currency-symbol" id="currSymbol">£</span>
+              <input type="number" id="customAmountInput" class="form-control amount-field" value="100" min="1" placeholder="Enter custom amount">
+              <span class="gbp-text" id="currCode">GBP</span>
+            </div>
+          </div>
+
+          <!-- Step 3: UK Gift Aid Option -->
+          <div class="gift-aid-box mt-4">
+            <div class="gift-aid-header">
+              <label class="checkbox-container">
+                <input type="checkbox" id="giftAidCheck" checked>
+                <span class="checkmark"></span>
+                <span class="ga-title">Boost your donation by 25% with UK Gift Aid at no extra cost to you!</span>
+              </label>
+            </div>
+            <div class="gift-aid-body" id="giftAidBody">
+              <p class="ga-desc">If you are a UK taxpayer, HM Revenue & Customs adds 25p for every £1 you donate. Your <strong><span id="gaBaseDisplay">£100</span></strong> donation becomes <strong><span id="gaTotalDisplay" class="gold-text">£125.00</span></strong> for Chichester Jamia Centre!</p>
+              <small class="ga-legal">By checking this box, I confirm I am a UK taxpayer and understand that if I pay less Income Tax and/or Capital Gains Tax in the current tax year than the amount of Gift Aid claimed on all my donations, it is my responsibility to pay any difference.</small>
+            </div>
+          </div>
+
+          <!-- Donor Details -->
+          <div class="form-row mt-4">
+            <div class="form-group col-half">
+              <label class="form-label" for="donorName">Full Name *</label>
+              <input type="text" id="donorName" class="form-control" placeholder="e.g. Abdullah Khan" required>
+            </div>
+            <div class="form-group col-half">
+              <label class="form-label" for="donorEmail">Email Address *</label>
+              <input type="email" id="donorEmail" class="form-control" placeholder="e.g. name@example.com" required>
+            </div>
+          </div>
+
+          <div class="form-group mt-3">
+            <label class="form-label" for="donorNotes">Optional Message / Du'a for Donor Wall:</label>
+            <input type="text" id="donorNotes" class="form-control" placeholder="May Allah accept this Sadaqah Jariyah for our community.">
+          </div>
+
+          <!-- Payment Methods -->
+          <div class="form-group mt-4">
+            <label class="form-label">Select Payment Method:</label>
+            <div class="payment-methods-grid">
+              <label class="pay-method-card active">
+                <input type="radio" name="paymethod" value="card" checked>
+                <span class="pm-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>
+                <span class="pm-name">Debit / Credit Card</span>
+              </label>
+
+              <label class="pay-method-card">
+                <input type="radio" name="paymethod" value="bank">
+                <span class="pm-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 22 7 12 2"/><line x1="2" y1="17" x2="22" y2="17"/><line x1="2" y1="22" x2="22" y2="22"/><line x1="4" y1="7" x2="4" y2="17"/><line x1="10" y1="7" x2="10" y2="17"/><line x1="14" y1="7" x2="14" y2="17"/><line x1="20" y1="7" x2="20" y2="17"/></svg></span>
+                <span class="pm-name">Direct Bank Transfer</span>
+              </label>
+
+              <label class="pay-method-card">
+                <input type="radio" name="paymethod" value="gofundme">
+                <span class="pm-icon">❤️</span>
+                <span class="pm-name">GoFundMe Page</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-emerald btn-block btn-xl mt-4" id="submitDonationBtn">
+            <span>Complete Donation of <strong id="btnPayAmount">£100.00</strong></span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+
+        </form>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Interactive Building Floor Plan & Isometric Cutaway -->
+  <section class="section floorplan-section" id="floorplan">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Architectural Layout</span>
+        <h2 class="section-title">Explore Chichester Masjid Cutaway</h2>
+        <p class="section-desc">Examine the isometric cutaway and individual floor designated spaces for worship, ablution, and Madrasa classrooms.</p>
+      </div>
+
+      <div class="floorplan-card">
+        <div class="floor-nav-tabs">
+          <button class="floor-tab active" data-floor="isometric">🏛 3D Isometric Overview</button>
+          <button class="floor-tab" data-floor="ground">Ground Floor (Main Sanctuary & Wudu)</button>
+          <button class="floor-tab" data-floor="first">First Floor (Sisters Sanctuary & Creche)</button>
+          <button class="floor-tab" data-floor="annexe">Community Annexe (Madrasa & Library)</button>
+        </div>
+
+        <div class="floor-content-display" id="floorDisplay">
+          <!-- Active Floor Content via JS -->
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Zakat & Sadaqah Calculator Tool -->
+  <section class="section calculator-section" id="calculator">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Islamic Financial Calculator</span>
+        <h2 class="section-title">Calculate Your Zakat & Sadaqah</h2>
+        <p class="section-desc">Easily calculate your annual Zakat (2.5%) based on current Nisab values and allocate your Sadaqah Jariyah for Chichester Jamia Centre.</p>
+      </div>
+
+      <div class="calculator-card">
+        <div class="calc-grid">
+          <div class="calc-inputs-side">
+            <h3 class="calc-subtitle">Eligible Wealth Breakdown (GBP £):</h3>
+            
+            <div class="calc-field">
+              <label for="zakatCash">1. Cash & Bank Savings (£)</label>
+              <input type="number" id="zakatCash" class="form-control" value="0" min="0" placeholder="0">
+            </div>
+
+            <div class="calc-field">
+              <label for="zakatGold">2. Gold & Silver Value (£)</label>
+              <input type="number" id="zakatGold" class="form-control" value="0" min="0" placeholder="0">
+            </div>
+
+            <div class="calc-field">
+              <label for="zakatInvestments">3. Shares & Business Assets (£)</label>
+              <input type="number" id="zakatInvestments" class="form-control" value="0" min="0" placeholder="0">
+            </div>
+
+            <div class="calc-field">
+              <label for="zakatDebts">Minus Short-term Liabilities / Debts (£)</label>
+              <input type="number" id="zakatDebts" class="form-control" value="0" min="0" placeholder="0">
+            </div>
+          </div>
+
+          <div class="calc-result-side">
+            <div class="result-badge">Nisab Threshold Met</div>
+            <span class="res-lbl">Total Net Wealth:</span>
+            <h3 class="res-val" id="totalWealthDisplay">£0.00</h3>
+
+            <div class="zakat-due-box">
+              <span>Zakat Due (2.5%):</span>
+              <h2 id="zakatDueDisplay">£0.00</h2>
+            </div>
+
+            <button class="btn btn-gold btn-block btn-lg mt-3" id="btnApplyZakatToDonation">
+              <span>Donate Calculated Zakat / Sadaqah</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Project Vision & Architectural Renders -->
+  <section class="section vision-section" id="about">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Building Our Permanent Home</span>
+        <h2 class="section-title">The Chichester Jamia Centre Vision</h2>
+        <p class="section-desc">Transforming a local building into a vibrant sanctuary of worship, education, unity, and community service.</p>
+      </div>
+
+      <div class="vision-cards-grid" id="gallery">
+        
+        <div class="vision-card">
+          <div class="vc-img-wrap">
+            <img src="assets/building.jpg" alt="Chichester Jamia Centre Exterior Render" loading="lazy">
+            <span class="vc-badge">Property Exterior</span>
+          </div>
+          <div class="vc-body">
+            <h3>Historic Acquisition</h3>
+            <p>Securing a landmark property in Chichester to establish the city's first dedicated Masjid. Providing parking, green space, and convenient access for all residents.</p>
+          </div>
+        </div>
+
+        <div class="vision-card">
+          <div class="vc-img-wrap">
+            <img src="assets/prayer_hall.jpg" alt="Chichester Masjid Main Prayer Hall" loading="lazy">
+            <span class="vc-badge">Spiritual Sanctuary</span>
+          </div>
+          <div class="vc-body">
+            <h3>Main Prayer Hall</h3>
+            <p>Spacious, climate-controlled prayer halls for Brothers and Sisters, equipped with modern wudu (ablution) facilities, sound systems, and wheelchair accessibility.</p>
+          </div>
+        </div>
+
+        <div class="vision-card">
+          <div class="vc-img-wrap">
+            <img src="assets/community.jpg" alt="Chichester Islamic Educational Hub" loading="lazy">
+            <span class="vc-badge">Education & Youth</span>
+          </div>
+          <div class="vc-body">
+            <h3>Community & Madrasa Hub</h3>
+            <p>Dedicated classrooms for Weekend Quranic School, youth mentoring programs, Islamic reference library, interfaith outreach center, and charity distribution drives.</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Feature Checklist Grid -->
+      <div class="key-amenities-box mt-5">
+        <h3 class="box-title">Key Facilities Being Established:</h3>
+        <div class="amenities-grid">
+          <div class="amenity-item">
+            <div class="a-icon">🕌</div>
+            <div>
+              <strong>300+ Capacity Prayer Space</strong>
+              <p>Daily 5 time prayers, Friday Jumu'ah & Eid congregations.</p>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <div class="a-icon">🧕</div>
+            <div>
+              <strong>Dedicated Sister's Prayer Hall</strong>
+              <p>Private, comfortable environment with audio-visual link & creche.</p>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <div class="a-icon">💧</div>
+            <div>
+              <strong>Modern Wudu Facilities</strong>
+              <p>Clean, high-capacity ablution areas for men and women.</p>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <div class="a-icon">📚</div>
+            <div>
+              <strong>Children's Madrasa & Library</strong>
+              <p>Teaching Tajweed, Arabic, Islamic studies & life skills.</p>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <div class="a-icon">🤝</div>
+            <div>
+              <strong>Interfaith & Community Hub</strong>
+              <p>Welcoming neighbours, schools, civic leaders, and open days.</p>
+            </div>
+          </div>
+
+          <div class="amenity-item">
+            <div class="a-icon">📦</div>
+            <div>
+              <strong>Food Bank & Social Care</strong>
+              <p>Serving vulnerable families across Chichester and West Sussex.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section: Fundraising Breakdown (£580,000 Target) -->
+  <section class="section breakdown-section" id="target">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Financial Transparency</span>
+        <h2 class="section-title">Where Your Donations Go (£580,000)</h2>
+        <p class="section-desc">We operate with 100% transparency. Here is the exact budget allocation required for completing the project.</p>
+      </div>
+
+      <div class="breakdown-grid">
+        
+        <div class="bd-chart-card">
+          <div class="budget-item">
+            <div class="bi-top">
+              <span class="bi-title">1. Building Property Acquisition</span>
+              <strong class="bi-amount">£420,000 (72.4%)</strong>
+            </div>
+            <div class="bi-bar-outer"><div class="bi-bar-inner" style="width: 72.4%;"></div></div>
+            <p class="bi-desc">Securing the freehold property contract in Chichester town area.</p>
+          </div>
+
+          <div class="budget-item">
+            <div class="bi-top">
+              <span class="bi-title">2. Refurbishment & Wudu Installation</span>
+              <strong class="bi-amount">£95,000 (16.4%)</strong>
+            </div>
+            <div class="bi-bar-outer"><div class="bi-bar-inner" style="width: 16.4%; background: #F59E0B;"></div></div>
+            <p class="bi-desc">Converting commercial interior into prayer halls, installing wudu plumbing, carpets & acoustic insulation.</p>
+          </div>
+
+          <div class="budget-item">
+            <div class="bi-top">
+              <span class="bi-title">3. Planning Permission & Legal Fees</span>
+              <strong class="bi-amount">£35,000 (6.0%)</strong>
+            </div>
+            <div class="bi-bar-outer"><div class="bi-bar-inner" style="width: 6.0%; background: #10B981;"></div></div>
+            <p class="bi-desc">Council change of use application, legal conveyancing, and survey reports.</p>
+          </div>
+
+          <div class="budget-item">
+            <div class="bi-top">
+              <span class="bi-title">4. Initial Reserve & Operational Contingency</span>
+              <strong class="bi-amount">£30,000 (5.2%)</strong>
+            </div>
+            <div class="bi-bar-outer"><div class="bi-bar-inner" style="width: 5.2%; background: #6366F1;"></div></div>
+            <p class="bi-desc">First-year insurance, utilities setup, safety compliance, and contingency fund.</p>
+          </div>
+        </div>
+
+        <!-- Brick Calculator Card -->
+        <div class="brick-calculator-card">
+          <div class="bcc-header">
+            <h3>🧱 Buy A Brick Summary</h3>
+            <p>Sponsor individual bricks or prayer spaces to help us cross the finish line!</p>
+          </div>
+
+          <div class="brick-stat-box">
+            <div class="bs-row">
+              <span>Total Bricks Required:</span>
+              <strong>5,800 Bricks</strong>
+            </div>
+            <div class="bs-row">
+              <span>Cost per Brick:</span>
+              <strong class="gold-text">£100 / Brick</strong>
+            </div>
+            <div class="bs-row">
+              <span>Bricks Funded So Far:</span>
+              <strong class="emerald-text" id="brickFundedCount">3,248 Bricks</strong>
+            </div>
+            <div class="bs-row">
+              <span>Bricks Remaining:</span>
+              <strong id="brickRemainingCount">2,552 Bricks</strong>
+            </div>
+          </div>
+
+          <div class="interactive-brick-picker">
+            <label class="form-label">How many bricks would you like to sponsor?</label>
+            <div class="brick-counter-control">
+              <button type="button" class="btn-step" id="btnBrickMinus">-</button>
+              <input type="number" id="brickCountInput" value="5" min="1" max="500">
+              <button type="button" class="btn-step" id="btnBrickPlus">+</button>
+            </div>
+            <div class="brick-total-display">
+              Total Sponsorship: <strong id="brickTotalCost" class="gold-text">£500</strong>
+            </div>
+            <button class="btn btn-gold btn-block btn-lg mt-3" id="btnSponsorBricks">
+              <span>Sponsor <span id="brickCountText">5</span> Bricks Now</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Chichester Prayer Times & Qibla Compass Widget -->
+  <section class="section prayers-section" id="prayers">
+    <div class="container">
+      
+      <div class="prayers-qibla-grid">
+        
+        <!-- Prayer Times Panel -->
+        <div class="prayer-widget-wrap">
+          <div class="pw-header">
+            <div class="pw-title-group">
+              <span class="pw-badge">Chichester, UK</span>
+              <h2>Today's Prayer Times</h2>
+              <p id="hijriDateDisplay">Loading Islamic Calendar Date...</p>
+            </div>
+            <div class="pw-next-box">
+              <span class="next-label">Next Prayer:</span>
+              <strong id="nextPrayerName" class="gold-text">Maghrib</strong>
+              <span id="nextPrayerCountdown" class="countdown-badge">in 02:45:10</span>
+            </div>
+          </div>
+
+          <div class="prayer-times-grid">
+            <div class="pt-card" id="ptFajr">
+              <span class="pt-name">Fajr</span>
+              <strong class="pt-time">05:32 AM</strong>
+              <span class="pt-iqamah">Iqamah: 06:00 AM</span>
+            </div>
+            <div class="pt-card" id="ptSunrise">
+              <span class="pt-name">Sunrise</span>
+              <strong class="pt-time">07:05 AM</strong>
+              <span class="pt-iqamah">Shuruq</span>
+            </div>
+            <div class="pt-card" id="ptDhuhr">
+              <span class="pt-name">Dhuhr</span>
+              <strong class="pt-time">01:02 PM</strong>
+              <span class="pt-iqamah">Iqamah: 01:30 PM</span>
+            </div>
+            <div class="pt-card" id="ptAsr">
+              <span class="pt-name">Asr</span>
+              <strong class="pt-time">04:18 PM</strong>
+              <span class="pt-iqamah">Iqamah: 04:45 PM</span>
+            </div>
+            <div class="pt-card active-prayer" id="ptMaghrib">
+              <span class="pt-name">Maghrib</span>
+              <strong class="pt-time">06:46 PM</strong>
+              <span class="pt-iqamah">Iqamah: 06:51 PM</span>
+            </div>
+            <div class="pt-card" id="ptIsha">
+              <span class="pt-name">Isha</span>
+              <strong class="pt-time">08:15 PM</strong>
+              <span class="pt-iqamah">Iqamah: 08:30 PM</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interactive Qibla Compass Panel -->
+        <div class="qibla-widget-card" id="qiblaWidget">
+          <div class="qw-header">
+            <span class="pw-badge">Makkah Alignment</span>
+            <h3>Chichester Qibla Direction</h3>
+            <p>Bearing: <strong>119.2° East-Southeast</strong> • Distance: 4,891 km to Ka'aba</p>
+          </div>
+
+          <div class="compass-circle-wrap">
+            <div class="compass-ring">
+              <span class="compass-dir north">N</span>
+              <span class="compass-dir east">E</span>
+              <span class="compass-dir south">S</span>
+              <span class="compass-dir west">W</span>
+              <div class="compass-needle" id="compassNeedle">
+                <span class="needle-tip north-tip">▲</span>
+                <span class="needle-tip south-tip">▼</span>
+              </div>
+              <div class="compass-qibla-marker" title="Qibla (119° ESE)">
+                <span>🕋 119°</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="qw-footer text-center">
+            <small>Chichester Jamia Centre prayer halls are aligned exactly towards 119° ESE.</small>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Section: Donor Wall of Generosity -->
+  <section class="section donor-wall-section">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Wall of Generosity</span>
+        <h2 class="section-title">Recent Community Donors</h2>
+        <p class="section-desc">May Allah (SWT) reward every brother and sister who contributed to this noble house of worship.</p>
+      </div>
+
+      <div class="donor-cards-slider" id="donorWallFeed">
+        <!-- Dynamic Donors inserted by JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Frequently Asked Questions (FAQ) -->
+  <section class="section faq-section" id="faq">
+    <div class="container">
+      <div class="section-title-wrap text-center">
+        <span class="section-subtitle">Got Questions?</span>
+        <h2 class="section-title">Frequently Asked Questions</h2>
+      </div>
+
+      <div class="faq-accordion-wrap">
+        
+        <div class="faq-item active">
+          <button class="faq-question">
+            <span>Is Chichester Jamia Centre a registered UK charity?</span>
+            <svg class="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes! Chichester Jamia Centre is officially registered with the UK Charity Commission under <strong>Charity Registration Number 1148130</strong>. All financial transactions are subject to independent auditing and regulatory compliance.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Can I donate via GoFundMe as well?</span>
+            <svg class="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes! You can donate on our official GoFundMe page at <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener">gofundme.com/f/chichester-mosque</a>. All funds raised on GoFundMe are directly transferred to Chichester Jamia Centre for the property purchase and refurbishment.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>How will the £580,000 target be used?</span>
+            <svg class="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>The total fund of £580,000 is allocated to: Property Purchase (£420,000), Refurbishment & Wudu Installation (£95,000), Planning & Legal Fees (£35,000), and Operational Contingency (£30,000).</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Can I claim Gift Aid on my donation?</span>
+            <svg class="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Yes! If you are a UK taxpayer, ticking the Gift Aid box allows us to claim an extra 25p from HM Revenue & Customs for every £1 you donate, at zero additional cost to you.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question">
+            <span>Can I pay via Bank Transfer to avoid card fees?</span>
+            <svg class="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <div class="faq-answer">
+            <p>Absolutely! You can transfer funds directly to our Lloyds Bank account:<br>
+            <strong>Account Name:</strong> Chichester Jamia Centre<br>
+            <strong>Sort Code:</strong> 30-99-50<br>
+            <strong>Account No:</strong> 34785863<br>
+            Please reference your payment as <em>MASJID</em>.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Share & Social Awareness Banner -->
+  <section class="section share-banner-section">
+    <div class="container">
+      <div class="share-box-content">
+        <div class="share-text-side">
+          <h2>"Whosoever guides to good gets the reward of the doer."</h2>
+          <p>Share this appeal on GoFundMe, WhatsApp, or social media to help us establish Chichester's first Masjid!</p>
+        </div>
+        <div class="share-buttons-side">
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="btn btn-gofundme">
+            <span>Share GoFundMe</span>
+          </a>
+          <button class="btn btn-whatsapp" id="shareWhatsAppBtn">
+            <span>WhatsApp</span>
+          </button>
+          <button class="btn btn-facebook" id="shareFacebookBtn">
+            <span>Facebook</span>
+          </button>
+          <button class="btn btn-x" id="shareXBtn">
+            <span>X (Twitter)</span>
+          </button>
+          <button class="btn btn-glass" id="copyShareLinkBtn">
+            <span>Copy Link</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact & Location Section -->
+  <section class="section contact-section" id="contact">
+    <div class="container">
+      <div class="contact-card-grid">
+        <div class="contact-info-col">
+          <span class="section-subtitle">Get In Touch</span>
+          <h2 class="section-title">Chichester Jamia Centre</h2>
+          <p>We welcome all community members, donors, and visitors. Feel free to contact our committee for inquiries or standing order forms.</p>
+          
+          <div class="contact-detail-list mt-4">
+            <div class="cd-item">
+              <span class="cd-icon">📍</span>
+              <div>
+                <strong>Registered Office:</strong>
+                <p>102 Bognor Road, Chichester, West Sussex, PO19 7TW, United Kingdom</p>
+              </div>
+            </div>
+
+            <div class="cd-item">
+              <span class="cd-icon">📞</span>
+              <div>
+                <strong>Phone / WhatsApp:</strong>
+                <p><a href="tel:+447598040448">+44 (0) 7598 040448</a></p>
+              </div>
+            </div>
+
+            <div class="cd-item">
+              <span class="cd-icon">✉️</span>
+              <div>
+                <strong>Email Address:</strong>
+                <p><a href="mailto:chichesterjamiacentre@hotmail.com">chichesterjamiacentre@hotmail.com</a></p>
+              </div>
+            </div>
+
+            <div class="cd-item">
+              <span class="cd-icon">📜</span>
+              <div>
+                <strong>UK Charity Registration:</strong>
+                <p>No. 1148130</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="newsletter-col">
+          <div class="newsletter-box">
+            <h3>Subscribe to Project Updates</h3>
+            <p>Receive Friday Jumu'ah venue notices, building refurbishment updates, and fundraising milestones.</p>
+            <form id="newsletterForm" class="newsletter-form mt-3">
+              <input type="email" class="form-control" placeholder="Enter your email address" required>
+              <button type="submit" class="btn btn-gold btn-block mt-2">Subscribe for Updates</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      
+      <div class="fg-col">
+        <div class="footer-brand">
+          <span class="brand-name">CHICHESTER JAMIA CENTRE</span>
+          <span class="brand-tagline">Registered UK Charity No. 1148130</span>
+        </div>
+        <p class="footer-desc">Establishing the first permanent Masjid & Islamic Community Hub in Chichester, West Sussex, UK.</p>
+        <div class="gfm-footer-badge mb-2">
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="gfm-footer-link">
+            ❤️ Official GoFundMe: gofundme.com/f/chichester-mosque ↗
+          </a>
+        </div>
+        <div class="charity-verify-link">
+          <a href="https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/4014902" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Verify on UK Charity Register (1148130)
+          </a>
+        </div>
+      </div>
+
+      <div class="fg-col">
+        <h4>Quick Navigation</h4>
+        <ul class="footer-links">
+          <li><a href="#about">Our Project Vision</a></li>
+          <li><a href="#brick-builder">Brick Builder Grid</a></li>
+          <li><a href="#impact-calculator">Sadaqah Impact</a></li>
+          <li><a href="#gofundme-section">GoFundMe Campaign</a></li>
+          <li><a href="#target">£580k Target Breakdown</a></li>
+          <li><a href="#donate">Donate Online</a></li>
+          <li><a href="#bank-details">Lloyds Bank Details</a></li>
+          <li><a href="#prayers">Prayer Times & Qibla</a></li>
+        </ul>
+      </div>
+
+      <div class="fg-col">
+        <h4>Bank Transfer Details</h4>
+        <div class="footer-bank-mini">
+          <p><strong>Bank:</strong> Lloyds Bank</p>
+          <p><strong>Sort Code:</strong> 30-99-50</p>
+          <p><strong>Account No:</strong> 34785863</p>
+          <p><strong>Account Name:</strong> Chichester Jamia Centre</p>
+          <p><strong>Ref:</strong> MASJID</p>
+        </div>
+      </div>
+
+      <div class="fg-col">
+        <h4>Contact & Location</h4>
+        <p class="footer-contact-item">📍 102 Bognor Road, Chichester, West Sussex, PO19 7TW</p>
+        <p class="footer-contact-item">✉️ chichesterjamiacentre@hotmail.com</p>
+        <p class="footer-contact-item">📞 +44 (0) 7598 040448</p>
+      </div>
+
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container fb-flex">
+        <p>&copy; 2026 Chichester Jamia Centre. Registered UK Charity No. 1148130. JazakAllah Khairan.</p>
+        <div class="fb-sub">Built with devotion for the Chichester Muslim Community</div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Sticky Bottom Mobile Action Bar -->
+  <div class="mobile-sticky-bar" id="mobileStickyBar">
+    <div class="msb-container">
+      <button class="msb-btn msb-ai" id="triggerAiChatMobileSticky">
+        <span class="msb-icon">🤖</span>
+        <span class="msb-text">AI Assistant</span>
+      </button>
+      <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" rel="noopener" class="msb-btn msb-gfm">
+        <span class="msb-icon">❤️</span>
+        <span class="msb-text">GoFundMe</span>
+      </a>
+      <a href="#donate" class="msb-btn msb-donate">
+        <span class="msb-icon">💚</span>
+        <span class="msb-text">Donate Now</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- FLOATING AI CHATBOT WIDGET -->
+  <div class="ai-chatbot-floating-wrap" id="aiChatbotWidget">
+    
+    <!-- Chat Trigger Button -->
+    <button class="ai-chat-trigger" id="aiChatTriggerBtn" aria-label="Open Jamia AI Assistant">
+      <div class="ai-trigger-badge">
+        <span class="ai-online-pulse"></span>
+        <span class="ai-bot-avatar">🤖</span>
+      </div>
+      <span class="ai-trigger-text">Jamia AI Assistant</span>
+    </button>
+
+    <!-- Chat Modal Window -->
+    <div class="ai-chat-window" id="aiChatWindow">
+      <div class="ai-chat-header">
+        <div class="ai-header-left">
+          <div class="ai-avatar-wrap">🤖</div>
+          <div class="ai-header-info">
+            <h4>Jamia AI Assistant</h4>
+            <span class="ai-status-text"><span class="pulse-green-sm"></span> Online • Voice-Enabled</span>
+          </div>
+        </div>
+        <div class="ai-header-actions">
+          <button class="ai-sound-toggle" id="toggleSpeechBtn" title="Toggle AI Voice Aloud">🔊</button>
+          <button class="ai-chat-close" id="closeAiChatBtn">&times;</button>
+        </div>
+      </div>
+
+      <!-- Chat Messages Body -->
+      <div class="ai-chat-body" id="aiChatMessages">
+        <div class="ai-msg bot">
+          <div class="ai-msg-bubble">
+            <p>Assalamu Alaikum! 🌙 I am the <strong>Chichester Jamia Centre AI Assistant</strong>.</p>
+            <p>I can help you with our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>Lloyds Bank details</strong>, <strong>GoFundMe link</strong>, or <strong>Chichester Prayer Times & Qibla</strong>!</p>
+          </div>
+          <span class="ai-msg-time">Just now</span>
+        </div>
+      </div>
+
+      <!-- Quick Chips -->
+      <div class="ai-quick-chips">
+        <button class="chip-btn" data-query="Bank transfer details">🏦 Bank Sort Code</button>
+        <button class="chip-btn" data-query="How to donate via GoFundMe">❤️ GoFundMe Link</button>
+        <button class="chip-btn" data-query="How does the brick builder work?">🧱 Build A Brick</button>
+        <button class="chip-btn" data-query="What is the fundraising target?">🎯 Target Breakdown</button>
+        <button class="chip-btn" data-query="Today's prayer times in Chichester">🕌 Prayer Times</button>
+      </div>
+
+      <!-- Chat Input Form -->
+      <form id="aiChatForm" class="ai-chat-input-row">
+        <input type="text" id="aiChatInput" class="ai-chat-control" placeholder="Ask a question about the project..." required autocomplete="off">
+        <button type="submit" class="btn-ai-send" aria-label="Send message">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- MODAL: PRINTABLE SADAQAH JARIYAH CERTIFICATE / TAX RECEIPT -->
+  <div class="modal-backdrop" id="certificateModal">
+    <div class="modal-card certificate-modal-card">
+      <button class="modal-close" id="closeCertModal">&times;</button>
+      
+      <div class="certificate-frame" id="printableCertificate">
+        <div class="cert-border-inner">
+          <div class="cert-header">
+            <div class="cert-insignia">🕌</div>
+            <h2>CHICHESTER JAMIA CENTRE</h2>
+            <span class="cert-sub">UK Registered Charity No. 1148130</span>
+          </div>
+
+          <div class="cert-title-badge">
+            CERTIFICATE OF SADAQAH JARIYAH
+          </div>
+
+          <p class="cert-hadith">
+            «مَنْ بَنَى مَسْجِدًا لِلَّهِ كَمَفْحَصِ قَطَاةٍ أَوْ أَصْغَرَ بَنَى اللَّهُ لَهُ بَيْتًا فِي الْجَنَّةِ»<br>
+            <em>"Whoever builds a mosque for the sake of Allah, Allah will build for him a house in Paradise."</em>
+          </p>
+
+          <div class="cert-body">
+            <p class="cert-presented">This certifies with gratitude that</p>
+            <h3 class="cert-donor-name" id="certDonorName">Generous Community Supporter</h3>
+            <p class="cert-text">
+              Has contributed towards establishing the <strong>First Masjid & Islamic Community Centre in Chichester</strong>.
+            </p>
+            <div class="cert-meta-box">
+              <div class="cmb-item">
+                <span>Contribution:</span>
+                <strong id="certAmountDisplay">£100.00</strong>
+              </div>
+              <div class="cmb-item">
+                <span>Purpose:</span>
+                <strong id="certPurposeDisplay">Masjid Foundation Brick</strong>
+              </div>
+              <div class="cmb-item">
+                <span>Ref Number:</span>
+                <strong id="certRefDisplay">CJC-894201</strong>
+              </div>
+              <div class="cmb-item">
+                <span>Date:</span>
+                <strong id="certDateDisplay">10 October 2026</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="cert-footer">
+            <div class="cert-sig">
+              <div class="sig-line"></div>
+              <span>Chichester Jamia Centre Trustees</span>
+            </div>
+            <div class="cert-seal">
+              <span>★ OFFICIAL CHARITY SEAL ★</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cert-actions-row text-center mt-3">
+        <button class="btn btn-gold" id="btnPrintCert">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print / Save as PDF</span>
+        </button>
+        <button class="btn btn-glass" id="btnCloseCertAction">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 1: Payment Processing Simulation -->
+  <div class="modal-backdrop" id="paymentModal">
+    <div class="modal-card">
+      <button class="modal-close" id="closePaymentModal">&times;</button>
+      <div class="modal-body text-center" id="paymentModalContent">
+        <div class="spinner-ring" id="paySpinner"></div>
+        <h3 id="modalStatusTitle">Processing Your Sadaqah...</h3>
+        <p id="modalStatusSub">Connecting to secure gateway...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Circular Back To Top Button with Progress -->
+  <button id="backToTopBtn" class="back-to-top" aria-label="Scroll back to top" title="Scroll to top">
+    <svg class="progress-ring" width="46" height="46">
+      <circle class="progress-ring-circle" stroke="var(--accent-gold)" stroke-width="3" fill="transparent" r="20" cx="23" cy="23" />
+    </svg>
+    <span class="btt-arrow">↑</span>
+  </button>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- JavaScript -->
+  <script src="app.js"></script>
+</body>
+</html>
