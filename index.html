@@ -77,7 +77,14 @@
         <div id="google_translate_element" class="google-translate-container"></div>
         <script type="text/javascript">
           function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,bn,ur,ar,hi', layout: google.translate.TranslateElement.InlineLayout.SIMPLE, autoDisplay: false}, 'google_translate_element');
+            new google.translate.TranslateElement({
+              pageLanguage: 'en',
+              includedLanguages: 'en,bn,ur,ar,hi',
+              autoDisplay: false
+            }, 'google_translate_element');
+            if (typeof window.onGoogleTranslateReady === 'function') {
+              window.onGoogleTranslateReady();
+            }
           }
         </script>
         <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
