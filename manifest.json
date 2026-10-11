@@ -1,0 +1,27 @@
+{
+  "name": "Chichester Jamia Centre — Masjid & Community Hub",
+  "short_name": "Chichester Masjid",
+  "description": "Official portal for Chichester Jamia Centre (Charity No. 1148130). £580k property appeal, prayer times, Qibla compass & GoFundMe.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#064e3b",
+  "theme_color": "#064e3b",
+  "orientation": "portrait",
+  "lang": "en",
+  "categories": ["lifestyle", "utilities", "social"],
+  "icons": [
+    {
+      "src": "assets/real_qr_code.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "assets/real_banner_rollup.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+// OS and Syncthing metadata
+(?d).stversions
+(?d).DS_Store
+(?d)Thumbs.db
+(?d)desktop.ini
+(?d)._*
+
+// Version control
+(?d).git
+
+// Package managers & dependencies
+(?d)node_modules
+(?d).venv
+(?d)venv
+(?d)env
+
+// Caches & build artifacts
+(?d)__pycache__
+(?d)*.pyc
+(?d).pytest_cache
+(?d).cache
+(?d)dist
+(?d)build
+(?d)out
+(?d)target
+(?d)bin
+(?d).turbo
+(?d).next
+
+// IDE and Antigravity local states
+(?d).idea
+(?d).vscode
+(?d)*.tmp
+(?d)*.log

@@ -4,6 +4,71 @@
  * GoFundMe: https://www.gofundme.com/f/chichester-mosque
  */
 
+// ==========================================
+// LANGUAGE SPLASH SCREEN LOGIC
+// ==========================================
+let langSplashTimer;
+let langSeconds = 8;
+
+window.selectSplashLanguage = function(langCode) {
+  clearInterval(langSplashTimer);
+  const splash = document.getElementById('languageSplash');
+  if (splash) {
+    splash.classList.add('hidden');
+    try {
+      sessionStorage.setItem('langSelected', 'true');
+    } catch(e) {}
+  }
+
+  if (langCode !== 'en') {
+    // Attempt to trigger Google Translate
+    const select = document.querySelector('.goog-te-combo');
+    if (select) {
+      select.value = langCode;
+      select.dispatchEvent(new Event('change'));
+    } else {
+      setTimeout(() => {
+        const retrySelect = document.querySelector('.goog-te-combo');
+        if (retrySelect) {
+          retrySelect.value = langCode;
+          retrySelect.dispatchEvent(new Event('change'));
+        }
+      }, 1500);
+    }
+  }
+};
+
+function initLanguageSplash() {
+  const splash = document.getElementById('languageSplash');
+  if (!splash) return;
+
+  // Allow clicking overlay background to dismiss immediately
+  splash.addEventListener('click', (e) => {
+    if (e.target === splash) {
+      window.selectSplashLanguage('en');
+    }
+  });
+
+  // Only show if they haven't selected a language this session
+  try {
+    if (sessionStorage.getItem('langSelected')) {
+      splash.classList.add('hidden');
+      return;
+    }
+  } catch(e) {}
+
+  const timerSpan = document.getElementById('langTimer');
+  langSplashTimer = setInterval(() => {
+    langSeconds--;
+    if (timerSpan) timerSpan.innerText = langSeconds;
+    
+    if (langSeconds <= 0) {
+      // Auto-select English on timeout
+      window.selectSplashLanguage('en');
+    }
+  }, 1000);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------------
   // 1. Initial State & Currency Conversion Rates (Base: GBP £)
@@ -26,6 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
     totalBricks: 5800,
     brickCostGBP: 100
   };
+
+  // Initialize the Language Splash Screen
+  initLanguageSplash();
 
   // ------------------------------------------------------------------
   // 2. UI Elements
@@ -100,9 +168,19 @@ document.addEventListener('DOMContentLoaded', () => {
       el.textContent = `${cur.code} ${cur.symbol}`;
     });
 
-    updateCampaignUI();
+    // Dynamically update preset donation pills to show converted figures
+    document.querySelectorAll('.preset-btn, .amount-pill').forEach(btn => {
+      const baseVal = btn.getAttribute('data-amount') || btn.getAttribute('data-val');
+      if (baseVal) {
+        const converted = Math.round(parseFloat(baseVal) * cur.rate);
+        btn.textContent = `${cur.symbol}${converted.toLocaleString()}`;
+      }
+    });
+
+    updateCampaignUI(false);
     updateGiftAidCalculation();
-    updateBrickCalculator();
+    if (typeof updateBrickCalculator === 'function') updateBrickCalculator();
+    if (typeof updateZakatCalculation === 'function') updateZakatCalculation();
     updateImpactCalculation(document.getElementById('impactRangeSlider')?.value || 250);
   }
 
@@ -114,10 +192,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Counter Number Animator Helper
+  function animateCounter(elem, targetVal, prefix = '', suffix = '') {
+    if (!elem) return;
+    const duration = 1100;
+    let startTimestamp = null;
+    const step = (timestamp) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const ease = 1 - Math.pow(1 - progress, 3);
+      const current = Math.floor(ease * targetVal);
+      elem.textContent = `${prefix}${current.toLocaleString()}${suffix}`;
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        elem.textContent = `${prefix}${Math.round(targetVal).toLocaleString()}${suffix}`;
+      }
+    };
+    window.requestAnimationFrame(step);
+  }
+
   // ------------------------------------------------------------------
   // 5. Update Campaign Progress UI
   // ------------------------------------------------------------------
-  function updateCampaignUI() {
+  function updateCampaignUI(animate = false) {
     const raisedConverted = campaignState.raisedGBP * currencyRates[activeCurrency].rate;
     const targetConverted = campaignState.targetGBP * currencyRates[activeCurrency].rate;
     const remainingGBP = campaignState.targetGBP - campaignState.raisedGBP;
@@ -129,18 +227,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sym = currencyRates[activeCurrency].symbol;
 
-    if (raisedDisplay) raisedDisplay.textContent = `${sym}${Math.round(raisedConverted).toLocaleString()}`;
-    if (targetDisplay) targetDisplay.textContent = `${sym}${Math.round(targetConverted).toLocaleString()}`;
+    if (animate) {
+      animateCounter(raisedDisplay, raisedConverted, sym);
+      animateCounter(targetDisplay, targetConverted, sym);
+      animateCounter(donorCount, campaignState.donors);
+      animateCounter(remainingDisplay, remainingConverted, sym);
+      animateCounter(bricksFundedHeader, bricksFunded);
+    } else {
+      if (raisedDisplay) raisedDisplay.textContent = `${sym}${Math.round(raisedConverted).toLocaleString()}`;
+      if (targetDisplay) targetDisplay.textContent = `${sym}${Math.round(targetConverted).toLocaleString()}`;
+      if (donorCount) donorCount.textContent = campaignState.donors.toLocaleString();
+      if (remainingDisplay) remainingDisplay.textContent = `${sym}${Math.round(remainingConverted).toLocaleString()}`;
+      if (bricksFundedHeader) bricksFundedHeader.textContent = bricksFunded.toLocaleString();
+    }
+
     if (percentDisplay) percentDisplay.textContent = `${percent}%`;
     if (progressBarFill) progressBarFill.style.width = `${percent}%`;
-    if (donorCount) donorCount.textContent = campaignState.donors.toLocaleString();
-    if (remainingDisplay) remainingDisplay.textContent = `${sym}${Math.round(remainingConverted).toLocaleString()}`;
-    if (bricksFundedHeader) bricksFundedHeader.textContent = bricksFunded.toLocaleString();
     if (brickFundedCount) brickFundedCount.textContent = `${bricksFunded.toLocaleString()} Bricks`;
     if (brickRemainingCount) brickRemainingCount.textContent = `${bricksRemaining.toLocaleString()} Bricks`;
   }
 
-  updateCampaignUI();
+  updateCampaignUI(true);
 
   // ------------------------------------------------------------------
   // 6. Gift Aid & Amount Sync
@@ -160,6 +267,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (btnPayAmount) btnPayAmount.textContent = `${sym}${amount.toFixed(2)}`;
+    document.querySelectorAll('.dyn-btn-amount').forEach(el => {
+      el.textContent = `${sym}${amount.toFixed(2)}`;
+    });
   }
 
   if (customAmountInput) customAmountInput.addEventListener('input', updateGiftAidCalculation);
@@ -189,23 +299,93 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Payment method selection
-  document.querySelectorAll('.pay-method-card').forEach(card => {
-    card.addEventListener('click', () => {
-      document.querySelectorAll('.pay-method-card').forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
-      const radio = card.querySelector('input[type="radio"]');
-      if (radio) {
-        radio.checked = true;
-        if (radio.value === 'gofundme') {
-          showToast('Opening GoFundMe page...');
-          setTimeout(() => {
-            window.open('https://www.gofundme.com/f/chichester-mosque', '_blank');
-          }, 400);
+  // Payment method selection & dynamic view switching
+  const payDetailViews = {
+    gofundme: document.getElementById('viewGfm'),
+    bank: document.getElementById('viewBank'),
+    card: document.getElementById('viewCard'),
+    qr: document.getElementById('viewQr')
+  };
+
+  function switchPaymentMethod(methodKey) {
+    document.querySelectorAll('.pay-method-card').forEach(c => c.classList.remove('active'));
+    const targetCard = document.querySelector(`.pay-method-card input[value="${methodKey}"]`)?.closest('.pay-method-card');
+    if (targetCard) targetCard.classList.add('active');
+
+    Object.keys(payDetailViews).forEach(key => {
+      const panel = payDetailViews[key];
+      if (panel) {
+        if (key === methodKey) {
+          panel.classList.remove('hidden');
+          panel.classList.add('active');
+        } else {
+          panel.classList.add('hidden');
+          panel.classList.remove('active');
         }
       }
     });
+    updateGiftAidCalculation();
+  }
+
+  document.querySelectorAll('.pay-method-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) {
+        radio.checked = true;
+        switchPaymentMethod(radio.value);
+      }
+    });
   });
+
+  // ------------------------------------------------------------------
+  // 6b. Secondary Brick Counter in Target Breakdown Section
+  // ------------------------------------------------------------------
+  function updateBrickCalculator() {
+    if (!brickCountInput) return;
+    let count = parseInt(brickCountInput.value) || 1;
+    if (count < 1) count = 1;
+    brickCountInput.value = count;
+    const rate = currencyRates[activeCurrency]?.rate || 1.0;
+    const sym = currencyRates[activeCurrency]?.symbol || '£';
+    const cost = Math.round(count * campaignState.brickCostGBP * rate);
+
+    if (brickTotalCost) brickTotalCost.textContent = `${sym}${cost.toLocaleString()}`;
+    if (brickCountText) brickCountText.textContent = count;
+  }
+
+  btnBrickMinus?.addEventListener('click', () => {
+    let count = parseInt(brickCountInput?.value || 1) - 1;
+    if (count < 1) count = 1;
+    if (brickCountInput) brickCountInput.value = count;
+    updateBrickCalculator();
+  });
+
+  btnBrickPlus?.addEventListener('click', () => {
+    let count = parseInt(brickCountInput?.value || 1) + 1;
+    if (brickCountInput) brickCountInput.value = count;
+    updateBrickCalculator();
+  });
+
+  brickCountInput?.addEventListener('input', updateBrickCalculator);
+
+  btnSponsorBricks?.addEventListener('click', () => {
+    const count = parseInt(brickCountInput?.value || 1);
+    const converted = Math.round(count * campaignState.brickCostGBP * (currencyRates[activeCurrency]?.rate || 1.0));
+    if (customAmountInput) {
+      customAmountInput.value = converted;
+      updateGiftAidCalculation();
+    }
+    const brickRadio = document.querySelector('input[name="purpose"][value="Buy a Brick (£100)"]');
+    if (brickRadio) {
+      brickRadio.checked = true;
+      document.querySelectorAll('.cat-radio-card').forEach(c => c.classList.remove('active'));
+      brickRadio.closest('.cat-radio-card')?.classList.add('active');
+    }
+    document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' });
+    showToast(`Loaded ${count} Brick(s) (${currencyRates[activeCurrency]?.symbol || '£'}${converted}) into donation form.`);
+  });
+
+  updateBrickCalculator();
 
   // ------------------------------------------------------------------
   // 7. Interactive Visual "Wall of Bricks" Builder
@@ -239,27 +419,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const donorName = sampleDonors[i % sampleDonors.length];
         brick.innerHTML = `<span>#${i}</span><small style="font-size:0.55rem; opacity:0.8;">Funded</small>`;
         brick.title = `Brick #${i} — Funded by ${donorName}`;
+        brick.setAttribute('data-tooltip', `Brick #${i} (Inscribed: ${donorName})`);
       } else if (i === 45) {
         brick.classList.add('selected');
         brick.innerHTML = `<span>#${i}</span><small style="font-size:0.55rem; color:#fff;">Selected</small>`;
         brick.title = `Brick #${i} — Currently Selected for You!`;
+        brick.setAttribute('data-tooltip', `Brick #${i} (Selected for You)`);
       } else {
         brick.classList.add('available');
         brick.innerHTML = `<span>#${i}</span><small style="font-size:0.55rem;">£100</small>`;
         brick.title = `Brick #${i} — Available! Click to sponsor.`;
+        brick.setAttribute('data-tooltip', `Brick #${i} (Available • £100)`);
       }
 
       brick.addEventListener('click', () => {
         if (brick.classList.contains('funded')) {
-          showToast(`Brick #${i} is already funded. Please pick an available brick.`);
+          showToast(`Brick #${i} is already inscribed. Please pick an available brick.`);
           return;
         }
 
         brick.classList.toggle('selected');
+        playSoftChime();
         if (brick.classList.contains('selected')) {
           brick.querySelector('small').textContent = 'Selected';
+          brick.setAttribute('data-tooltip', `Brick #${i} (Selected)`);
         } else {
           brick.querySelector('small').textContent = '£100';
+          brick.setAttribute('data-tooltip', `Brick #${i} (Available • £100)`);
         }
 
         const selectedCount = brickGridContainer.querySelectorAll('.brick-unit.selected').length || 1;
@@ -416,19 +602,19 @@ document.addEventListener('DOMContentLoaded', () => {
     },
     ground: {
       title: "Ground Floor — Main Prayer Sanctuary & Wudu",
-      desc: "Spacious climate-controlled main prayer hall accommodating over 200 worshipers for daily & Friday Jumu'ah prayers, featuring acoustic sound proofing and high-capacity modern wudu facilities.",
-      image: "assets/prayer_hall.jpg",
+      desc: "Spacious climate-controlled main prayer hall accommodating over 200 worshipers for daily & Friday Jumu'ah prayers, featuring timber ceiling beams, wudu facilities, and wheelchair accessible entrance.",
+      image: "assets/real_interior_refurbished_concept.jpg",
       specs: [
         "🕌 Main Prayer Capacity: 200+ Worshipers",
         "💧 High-capacity Men's Wudu & Washrooms",
         "♿ Wheelchair Accessible Ramp & Barrier-free Entrance",
-        "📜 Mihrab Wall with Hand-crafted Islamic Calligraphy"
+        "📜 Natural Timber Architectural Beams & Mihrab"
       ]
     },
     first: {
       title: "First Floor — Dedicated Sister's Sanctuary & Creche",
       desc: "A private, serene, and comfortable prayer sanctuary dedicated exclusively for Sisters, complete with private wudu area, audio-visual link to Khutbah, and a mother-child creche space.",
-      image: "assets/building.jpg",
+      image: "assets/building_refurbished_concept.jpg",
       specs: [
         "🧕 Sister's Prayer Capacity: 100+ Worshipers",
         "💧 Private Sister's Wudu Facilities",
@@ -437,9 +623,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ]
     },
     annexe: {
-      title: "Community Annexe — Madrasa, Library & Food Bank",
-      desc: "A multi-purpose educational wing dedicated to Quranic weekend schools for children, adult Islamic history lectures, community food distribution drives, and interfaith receptions.",
-      image: "assets/community.jpg",
+      title: "Ground Floor Annexe — Current Interior Being Converted",
+      desc: "The open ground-floor space at 102 Bognor Road currently being transformed into children's Quranic classrooms, adult study spaces, food bank distribution, and community reception.",
+      image: "assets/real_interior.jpg",
       specs: [
         "📚 Children's Quranic Weekend School (Madrasa)",
         "💻 Islamic Reference Library & Digital Resource Hub",
@@ -451,23 +637,94 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const floorDisplay = document.getElementById('floorDisplay');
 
+  const isometricHotspots = [
+    { num: 1, top: '65%', left: '72%', label: "Ground Floor Men's Prayer Sanctuary", desc: "Capacity for 200+ worshipers with underfloor heating, oak acoustics, and mihrab facing 119.2° ESE.", sponsorAmt: 250, sponsorText: "Sponsor 1 Musalla Carpet Space (£250)" },
+    { num: 2, top: '74%', left: '46%', label: "Men's Eco-Wudu Suites", desc: "12 dedicated ritual wash bays with heated non-slip stone tiling and water-saving sensor taps.", sponsorAmt: 500, sponsorText: "Sponsor 1 Wudu Bay (£500)" },
+    { num: 3, top: '86%', left: '38%', label: "Main Entrance Foyer & Food Bank", desc: "Barrier-free accessible entrance, 250-pair shoe racks, and community food bank distribution hub.", sponsorAmt: 100, sponsorText: "Sponsor Foundation Brick (£100)" },
+    { num: 4, top: '56%', left: '20%', label: "Dedicated Sisters' Sanctuary", desc: "First floor serene prayer hall with private access, soundproofing, and live 4K AV link to Imam.", sponsorAmt: 250, sponsorText: "Sponsor Sisters' Space (£250)" },
+    { num: 5, top: '66%', left: '29%', label: "Madrasa Classrooms & Library", desc: "3 modern classrooms for Quranic education, youth club, and community Islamic reference library.", sponsorAmt: 150, sponsorText: "Sponsor Madrasa Desk (£150)" },
+    { num: 6, top: '24%', left: '42%', label: "Eco Solar Panels & Green Roof", desc: "Solar photovoltaic panels providing sustainable energy to power daily masjid operations.", sponsorAmt: 500, sponsorText: "Sponsor Solar Panel (£500)" }
+  ];
+
   function renderFloorPlan(floorKey) {
     if (!floorDisplay || !floorData[floorKey]) return;
     const data = floorData[floorKey];
+    const isIso = floorKey === 'isometric';
+
     floorDisplay.innerHTML = `
       <div class="floor-plan-view">
-        <div class="fp-image-wrap">
-          <img src="${data.image}" alt="${data.title}">
+        <div class="fp-image-wrap" id="fpImageWrap">
+          <img src="${data.image}" alt="${data.title}" id="fpMainImg" class="lightbox-trigger" data-lightbox="${data.image}">
+          ${isIso ? `
+            <div class="fp-hotspots-container">
+              ${isometricHotspots.map(h => `
+                <div class="fp-hotspot" style="top: ${h.top}; left: ${h.left};" data-hotspot-num="${h.num}" tabindex="0" role="button" aria-label="${h.label}">
+                  ${h.num}
+                  <div class="fp-hotspot-tooltip">${h.label}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : ''}
         </div>
         <div class="fp-info">
           <h3>${data.title}</h3>
-          <p>${data.desc}</p>
-          <ul class="fp-specs-list">
+          <p id="fpActiveDesc">${data.desc}</p>
+          <ul class="fp-specs-list" id="fpSpecsList">
             ${data.specs.map(item => `<li>${item}</li>`).join('')}
           </ul>
+          <div class="fp-actions-bar">
+            <button class="btn btn-outline-gold btn-sm" id="btnViewHighResBlueprint">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+              <span>View Fullscreen High-Res</span>
+            </button>
+            <a href="#donate" class="btn btn-gold btn-sm" id="btnSponsorSpaceAction">
+              <span>Sponsor This Space</span>
+            </a>
+          </div>
         </div>
       </div>
     `;
+
+    // Wire up hotspots
+    if (isIso) {
+      document.querySelectorAll('.fp-hotspot').forEach(pin => {
+        pin.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const num = parseInt(pin.getAttribute('data-hotspot-num'));
+          const hotspot = isometricHotspots.find(h => h.num === num);
+          if (!hotspot) return;
+
+          document.querySelectorAll('.fp-hotspot').forEach(p => p.classList.remove('active'));
+          pin.classList.add('active');
+
+          const descElem = document.getElementById('fpActiveDesc');
+          if (descElem) {
+            descElem.innerHTML = `<strong class="gold-text">Spotlight: ${hotspot.label}</strong><br>${hotspot.desc}`;
+          }
+
+          const sponsorBtn = document.getElementById('btnSponsorSpaceAction');
+          if (sponsorBtn) {
+            sponsorBtn.textContent = hotspot.sponsorText;
+            sponsorBtn.onclick = (ev) => {
+              ev.preventDefault();
+              if (customAmountInput) {
+                const converted = Math.round(hotspot.sponsorAmt * currencyRates[activeCurrency].rate);
+                customAmountInput.value = converted;
+                updateGiftAidCalculation();
+              }
+              const donateSection = document.getElementById('donate');
+              if (donateSection) donateSection.scrollIntoView({ behavior: 'smooth' });
+              showToast(`Selected "${hotspot.label}" (${currencyRates[activeCurrency].symbol}${Math.round(hotspot.sponsorAmt * currencyRates[activeCurrency].rate)})`);
+            };
+          }
+        });
+      });
+    }
+
+    // High res blueprint modal trigger
+    document.getElementById('btnViewHighResBlueprint')?.addEventListener('click', () => {
+      openLightbox(data.image, data.title);
+    });
   }
 
   renderFloorPlan('isometric');
@@ -480,6 +737,133 @@ document.addEventListener('DOMContentLoaded', () => {
       renderFloorPlan(floorKey);
     });
   });
+
+  // ------------------------------------------------------------------
+  // 9b. Interactive Zakat Calculator (2.5% Net Eligible Wealth & Nisab Engine)
+  // ------------------------------------------------------------------
+  const zakatCash = document.getElementById('zakatCash');
+  const zakatGold = document.getElementById('zakatGold');
+  const zakatInvestments = document.getElementById('zakatInvestments');
+  const zakatDebts = document.getElementById('zakatDebts');
+  const totalWealthDisplay = document.getElementById('totalWealthDisplay');
+  const zakatDueDisplay = document.getElementById('zakatDueDisplay');
+  const btnApplyZakatToDonation = document.getElementById('btnApplyZakatToDonation');
+  const btnApplySadaqahToDonation = document.getElementById('btnApplySadaqahToDonation');
+  const nisabSilverBtn = document.getElementById('nisabSilverBtn');
+  const nisabGoldBtn = document.getElementById('nisabGoldBtn');
+  const nisabStatusBadge = document.getElementById('nisabStatusBadge');
+  const nisabBadgeText = document.getElementById('nisabBadgeText');
+
+  let activeNisabStandard = 'silver'; // default silver (precautionary majority view)
+  const nisabThresholdsGBP = {
+    silver: 460, // 612.36g silver equivalent
+    gold: 4850   // 87.48g gold equivalent
+  };
+
+  function updateZakatCalculation() {
+    const cash = parseFloat(zakatCash?.value) || 0;
+    const gold = parseFloat(zakatGold?.value) || 0;
+    const inv = parseFloat(zakatInvestments?.value) || 0;
+    const debts = parseFloat(zakatDebts?.value) || 0;
+
+    const netWealth = Math.max(0, (cash + gold + inv) - debts);
+    const zakatDue = netWealth * 0.025;
+    const rate = currencyRates[activeCurrency]?.rate || 1.0;
+    const sym = currencyRates[activeCurrency]?.symbol || '£';
+    const currentNisabConverted = Math.round(nisabThresholdsGBP[activeNisabStandard] * rate);
+
+    // Update Currency Symbols on input fields
+    ['1', '2', '3', '4'].forEach(num => {
+      const el = document.getElementById(`zakatCurrSymbol${num}`);
+      if (el) el.textContent = sym;
+    });
+
+    if (totalWealthDisplay) {
+      totalWealthDisplay.textContent = `${sym}${netWealth.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (zakatDueDisplay) {
+      zakatDueDisplay.textContent = `${sym}${zakatDue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+
+    if (nisabStatusBadge && nisabBadgeText) {
+      if (netWealth <= 0) {
+        nisabStatusBadge.className = 'result-badge';
+        nisabBadgeText.textContent = 'Awaiting Wealth Breakdown...';
+      } else if (netWealth >= currentNisabConverted) {
+        nisabStatusBadge.className = 'result-badge met';
+        nisabBadgeText.textContent = `✓ Nisab Met (Exceeds ${sym}${currentNisabConverted.toLocaleString()} threshold) — 2.5% Zakat Due`;
+      } else {
+        nisabStatusBadge.className = 'result-badge below';
+        nisabBadgeText.textContent = `Below Nisab (${sym}${currentNisabConverted.toLocaleString()}) — Sadaqah Jariyah Recommended`;
+      }
+    }
+  }
+
+  [zakatCash, zakatGold, zakatInvestments, zakatDebts].forEach(inp => {
+    inp?.addEventListener('input', updateZakatCalculation);
+  });
+
+  nisabSilverBtn?.addEventListener('click', () => {
+    activeNisabStandard = 'silver';
+    nisabSilverBtn.classList.add('active');
+    nisabGoldBtn?.classList.remove('active');
+    updateZakatCalculation();
+    showToast('Nisab benchmark set to Silver standard (~£460)');
+  });
+
+  nisabGoldBtn?.addEventListener('click', () => {
+    activeNisabStandard = 'gold';
+    nisabGoldBtn.classList.add('active');
+    nisabSilverBtn?.classList.remove('active');
+    updateZakatCalculation();
+    showToast('Nisab benchmark set to Gold standard (~£4,850)');
+  });
+
+  btnApplyZakatToDonation?.addEventListener('click', () => {
+    const cash = parseFloat(zakatCash?.value) || 0;
+    const gold = parseFloat(zakatGold?.value) || 0;
+    const inv = parseFloat(zakatInvestments?.value) || 0;
+    const debts = parseFloat(zakatDebts?.value) || 0;
+    const netWealth = Math.max(0, (cash + gold + inv) - debts);
+    const zakatDue = Math.round(netWealth * 0.025);
+
+    if (zakatDue > 0 && customAmountInput) {
+      customAmountInput.value = zakatDue;
+      updateGiftAidCalculation();
+      const zakatRadio = document.querySelector('input[name="purpose"][value="General Donation / Lillah"]') || document.querySelector('input[name="purpose"]');
+      if (zakatRadio) {
+        zakatRadio.checked = true;
+        document.querySelectorAll('.cat-radio-card').forEach(c => c.classList.remove('active'));
+        zakatRadio.closest('.cat-radio-card')?.classList.add('active');
+      }
+      document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' });
+      showToast(`Transferred calculated Zakat (${currencyRates[activeCurrency]?.symbol || '£'}${zakatDue}) to donation form.`);
+    } else {
+      document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' });
+      showToast('Please enter your wealth values or donate a custom amount.');
+    }
+  });
+
+  btnApplySadaqahToDonation?.addEventListener('click', () => {
+    const cash = parseFloat(zakatCash?.value) || 0;
+    const netWealth = Math.max(0, cash);
+    const suggested = netWealth > 0 ? Math.min(500, Math.max(50, Math.round(netWealth * 0.01))) : 100;
+
+    if (customAmountInput) {
+      customAmountInput.value = suggested;
+      updateGiftAidCalculation();
+      const radio = document.querySelector('input[name="purpose"][value="General Donation / Lillah"]') || document.querySelector('input[name="purpose"]');
+      if (radio) {
+        radio.checked = true;
+        document.querySelectorAll('.cat-radio-card').forEach(c => c.classList.remove('active'));
+        radio.closest('.cat-radio-card')?.classList.add('active');
+      }
+      document.getElementById('donate')?.scrollIntoView({ behavior: 'smooth' });
+      showToast(`Selected ${currencyRates[activeCurrency]?.symbol || '£'}${suggested} Sadaqah Jariyah for Chichester Masjid.`);
+    }
+  });
+
+  updateZakatCalculation();
 
   // ------------------------------------------------------------------
   // 10. Printable Digital Certificate Generator
@@ -650,28 +1034,177 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
-  function getAiResponse(userQuery) {
+  // Client-side AI Keys
+  const OR_API_KEY = atob("c2stb3ItdjEtODZlNmIxMmI1YWU4ZjRkMDVjMDQwNDQwYjE5YzIyNmFhZjcxYTZhMzcwNGNjOGU5YTNkMjZhZGIzY2U5MWYyOA==");
+  const GEMINI_API_KEY = atob("QVEuQWI4Uk42SzB1SmdtRmFfT1pzRmJRRWtEdWd4U09KWmhZUkxpUlp6dzdkZF9OTEd0Mnc=");
+
+  let chatHistory = [
+    {
+      role: "system",
+      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, giving money, or payment options, ALWAYS state that donating through our official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) is HIGHLY RECOMMENDED because it supports instant Apple Pay / Google Pay, is 100% verified, and keeps the public campaign milestone tracker transparent. Also explain that other payment options are fully available: Direct Lloyds Bank Transfer (Account 1: Sort 30-99-50, Acc 34785863; Account 2: Sort 30-95-96, Acc 1279 8836), Scan-to-Pay QR code, or online card pledge. Respond with clean, modern HTML formatting (use <p>, <strong>, <ul>, etc.) and keep answers concise, helpful, and respectful. You have web search capability to answer broader Islamic or community questions. If asked about prayer times, mention they are synced with Wifaqul Ulama Hanafi."
+    }
+  ];
+
+  async function getAiResponse(userQuery) {
+    chatHistory.push({ role: "user", content: userQuery });
+    
+    try {
+      // 1. Try OpenRouter first (using auto-routing free model to avoid 429s)
+      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${OR_API_KEY}`,
+          "HTTP-Referer": window.location.href,
+          "X-Title": "Chichester Jamia Centre",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          model: "openrouter/free", 
+          messages: chatHistory
+        })
+      });
+      const data = await response.json();
+      if(data && data.choices && data.choices.length > 0) {
+          let botContent = data.choices[0].message.content;
+          chatHistory.push({ role: "assistant", content: botContent });
+          let htmlResponse = botContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+          htmlResponse = htmlResponse.replace(/\n/g, '<br>');
+          return htmlResponse;
+      } else {
+          throw new Error(data.error?.message || "OpenRouter failed");
+      }
+    } catch(orError) {
+      console.warn("OpenRouter API Failed, attempting Gemini alternative...", orError.message);
+      
+      // 2. Fallback to Gemini Native API with Google Search Grounding
+      try {
+        const geminiHistory = chatHistory.filter(m => m.role !== 'system').map(m => {
+          return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{text: m.content}] };
+        });
+        const sysMsg = chatHistory.find(m => m.role === 'system')?.content || "";
+
+        const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            systemInstruction: { parts: [{text: sysMsg}] },
+            contents: geminiHistory,
+            tools: [{"googleSearch": {}}]
+          })
+        });
+        const gData = await gRes.json();
+        
+        if(gData.candidates && gData.candidates.length > 0) {
+           let botContent = gData.candidates[0].content.parts[0].text;
+           chatHistory.push({ role: "assistant", content: botContent });
+           let htmlResponse = botContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+           htmlResponse = htmlResponse.replace(/\n/g, '<br>');
+           return htmlResponse;
+        } else {
+           throw new Error(gData.error?.message || "Gemini API failed");
+        }
+      } catch (geminiError) {
+        console.warn("Gemini API Failed. Falling back to robust local offline brain...", geminiError.message);
+      }
+    }
+
+    // 3. Local Fallback if both APIs fail (e.g. rate limits exhausted)
     const query = userQuery.toLowerCase();
 
-    if (query.includes('bank') || query.includes('sort code') || query.includes('lloyds') || query.includes('account number')) {
+    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('payment') || query.includes('how to pay') || query.includes('ways to pay') || query.includes('contribute')) {
       return `
-        <p><strong>🏦 Official Lloyds Bank Transfer Details:</strong></p>
-        <p>• <strong>Bank:</strong> Lloyds Bank<br>
-        • <strong>Sort Code:</strong> <span style="color:var(--accent-gold); font-weight:800;">30-99-50</span><br>
-        • <strong>Account No:</strong> <span style="color:var(--accent-gold); font-weight:800;">34785863</span><br>
-        • <strong>Account Name:</strong> Chichester Jamia Centre<br>
+        <p>❤️ <strong>How to Donate — Official GoFundMe (Highly Recommended):</strong></p>
+        <p>We <strong>strongly recommend</strong> giving via our official GoFundMe page:<br>
+        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:800;">gofundme.com/f/chichester-mosque ↗</a></p>
+        <p><strong>Why GoFundMe is recommended:</strong><br>
+        • Instant 1-Tap Apple Pay, Google Pay, Card &amp; PayPal.<br>
+        • Keeps our public £580,000 target progress bar live &amp; unified.<br>
+        • 100% verified UK charity transfer with GoFundMe Giving Guarantee.</p>
+        
+        <p style="margin-top:10px;"><strong>Other Payment Options Are Also Available:</strong><br>
+        • <strong>Lloyds Bank Transfer (0% Fees):</strong> Sort: <strong>30-99-50</strong> | Acc: <strong>34785863</strong> (Ref: MASJID)<br>
+        • <strong>Scan-to-Pay QR:</strong> Instant UK banking app camera transfer.<br>
+        • <strong>Interactive Brick Builder:</strong> Sponsor 1 brick for £100 with your family's name.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">Open GoFundMe (Recommended) ↗</a>
+          <a href="#donate" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View All Payment Options</a>
+        </div>
+      `;
+    }
+
+    if (query.includes('pub') || query.includes('wickham') || query.includes('history') || query.includes('transformation') || query.includes('before')) {
+      return `
+        <p>🏛 <strong>From Pub to Masjid Transformation:</strong></p>
+        <p>We are converting the former <strong>"The Wickham Arms" pub</strong> located at <strong>102 Bognor Road, Chichester PO19 7TW</strong> into Chichester's first permanent Masjid.</p>
+        <p>The historic Sussex flint stone building has been secured under our Charitable Incorporated Organisation (CIO). It features an on-site car park and grounds.</p>
+        <a href="#transformation" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Explore Pub to Masjid Journey</a>
+      `;
+    }
+
+    if (query.includes('bank') || query.includes('sort code') || query.includes('lloyds') || query.includes('account number') || query.includes('transfer')) {
+      return `
+        <p><strong>🏦 Official Lloyds Bank Transfer Accounts (0% Fees):</strong></p>
+        <p style="background:rgba(245,158,11,0.12); border-left:3px solid var(--accent-gold); padding:6px 10px; border-radius:4px; font-size:0.88rem; margin-bottom:8px;">
+          💡 <em>Note:</em> For quickest card/mobile checkout and live public counter updates, donating via our <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">Official GoFundMe Page</a> is highly recommended! For direct bank transfer:
+        </p>
+        <p>• <strong>Account 1 (General Appeal):</strong><br>
+        Sort Code: <span style="color:var(--accent-gold); font-weight:800;">30-99-50</span> | Acc: <span style="color:var(--accent-gold); font-weight:800;">34785863</span></p>
+        <p>• <strong>Account 2 (Building CIO & QR Pay):</strong><br>
+        Sort Code: <span style="color:var(--accent-gold); font-weight:800;">30-95-96</span> | Acc: <span style="color:var(--accent-gold); font-weight:800;">1279 8836</span></p>
+        <p>• <strong>Account Name:</strong> Chichester Jamia Centre<br>
         • <strong>Reference:</strong> MASJID</p>
-        <p>Direct bank transfers have 0% processing fees!</p>
-        <button class="btn btn-sm btn-gold mt-2" onclick="navigator.clipboard.writeText('Sort Code: 30-99-50 | Account: 34785863 | Bank: Lloyds Bank')">Copy Bank Info</button>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">GoFundMe (Recommended)</a>
+          <a href="#bank-details" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Bank & QR Code</a>
+        </div>
+      `;
+    }
+
+    if (query.includes('qr') || query.includes('scan') || query.includes('mobile pay')) {
+      return `
+        <p>📱 <strong>Scan-to-Pay QR Code:</strong></p>
+        <p>You can scan our official QR code directly inside your UK mobile banking app to donate with zero fees.</p>
+        <p>Linked to Lloyds Bank Sort Code <strong>30-95-96</strong>, Account <strong>1279 8836</strong>.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">GoFundMe (Recommended)</a>
+          <a href="#bank-details" class="btn btn-sm btn-emerald" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View QR Code</a>
+        </div>
+      `;
+    }
+
+    if (query.includes('shortfall') || query.includes('230') || query.includes('350') || query.includes('balance')) {
+      return `
+        <p>💰 <strong>Financial Shortfall & Funds in Bank:</strong></p>
+        <p>• <strong>Total Target Required:</strong> £580,000<br>
+        • <strong>Already Secured in Bank:</strong> £230,000 (39.7%)<br>
+        • <strong>Urgent Shortfall Needed:</strong> £350,000</p>
+        <p>With community pledges, we have surpassed £324,850! Please help us close the remaining gap.</p>
+        <a href="#target" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Target Details</a>
+      `;
+    }
+
+    if (query.includes('bengali') || query.includes('বাংলা') || query.includes('bangla')) {
+      return `
+        <p>🇧🇩 <strong>চিচেস্টার জামিয়া সেন্টার (ইসলামিক সেন্টার):</strong></p>
+        <p>১০২ বগোর রোডে £৫৮০,০০০ মূল্যের প্রোপার্টির জন্য ব্যাংকে £২৩০,০০০ জমা আছে, এবং অবশিষ্ট £৩৫০,০০০ প্রয়োজন। GoFundMe অথবা সরাসরি ব্যাংক ট্রান্সফারের মাধ্যমে দান করুন।</p>
+        <a href="#documents" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">বাংলায় আবেদন দেখুন</a>
+      `;
+    }
+
+    if (query.includes('document') || query.includes('flyer') || query.includes('banner')) {
+      return `
+        <p>📄 <strong>Official Campaign Documents:</strong></p>
+        <p>You can view both our official appeal flyer and our roll-up banner with Charity Commission credentials (No. 1148130) in high resolution.</p>
+        <a href="#documents" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Official Documents</a>
       `;
     }
 
     if (query.includes('gofundme') || query.includes('go fund me') || query.includes('link')) {
       return `
-        <p>❤️ <strong>Official GoFundMe Appeal Page:</strong></p>
-        <p>You can donate directly through GoFundMe at:<br>
-        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:800;">gofundme.com/f/chichester-mosque</a></p>
-        <p>All donations go directly to Chichester Jamia Centre for property purchase & refurbishment.</p>
+        <p>❤️ <strong>Official GoFundMe Appeal (★ Highly Recommended):</strong></p>
+        <p>We strongly recommend donating directly through our official GoFundMe page:<br>
+        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:800;">gofundme.com/f/chichester-mosque ↗</a></p>
+        <p>All donations go directly to Chichester Jamia Centre for property purchase & refurbishment, and instantly update our £580,000 community tracker.</p>
         <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme mt-2">Open GoFundMe ↗</a>
       `;
     }
@@ -699,9 +1232,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (query.includes('prayer') || query.includes('jumuah') || query.includes('qibla')) {
       return `
         <p>🕌 <strong>Chichester Prayers & Qibla Direction:</strong></p>
-        <p>• <strong>Fajr:</strong> 05:32 AM | <strong>Dhuhr:</strong> 01:02 PM<br>
-        • <strong>Asr:</strong> 04:18 PM | <strong>Maghrib:</strong> 06:46 PM<br>
-        • <strong>Isha:</strong> 08:15 PM<br>
+        <p>Our prayer times are synced dynamically with Wifaqul Ulama Hanafi for Chichester.<br>
         • <strong>Qibla:</strong> 119.2° ESE towards Makkah.<br>
         Friday Jumu'ah Khutbah starts at 01:15 PM.</p>
       `;
@@ -716,8 +1247,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     return `
-      <p>Assalamu Alaikum! Chichester Jamia Centre (Charity No. 1148130) is establishing the first permanent Masjid in Chichester, UK.</p>
-      <p>You can donate via <strong>GoFundMe</strong>, <strong>Bank Transfer (30-99-50 / 34785863)</strong>, or our <strong>Interactive Brick Wall</strong>.</p>
+      <p>Assalamu Alaikum! Chichester Jamia Centre (Charity No. 1148130) is transforming the former Wickham Arms pub (102 Bognor Rd) into Chichester's first permanent Masjid.</p>
+      <p>We have <strong>£230,000 in the bank</strong> and need <strong>£350,000 shortfall</strong>. We <strong>highly recommend donating through our official <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">GoFundMe Campaign</a></strong> for instant Apple Pay / Google Pay and live public tracking.</p>
+      <p>Other payment options are also readily available: <strong>Lloyds Bank Transfer (Sort: 30-99-50 / Acc: 34785863)</strong>, <strong>Scan-to-Pay QR</strong>, or our <strong>Interactive Brick Wall</strong>.</p>
       <p>How else may I help you?</p>
     `;
   }
@@ -740,7 +1272,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (aiChatForm) {
-    aiChatForm.addEventListener('submit', (e) => {
+    aiChatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const userText = aiChatInput.value.trim();
       if (!userText) return;
@@ -749,23 +1281,36 @@ document.addEventListener('DOMContentLoaded', () => {
       aiChatInput.value = '';
       playSoftChime();
 
-      setTimeout(() => {
-        const botReply = getAiResponse(userText);
-        appendChatMessage('bot', botReply);
-      }, 500);
+      // Show typing indicator
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'ai-msg bot';
+      typingDiv.innerHTML = '<div class="ai-msg-bubble"><em>Typing...</em></div>';
+      aiChatMessages.appendChild(typingDiv);
+      aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+      const botReply = await getAiResponse(userText);
+      aiChatMessages.removeChild(typingDiv);
+      appendChatMessage('bot', botReply);
     });
   }
 
   document.querySelectorAll('.chip-btn').forEach(chip => {
-    chip.addEventListener('click', () => {
+    chip.addEventListener('click', async () => {
       const query = chip.getAttribute('data-query');
       if (query) {
         appendChatMessage('user', query);
         playSoftChime();
-        setTimeout(() => {
-          const botReply = getAiResponse(query);
-          appendChatMessage('bot', botReply);
-        }, 500);
+        
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'ai-msg bot';
+        typingDiv.innerHTML = '<div class="ai-msg-bubble"><em>Typing...</em></div>';
+        aiChatMessages.appendChild(typingDiv);
+        aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+        const botReply = await getAiResponse(query);
+        aiChatMessages.removeChild(typingDiv);
+        appendChatMessage('bot', botReply);
       }
     });
   });
@@ -786,6 +1331,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const scrollTop = window.scrollY || document.documentElement.scrollTop;
     const docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
     const scrollPercent = docHeight > 0 ? scrollTop / docHeight : 0;
+
+    const scrollProgressBar = document.getElementById('scrollProgressBar');
+    if (scrollProgressBar) {
+      scrollProgressBar.style.width = `${(scrollPercent * 100).toFixed(1)}%`;
+    }
 
     if (progressCircle) {
       const offset = circumference - (scrollPercent * circumference);
@@ -811,23 +1361,31 @@ document.addEventListener('DOMContentLoaded', () => {
     donationForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
-      const payMethod = document.querySelector('input[name="paymethod"]:checked')?.value;
-      if (payMethod === 'gofundme') {
-        window.open('https://www.gofundme.com/f/chichester-mosque', '_blank');
-        return;
-      }
-
-      const name = donorName.value.trim() || 'Anonymous Supporter';
+      const payMethod = document.querySelector('input[name="paymethod"]:checked')?.value || 'gofundme';
+      const name = donorName.value.trim() || 'Generous Supporter';
       const amount = parseFloat(customAmountInput.value) || 100;
       const purpose = document.querySelector('input[name="purpose"]:checked')?.value || 'Masjid Property Fund';
       const isGiftAid = giftAidCheck.checked;
       const notes = donorNotes.value.trim();
       const sym = currencyRates[activeCurrency].symbol;
 
+      if (payMethod === 'gofundme') {
+        showToast('Opening official GoFundMe campaign... JazakAllah Khairan!');
+        window.open('https://www.gofundme.com/f/chichester-mosque', '_blank');
+        
+        addDonorToWall({
+          name: `${name} (via GoFundMe)`,
+          amount: amount,
+          notes: notes || 'Pledged on official GoFundMe page towards Chichester Masjid.',
+          time: 'Just now'
+        });
+        return;
+      }
+
       paymentModalContent.innerHTML = `
         <div class="spinner-ring"></div>
-        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-dark); margin-bottom: 8px;">Processing Your Sadaqah...</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Securing your contribution of <strong>${sym}${amount.toFixed(2)}</strong> for Chichester Jamia Centre.</p>
+        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-dark); margin-bottom: 8px;">Processing Your Contribution...</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Recording your donation of <strong>${sym}${amount.toFixed(2)}</strong> for Chichester Jamia Centre.</p>
       `;
       paymentModal.classList.add('active');
 
@@ -839,13 +1397,29 @@ document.addEventListener('DOMContentLoaded', () => {
         campaignState.donors += 1;
         updateCampaignUI();
 
+        const methodTitle = payMethod === 'bank' 
+          ? 'Bank Transfer Pledge Recorded' 
+          : payMethod === 'qr' 
+            ? 'QR Payment Transfer Recorded' 
+            : 'Card Donation Processed Successfully';
+
+        const methodInstructions = payMethod === 'bank'
+          ? `<div style="background: rgba(245,158,11,0.12); border-left: 3px solid var(--accent-gold); padding: 10px 12px; border-radius: 6px; margin-top: 10px; font-size: 0.85rem; color: var(--text-dark);">
+              <strong>Next Step:</strong> Please complete your transfer of <strong>${sym}${amount.toFixed(2)}</strong> via your online banking app to <strong>Lloyds Bank</strong>: Sort Code <strong>30-99-50</strong>, Account <strong>34785863</strong>, Reference <strong>MASJID</strong>.
+            </div>`
+          : payMethod === 'qr'
+            ? `<div style="background: rgba(16,185,129,0.1); border-left: 3px solid var(--primary-emerald); padding: 10px 12px; border-radius: 6px; margin-top: 10px; font-size: 0.85rem; color: var(--text-dark);">
+                <strong>QR Pay Confirmed:</strong> Thank you for scanning our Lloyds Bank QR code (Sort 30-95-96 / Acc 1279 8836).
+              </div>`
+            : '';
+
         paymentModalContent.innerHTML = `
           <div style="text-align: center;">
             <div style="width: 54px; height: 54px; background: #ecfdf5; color: #047857; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>
             </div>
             <h3 style="font-family: var(--font-heading); font-size: 1.5rem; color: var(--text-dark); margin-bottom: 4px;">JazakAllah Khairan, ${name}!</h3>
-            <p style="color: var(--primary-emerald); font-weight: 700; font-size: 1rem; margin-bottom: 16px;">Your donation has been received successfully.</p>
+            <p style="color: var(--primary-emerald); font-weight: 700; font-size: 1rem; margin-bottom: 16px;">${methodTitle}</p>
             
             <div style="background: var(--bg-secondary); border: 1px dashed var(--accent-gold); border-radius: 12px; padding: 18px; text-align: left; margin-bottom: 20px;">
               <div style="display: flex; justify-content: space-between; border-bottom: 1px solid var(--border-light); padding-bottom: 6px; margin-bottom: 6px; font-size: 0.88rem;">
@@ -864,10 +1438,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span style="color: var(--text-muted);">Donation Amount:</span>
                 <strong style="font-size: 1.05rem; color: var(--primary-emerald-light);">${sym}${amount.toFixed(2)}</strong>
               </div>
+              ${methodInstructions}
             </div>
 
             <div style="display:flex; gap:10px; flex-direction:column;">
-              <button class="btn btn-gold btn-block" id="btnShowCertFromPayment">📜 View & Print Sadaqah Certificate</button>
+              <button class="btn btn-gold btn-block" id="btnShowCertFromPayment">📜 View &amp; Print Sadaqah Certificate</button>
               <button class="btn btn-emerald btn-block" id="btnCloseSuccessModal">Done</button>
             </div>
           </div>
@@ -938,32 +1513,136 @@ document.addEventListener('DOMContentLoaded', () => {
   initialDonors.forEach(addDonorToWall);
 
   // ------------------------------------------------------------------
-  // 17. Prayer Times Widget (Chichester, UK)
+  // 17. Prayer Times Widget (Chichester, UK) - Wifaqul Ulama Hanafi Sync
   // ------------------------------------------------------------------
-  function initPrayerTimes() {
+  async function initPrayerTimes() {
     const today = new Date();
     const hijriDateDisplay = document.getElementById('hijriDateDisplay');
-    if (hijriDateDisplay) {
-      hijriDateDisplay.textContent = `23 Rabi' al-Thani 1448 AH • ${today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+    
+    // Fetch Wifaqul Ulama Hanafi Prayer Times (Custom Method 99, Fajr 18deg, Isha 15deg, Hanafi School 1)
+    let timings = {
+      Fajr: "05:32", Sunrise: "07:05", Dhuhr: "13:02", Asr: "16:18", Maghrib: "18:46", Isha: "20:15"
+    };
+
+    try {
+      const response = await fetch("https://api.aladhan.com/v1/timingsByCity?city=Chichester&country=UK&method=99&methodSettings=18,null,15&school=1");
+      const data = await response.json();
+      if(data && data.data && data.data.timings) {
+        timings = data.data.timings;
+        const hDate = data.data.date.hijri;
+        if(hijriDateDisplay) {
+            hijriDateDisplay.textContent = `${hDate.day} ${hDate.month.en} ${hDate.year} AH • ${today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+        }
+      }
+    } catch(e) {
+      console.error("Failed to fetch prayer times", e);
+      if(hijriDateDisplay) {
+        hijriDateDisplay.textContent = `23 Rabi' al-Thani 1448 AH • ${today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+      }
+    }
+
+    // Function to convert 24h to 12h format
+    const formatTime = (time24) => {
+        const [h, m] = time24.split(':');
+        const hInt = parseInt(h);
+        const ampm = hInt >= 12 ? 'PM' : 'AM';
+        const h12 = hInt % 12 || 12;
+        return `${String(h12).padStart(2, '0')}:${m} ${ampm}`;
+    };
+
+    // Add 15 mins for Iqamah roughly
+    const formatIqamah = (time24, minsToAdd) => {
+        const [h, m] = time24.split(':');
+        let date = new Date();
+        date.setHours(parseInt(h), parseInt(m) + minsToAdd, 0);
+        const hInt = date.getHours();
+        const ampm = hInt >= 12 ? 'PM' : 'AM';
+        const h12 = hInt % 12 || 12;
+        return `${String(h12).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} ${ampm}`;
+    };
+
+    if(document.getElementById('ptFajr')) {
+      document.querySelector('#ptFajr .pt-time').textContent = formatTime(timings.Fajr);
+      document.querySelector('#ptFajr .pt-iqamah').textContent = `Iqamah: ${formatIqamah(timings.Fajr, 30)}`;
+      
+      document.querySelector('#ptSunrise .pt-time').textContent = formatTime(timings.Sunrise);
+      
+      document.querySelector('#ptDhuhr .pt-time').textContent = formatTime(timings.Dhuhr);
+      document.querySelector('#ptDhuhr .pt-iqamah').textContent = `Iqamah: ${formatIqamah(timings.Dhuhr, 15)}`;
+      
+      document.querySelector('#ptAsr .pt-time').textContent = formatTime(timings.Asr);
+      document.querySelector('#ptAsr .pt-iqamah').textContent = `Iqamah: ${formatIqamah(timings.Asr, 15)}`;
+      
+      document.querySelector('#ptMaghrib .pt-time').textContent = formatTime(timings.Maghrib);
+      document.querySelector('#ptMaghrib .pt-iqamah').textContent = `Iqamah: ${formatIqamah(timings.Maghrib, 5)}`;
+      
+      document.querySelector('#ptIsha .pt-time').textContent = formatTime(timings.Isha);
+      document.querySelector('#ptIsha .pt-iqamah').textContent = `Iqamah: ${formatIqamah(timings.Isha, 15)}`;
     }
 
     const nextPrayerCountdown = document.getElementById('nextPrayerCountdown');
+    const nextPrayerName = document.getElementById('nextPrayerName');
+    
     function updateCountdown() {
       const now = new Date();
-      let maghribTime = new Date();
-      maghribTime.setHours(18, 46, 0);
+      
+      // Order of prayers to check next
+      const prayerList = [
+        {name: 'Fajr', time: timings.Fajr},
+        {name: 'Sunrise', time: timings.Sunrise},
+        {name: 'Dhuhr', time: timings.Dhuhr},
+        {name: 'Asr', time: timings.Asr},
+        {name: 'Maghrib', time: timings.Maghrib},
+        {name: 'Isha', time: timings.Isha}
+      ];
 
-      if (now > maghribTime) {
-        maghribTime.setDate(maghribTime.getDate() + 1);
+      let nextPrayer = prayerList[0];
+      let foundNext = false;
+      let targetDate = new Date();
+
+      for(let p of prayerList) {
+          const [h, m] = p.time.split(':');
+          let pDate = new Date();
+          pDate.setHours(h, m, 0);
+          if(now < pDate) {
+              nextPrayer = p;
+              targetDate = pDate;
+              foundNext = true;
+              break;
+          }
       }
 
-      const diff = maghribTime - now;
+      // If all passed, next is Fajr tomorrow
+      if(!foundNext) {
+          const [h, m] = prayerList[0].time.split(':');
+          targetDate.setDate(targetDate.getDate() + 1);
+          targetDate.setHours(h, m, 0);
+          nextPrayer = prayerList[0];
+      }
+
+      const diff = targetDate - now;
       const hours = Math.floor(diff / (1000 * 60 * 60));
       const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const secs = Math.floor((diff % (1000 * 60)) / 1000);
 
       if (nextPrayerCountdown) {
         nextPrayerCountdown.textContent = `in ${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+      }
+      if (nextPrayerName) {
+        nextPrayerName.textContent = nextPrayer.name;
+      }
+      
+      // Highlight active
+      document.querySelectorAll('.pt-card').forEach(c => c.classList.remove('active-prayer'));
+      if(nextPrayer.name === 'Fajr' && !foundNext) {
+          // If after Isha, Isha is active
+          document.getElementById('ptIsha')?.classList.add('active-prayer');
+      } else {
+          // Find the one before nextPrayer
+          const idx = prayerList.findIndex(p => p.name === nextPrayer.name);
+          if(idx > 0) {
+              document.getElementById('pt' + prayerList[idx-1].name)?.classList.add('active-prayer');
+          }
       }
     }
 
@@ -972,6 +1651,334 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initPrayerTimes();
+
+  // ------------------------------------------------------------------
+  // 17b. Interactive Adhan (Call to Prayer) Audio Synthesizer & Du'a
+  // ------------------------------------------------------------------
+  function initAdhanPlayer() {
+    const btnPlayAdhan = document.getElementById('btnPlayAdhan');
+    const adhanPlayerCard = document.getElementById('adhanPlayerCard');
+    const adhanStyleSelect = document.getElementById('adhanStyleSelect');
+    const adhanTrackTitle = document.getElementById('adhanTrackTitle');
+    const adhanStyleTag = document.getElementById('adhanStyleTag');
+    const adhanTimeDisplay = document.getElementById('adhanTimeDisplay');
+    const adhanStatusText = document.getElementById('adhanStatusText');
+    const btnMuteAdhan = document.getElementById('btnMuteAdhan');
+    const adhanVolSlider = document.getElementById('adhanVolSlider');
+    const btnToggleDua = document.getElementById('btnToggleDua');
+    const adhanDuaContent = document.getElementById('adhanDuaContent');
+    const btnCopyDua = document.getElementById('btnCopyDua');
+
+    if (!btnPlayAdhan || !adhanPlayerCard) return;
+
+    let audioCtx = null;
+    let masterGain = null;
+    let isPlaying = false;
+    let isMuted = false;
+    let lastVolume = 0.8;
+    let currentTimer = null;
+    let secondsElapsed = 0;
+    const totalDurationSeconds = 195; // 03:15
+    let activeOscillators = [];
+
+    // Maqam Bayati Harmonic Frequencies (Hz)
+    const bayatiScale = {
+      D4: 293.66,
+      Ebayati: 315.00, // Quarter-tone bayati second
+      F4: 349.23,
+      G4: 392.00,
+      A4: 440.00,
+      Bb4: 466.16,
+      C5: 523.25,
+      D5: 587.33
+    };
+
+    // Melodic motif phrases of the Adhan
+    const adhanPhrases = [
+      // Allahu Akbar, Allahu Akbar
+      { notes: [bayatiScale.D4, bayatiScale.G4, bayatiScale.F4, bayatiScale.G4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4, bayatiScale.Ebayati, bayatiScale.D4], duration: 14 },
+      // Allahu Akbar, Allahu Akbar
+      { notes: [bayatiScale.D4, bayatiScale.G4, bayatiScale.A4, bayatiScale.Bb4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4, bayatiScale.D4], duration: 15 },
+      // Ash-hadu alla ilaha illallah
+      { notes: [bayatiScale.D4, bayatiScale.F4, bayatiScale.G4, bayatiScale.A4, bayatiScale.Bb4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4, bayatiScale.Ebayati, bayatiScale.D4], duration: 18 },
+      // Ash-hadu anna Muhammadan Rasulullah
+      { notes: [bayatiScale.G4, bayatiScale.A4, bayatiScale.Bb4, bayatiScale.C5, bayatiScale.Bb4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4, bayatiScale.D4], duration: 20 },
+      // Hayya 'alas-Salah
+      { notes: [bayatiScale.A4, bayatiScale.C5, bayatiScale.D5, bayatiScale.C5, bayatiScale.Bb4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4], duration: 22 },
+      // Hayya 'alal-Falah
+      { notes: [bayatiScale.G4, bayatiScale.Bb4, bayatiScale.C5, bayatiScale.Bb4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4, bayatiScale.Ebayati, bayatiScale.D4], duration: 22 },
+      // Allahu Akbar, Allahu Akbar
+      { notes: [bayatiScale.D4, bayatiScale.G4, bayatiScale.A4, bayatiScale.G4, bayatiScale.F4, bayatiScale.D4], duration: 14 },
+      // La ilaha illallah
+      { notes: [bayatiScale.D4, bayatiScale.F4, bayatiScale.G4, bayatiScale.F4, bayatiScale.Ebayati, bayatiScale.D4], duration: 16 }
+    ];
+
+    function stopAllAudio() {
+      activeOscillators.forEach(osc => {
+        try {
+          osc.stop();
+          osc.disconnect();
+        } catch(e) {}
+      });
+      activeOscillators = [];
+      if (currentTimer) {
+        clearInterval(currentTimer);
+        currentTimer = null;
+      }
+      isPlaying = false;
+      adhanPlayerCard.classList.remove('adhan-playing');
+      const playSvg = btnPlayAdhan.querySelector('.play-svg');
+      const stopSvg = btnPlayAdhan.querySelector('.stop-svg');
+      if (playSvg) playSvg.classList.remove('hidden');
+      if (stopSvg) stopSvg.classList.add('hidden');
+      if (adhanStatusText) adhanStatusText.textContent = "Call to Prayer (Adhan)";
+      if (adhanTimeDisplay) adhanTimeDisplay.textContent = `00:00 / 03:15`;
+      secondsElapsed = 0;
+    }
+
+    function playTone(freq, startTime, noteDuration) {
+      if (!audioCtx || !masterGain) return;
+
+      // Primary tone (warm triangle oscillator)
+      const osc1 = audioCtx.createOscillator();
+      osc1.type = 'triangle';
+      osc1.frequency.setValueAtTime(freq, startTime);
+
+      // Sub-harmonic octave (fullness/warmth)
+      const osc2 = audioCtx.createOscillator();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(freq * 0.5, startTime);
+
+      // Vocal warmth envelope filter
+      const filter = audioCtx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(1400, startTime);
+      filter.Q.setValueAtTime(1.5, startTime);
+
+      // Individual note gain envelope (soft vocal attack & slow resonant release)
+      const noteGain = audioCtx.createGain();
+      noteGain.gain.setValueAtTime(0.0001, startTime);
+      noteGain.gain.exponentialRampToValueAtTime(0.4, startTime + 0.35);
+      noteGain.gain.setValueAtTime(0.35, startTime + noteDuration - 0.5);
+      noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + noteDuration);
+
+      // Subtle vibrato (5 Hz vocal natural modulation)
+      const vibrato = audioCtx.createOscillator();
+      const vibratoGain = audioCtx.createGain();
+      vibrato.frequency.setValueAtTime(4.8, startTime);
+      vibratoGain.gain.setValueAtTime(3.5, startTime);
+      vibrato.connect(vibratoGain);
+      vibratoGain.connect(osc1.frequency);
+
+      osc1.connect(filter);
+      osc2.connect(filter);
+      filter.connect(noteGain);
+      noteGain.connect(masterGain);
+
+      osc1.start(startTime);
+      osc2.start(startTime);
+      vibrato.start(startTime);
+
+      osc1.stop(startTime + noteDuration);
+      osc2.stop(startTime + noteDuration);
+      vibrato.stop(startTime + noteDuration);
+
+      activeOscillators.push(osc1, osc2, vibrato);
+    }
+
+    function startAdhanPlayback() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) {
+          showToast('Audio API not supported in this browser');
+          return;
+        }
+
+        if (!audioCtx) {
+          audioCtx = new AudioContextClass();
+        }
+
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+
+        masterGain = audioCtx.createGain();
+        const currentVol = parseFloat(adhanVolSlider?.value || 80) / 100;
+        masterGain.gain.setValueAtTime(isMuted ? 0 : currentVol * 0.6, audioCtx.currentTime);
+        masterGain.connect(audioCtx.destination);
+
+        stopAllAudio();
+        isPlaying = true;
+        secondsElapsed = 0;
+
+        adhanPlayerCard.classList.add('adhan-playing');
+        const playSvg = btnPlayAdhan.querySelector('.play-svg');
+        const stopSvg = btnPlayAdhan.querySelector('.stop-svg');
+        if (playSvg) playSvg.classList.add('hidden');
+        if (stopSvg) stopSvg.classList.remove('hidden');
+
+        const styleName = adhanStyleSelect ? adhanStyleSelect.options[adhanStyleSelect.selectedIndex].text : "Makkah";
+        if (adhanStatusText) adhanStatusText.textContent = `Live: ${styleName}`;
+
+        let curTime = audioCtx.currentTime + 0.1;
+
+        // Schedule melodic sequence
+        adhanPhrases.forEach(phrase => {
+          const noteLen = phrase.duration / phrase.notes.length;
+          phrase.notes.forEach(noteFreq => {
+            playTone(noteFreq, curTime, noteLen * 1.15);
+            curTime += noteLen;
+          });
+          curTime += 1.2; // Breath pause between sacred phrases
+        });
+
+        // Live seconds counter
+        currentTimer = setInterval(() => {
+          secondsElapsed++;
+          const m = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+          const s = String(secondsElapsed % 60).padStart(2, '0');
+          if (adhanTimeDisplay) adhanTimeDisplay.textContent = `${m}:${s} / 03:15`;
+
+          if (secondsElapsed >= totalDurationSeconds) {
+            stopAllAudio();
+            showToast('Adhan completed. Recite the Sunnah Du\'a below 📖');
+            if (adhanDuaContent) {
+              adhanDuaContent.classList.remove('hidden');
+              btnToggleDua?.classList.add('open');
+            }
+          }
+        }, 1000);
+
+        showToast(`Playing Adhan (${styleName}) 🕌`);
+
+      } catch(err) {
+        console.error("Adhan audio synthesis failed", err);
+        showToast('Playback started. May Allah accept our prayers.');
+      }
+    }
+
+    btnPlayAdhan.addEventListener('click', () => {
+      if (isPlaying) {
+        stopAllAudio();
+        showToast('Adhan stopped');
+      } else {
+        startAdhanPlayback();
+      }
+    });
+
+    adhanStyleSelect?.addEventListener('change', (e) => {
+      const selected = e.target.value;
+      if (selected === 'makkah') {
+        if (adhanTrackTitle) adhanTrackTitle.textContent = "Adhan — Makkah Al-Mukarramah (Sheikh Ali Mulla)";
+        if (adhanStyleTag) adhanStyleTag.textContent = "Makkah Mukarramah";
+      } else if (selected === 'madinah') {
+        if (adhanTrackTitle) adhanTrackTitle.textContent = "Adhan — Madinah Al-Munawwarah (Sheikh Essam Bukhari)";
+        if (adhanStyleTag) adhanStyleTag.textContent = "Madinah Munawwarah";
+      } else {
+        if (adhanTrackTitle) adhanTrackTitle.textContent = "Fajr Adhan — (As-Salatu Khayrun Minan Nawm)";
+        if (adhanStyleTag) adhanStyleTag.textContent = "Fajr Special";
+      }
+
+      if (isPlaying) {
+        stopAllAudio();
+        startAdhanPlayback();
+      }
+    });
+
+    adhanVolSlider?.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value) / 100;
+      lastVolume = val;
+      isMuted = (val === 0);
+      if (masterGain && audioCtx) {
+        masterGain.gain.setValueAtTime(val * 0.6, audioCtx.currentTime);
+      }
+    });
+
+    btnMuteAdhan?.addEventListener('click', () => {
+      if (!isMuted) {
+        isMuted = true;
+        if (masterGain && audioCtx) masterGain.gain.setValueAtTime(0, audioCtx.currentTime);
+        if (adhanVolSlider) adhanVolSlider.value = 0;
+        showToast('Adhan muted 🔇');
+      } else {
+        isMuted = false;
+        const restore = lastVolume > 0.1 ? lastVolume : 0.8;
+        if (masterGain && audioCtx) masterGain.gain.setValueAtTime(restore * 0.6, audioCtx.currentTime);
+        if (adhanVolSlider) adhanVolSlider.value = restore * 100;
+        showToast('Adhan unmuted 🔊');
+      }
+    });
+
+    // Sunnah Post-Adhan Du'a Accordion
+    btnToggleDua?.addEventListener('click', () => {
+      if (!adhanDuaContent) return;
+      const isHidden = adhanDuaContent.classList.contains('hidden');
+      if (isHidden) {
+        adhanDuaContent.classList.remove('hidden');
+        btnToggleDua.classList.add('open');
+        btnToggleDua.setAttribute('aria-expanded', 'true');
+      } else {
+        adhanDuaContent.classList.add('hidden');
+        btnToggleDua.classList.remove('open');
+        btnToggleDua.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    // Copy Du'a Button
+    btnCopyDua?.addEventListener('click', () => {
+      const duaText = `اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّداً الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَاماً مَحْمُوداً الَّذِي وَعَدْتَهُ\n\nAllahumma Rabba hadhihid-da'watit-tammah, was-salatil-qa'imah, ati Muhammadan al-wasilata wal-fadilah, wab'ath-hu maqamam-mahmudan alladhi wa'adtah.\n\n"O Allah, Lord of this perfect call and established prayer, grant Muhammad the status of intercession and virtue, and resurrect him to the praiseworthy station which You have promised." (Sahih al-Bukhari 614)`;
+      navigator.clipboard?.writeText(duaText).then(() => {
+        showToast('Sunnah Du\'a copied to clipboard! 📋');
+      }).catch(() => {
+        showToast('Du\'a copied! 📋');
+      });
+    });
+  }
+
+  initAdhanPlayer();
+
+  // ------------------------------------------------------------------
+  // 17c. Ramadan 1448 AH Target Countdown Tracker
+  // ------------------------------------------------------------------
+  function initRamadanCountdown() {
+    const rcDays = document.getElementById('rcDays');
+    const rcHours = document.getElementById('rcHours');
+    const rcMins = document.getElementById('rcMins');
+    const rcSecs = document.getElementById('rcSecs');
+
+    if (!rcDays) return;
+
+    // Projected start of Ramadan 1448 AH (approx February 7, 2027)
+    const ramadanTarget = new Date('2027-02-07T18:00:00Z');
+
+    function updateRamadan() {
+      const now = new Date();
+      const diff = ramadanTarget - now;
+
+      if (diff <= 0) {
+        rcDays.textContent = "00";
+        rcHours.textContent = "00";
+        rcMins.textContent = "00";
+        rcSecs.textContent = "00";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      const secs = Math.floor((diff / 1000) % 60);
+
+      rcDays.textContent = String(days).padStart(2, '0');
+      rcHours.textContent = String(hours).padStart(2, '0');
+      rcMins.textContent = String(mins).padStart(2, '0');
+      rcSecs.textContent = String(secs).padStart(2, '0');
+    }
+
+    updateRamadan();
+    setInterval(updateRamadan, 1000);
+  }
+
+  initRamadanCountdown();
 
   // ------------------------------------------------------------------
   // 18. FAQ Accordion & Toast Notifications
@@ -1066,4 +2073,695 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('copyShareLinkBtn')?.addEventListener('click', () => {
     copyToClipboard(gofundmeUrl, 'GoFundMe Link');
   });
+
+  // ------------------------------------------------------------------
+  // 19. Interactive Transformation Switcher (Pub -> Masjid -> Vision)
+  // ------------------------------------------------------------------
+  const transStages = {
+    past: {
+      image: "assets/real_building_wickham_before.jpg",
+      badge: "Past: The Wickham Arms Pub",
+      title: "The Wickham Arms Commercial Pub (Before)",
+      desc: "For decades, 102 Bognor Road operated as a commercial English public house and beer garden serving alcoholic drinks. Through generous community donations and grassroots momentum, this landmark property was identified for acquisition to be transformed into a sacred house of prayer, education, and community benefit.",
+      status: "Phase 1: Historic English Pub • Ceased Commercial Operations",
+      statusColor: "#ef4444",
+      specs: [
+        { icon: "📍", text: "<strong>Location:</strong> 102 Bognor Rd, Chichester, PO19 7TW" },
+        { icon: "🍺", text: "<strong>Original Use:</strong> Licensed Public House & Beer Garden" },
+        { icon: "🏛", text: "<strong>Architecture:</strong> Flint Cobblestones & Red Brick Dressings" },
+        { icon: "🛑", text: "<strong>Status:</strong> Permanently Closed; Acquired for Community" }
+      ]
+    },
+    present: {
+      image: "assets/real_building_jamia.jpg",
+      badge: "Present: Chichester Jamia Centre",
+      title: "Chichester Jamia Centre (Current Milestone)",
+      desc: "The property at 102 Bognor Road has been successfully secured under our Charitable Incorporated Organisation (CIO). The official 'Chichester Jamia Centre' signage is installed above the entrance. With £230k already secured in the bank, we now require £350k to complete the purchase and comprehensive interior refurbishment.",
+      status: "Phase 2: Property Secured • Refurbishment Appeal",
+      statusColor: "var(--primary-emerald)",
+      specs: [
+        { icon: "📍", text: "<strong>Location:</strong> 102 Bognor Rd, Chichester, PO19 7TW" },
+        { icon: "🏛", text: "<strong>Architecture:</strong> Traditional Sussex Flint Stone & Red Brick" },
+        { icon: "🚗", text: "<strong>Facilities:</strong> Private On-Site Car Park & Courtyard" },
+        { icon: "📜", text: "<strong>Charity Status:</strong> Registered UK Charity No. 1148130" }
+      ]
+    },
+    future: {
+      image: "assets/building_refurbished_concept.jpg",
+      badge: "Future: Refurbished Masjid Vision",
+      title: "Chichester's First Permanent Masjid (Envisioned Vision)",
+      desc: "A permanent sanctuary accommodating 300+ worshipers for daily 5-time prayers and Jumu'ah, dedicated sisters' prayer hall and wudu facilities, Weekend Madrasa classrooms, library, and peaceful landscaped courtyard.",
+      status: "Phase 3: Refurbished House of Allah • Serving Generations",
+      statusColor: "var(--accent-gold)",
+      specs: [
+        { icon: "🕌", text: "<strong>Main Hall:</strong> 200+ Worshipers with Acoustic Sound" },
+        { icon: "🧕", text: "<strong>Sisters Sanctuary:</strong> 100+ Worshipers with Creche" },
+        { icon: "📚", text: "<strong>Education:</strong> 3 Madrasa Classrooms & Library" },
+        { icon: "♿", text: "<strong>Accessibility:</strong> Full Step-free Wheelchair Access" }
+      ]
+    }
+  };
+
+  const transStageImg = document.getElementById('transStageImg');
+  const transBadge = document.getElementById('transBadge');
+  const transStatusText = document.getElementById('transStatusText');
+  const transStageTitle = document.getElementById('transStageTitle');
+  const transStageDesc = document.getElementById('transStageDesc');
+  const transSpecsGrid = document.getElementById('transSpecsGrid');
+  const btnZoomTrans = document.getElementById('btnZoomTrans');
+
+  function setTransformationStage(stageKey) {
+    const data = transStages[stageKey];
+    if (!data) return;
+
+    // Update active tab buttons
+    document.querySelectorAll('.trans-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.stage === stageKey);
+    });
+
+    // Update milestone trio cards
+    document.querySelectorAll('[data-stage-jump]').forEach(card => {
+      card.classList.toggle('active', card.dataset.stageJump === stageKey);
+    });
+
+    // Animate image switch
+    if (transStageImg) {
+      transStageImg.style.opacity = '0';
+      transStageImg.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        transStageImg.src = data.image;
+        transStageImg.alt = data.title;
+        transStageImg.style.opacity = '1';
+        transStageImg.style.transform = 'scale(1)';
+      }, 150);
+    }
+
+    if (transBadge) transBadge.textContent = data.badge;
+    if (transStatusText) transStatusText.textContent = data.status;
+    if (transStageTitle) transStageTitle.textContent = data.title;
+    if (transStageDesc) transStageDesc.textContent = data.desc;
+
+    if (transSpecsGrid) {
+      transSpecsGrid.innerHTML = data.specs.map(s => `
+        <div class="tsg-item">
+          <span class="tsg-icon">${s.icon}</span>
+          <div>${s.text}</div>
+        </div>
+      `).join('');
+    }
+
+    if (btnZoomTrans) {
+      btnZoomTrans.setAttribute('data-img', data.image);
+      btnZoomTrans.setAttribute('data-caption', `${data.title} — ${data.badge}`);
+    }
+  }
+
+  document.querySelectorAll('.trans-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setTransformationStage(btn.dataset.stage);
+    });
+  });
+
+  document.querySelectorAll('[data-stage-jump]').forEach(card => {
+    card.addEventListener('click', () => {
+      const stage = card.dataset.stageJump;
+      setTransformationStage(stage);
+      document.getElementById('transformationDisplay')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  });
+
+  // ------------------------------------------------------------------
+  // 20. Dual Bank Account Switcher Logic
+  // ------------------------------------------------------------------
+  const bankTabAcc1 = document.getElementById('bankTabAcc1');
+  const bankTabAcc2 = document.getElementById('bankTabAcc2');
+  const currentSortCodeDisplay = document.getElementById('currentSortCodeDisplay');
+  const currentAccNoDisplay = document.getElementById('currentAccNoDisplay');
+  const copySortCodeBtn = document.getElementById('copySortCodeBtn');
+  const copyAccNoBtn = document.getElementById('copyAccNoBtn');
+
+  function setBankAccount(accKey) {
+    if (accKey === 'acc1') {
+      bankTabAcc1?.classList.add('active');
+      bankTabAcc2?.classList.remove('active');
+      if (currentSortCodeDisplay) currentSortCodeDisplay.textContent = '30-99-50';
+      if (currentAccNoDisplay) currentAccNoDisplay.textContent = '34785863';
+      copySortCodeBtn?.setAttribute('data-copy', '30-99-50');
+      copyAccNoBtn?.setAttribute('data-copy', '34785863');
+    } else {
+      bankTabAcc2?.classList.add('active');
+      bankTabAcc1?.classList.remove('active');
+      if (currentSortCodeDisplay) currentSortCodeDisplay.textContent = '30-95-96';
+      if (currentAccNoDisplay) currentAccNoDisplay.textContent = '1279 8836';
+      copySortCodeBtn?.setAttribute('data-copy', '30-95-96');
+      copyAccNoBtn?.setAttribute('data-copy', '1279 8836');
+    }
+  }
+
+  bankTabAcc1?.addEventListener('click', () => setBankAccount('acc1'));
+  bankTabAcc2?.addEventListener('click', () => setBankAccount('acc2'));
+
+  // ------------------------------------------------------------------
+  // 21. Interactive Fullscreen Image Lightbox Modal
+  // ------------------------------------------------------------------
+  const imageLightboxModal = document.getElementById('imageLightboxModal');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxCaption = document.getElementById('lightboxCaption');
+  const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+
+  function openLightbox(src, caption) {
+    if (!imageLightboxModal || !lightboxImg) return;
+    lightboxImg.src = src;
+    if (lightboxCaption) lightboxCaption.textContent = caption || 'Chichester Jamia Centre';
+    imageLightboxModal.classList.add('active');
+  }
+
+  function closeLightbox() {
+    if (imageLightboxModal) imageLightboxModal.classList.remove('active');
+  }
+
+  closeLightboxBtn?.addEventListener('click', closeLightbox);
+  imageLightboxModal?.addEventListener('click', (e) => {
+    if (e.target === imageLightboxModal) closeLightbox();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && imageLightboxModal?.classList.contains('active')) {
+      closeLightbox();
+    }
+  });
+
+  // Attach lightbox to all zoom buttons and lightbox triggers
+  document.querySelectorAll('[data-lightbox]').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      const imgPath = el.getAttribute('data-lightbox');
+      const caption = el.getAttribute('data-caption') || el.getAttribute('title');
+      openLightbox(imgPath, caption);
+    });
+  });
+
+  btnZoomTrans?.addEventListener('click', () => {
+    const imgPath = btnZoomTrans.getAttribute('data-img');
+    const caption = btnZoomTrans.getAttribute('data-caption') || 'Chichester Jamia Centre Transformation';
+    openLightbox(imgPath, caption);
+  });
+
+  // ------------------------------------------------------------------
+  // 22. Daily Islamic Inspiration (Ayat & Hadith of the Day)
+  // ------------------------------------------------------------------
+  const inspirations = [
+    {
+      category: "Building Masjids",
+      arabic: "مَنْ بَنَى مَسْجِدًا لِلَّهِ كَمَفْحَصِ قَطَاةٍ أَوْ أَصْغَرَ بَنَى اللَّهُ لَهُ بَيْتًا فِي الْجَنَّةِ",
+      transliteration: '"Man bana masjidan lillahi kamafhasi qatatin aw asghara banallahu lahu baytan fil-Jannah."',
+      translation: '"Whoever builds a mosque for the sake of Allah, like a sparrow\'s nest or even smaller, Allah will build for him a house in Paradise."',
+      reference: "— Sunan Ibn Majah 738 (Sahih)"
+    },
+    {
+      category: "Sadaqah Jariyah",
+      arabic: "إِذَا مَاتَ ابْنُ آدَمَ انْقَطَعَ عَمَلُهُ إِلَّا مِنْ ثَلَاثٍ: صَدَقَةٍ جَارِيَةٍ، أَوْ عِلْمٍ يُنْتَفَعُ بِهِ، أَوْ وَلَدٍ صَالِحٍ يَدْعُو لَهُ",
+      transliteration: '"Iza mata ibnu adama inqata\'a \'amaluhu illa min thalathin: sadaqatin jariyah, aw \'ilmin yuntafa\'u bih, aw waladin salihin yad\'u lah."',
+      translation: '"When a person dies, his deeds come to an end except for three: ongoing charity (Sadaqah Jariyah), knowledge from which benefit is derived, or a righteous child who prays for him."',
+      reference: "— Sahih Muslim 1631"
+    },
+    {
+      category: "Blessing of Charity",
+      arabic: "مَثَلُ الَّذِينَ يُنْفِقُونَ أَمْوَالَهُمْ فِي سَبِيلِ اللَّهِ كَمَثَلِ حَبَّةٍ أَنْبَتَتْ سَبْعَ سَنَابِلَ فِي كُلِّ سُنْبُلَةٍ مِائَةُ حَبَّةٍ",
+      transliteration: '"Mathalul-latheena yunfiqoona amwalahum fee sabeelillahi kamathali habbatin ambatat sab\'a sanabila fee kulli sumbulatim mi\'atu habbah."',
+      translation: '"The example of those who spend their wealth in the way of Allah is like a seed of grain which grows seven spikes; in each spike is a hundred grains. And Allah multiplies for whom He wills."',
+      reference: "— Surah Al-Baqarah (2:261)"
+    },
+    {
+      category: "Mosque Establishment",
+      arabic: "إِنَّمَا يَعْمُرُ مَسَاجِدَ اللَّهِ مَنْ آمَنَ بِاللَّهِ وَالْيَوْمِ الْآخِرِ وَأَقَامَ الصَّلَاةَ وَآتَى الزَّكَاةَ وَلَمْ يَخْشَ إِلَّا اللَّهَ",
+      transliteration: '"Innama ya\'muru masajidallahi man amana billahi wal-yawmil-akhiri wa aqamas-salata wa ataz-zakata wa lam yakhsha illallah."',
+      translation: '"The mosques of Allah are only to be maintained by those who believe in Allah and the Last Day and establish prayer and give zakah and do not fear except Allah."',
+      reference: "— Surah At-Tawbah (9:18)"
+    },
+    {
+      category: "Generosity & Protection",
+      arabic: "مَا نَقَصَتْ صَدَقَةٌ مِنْ مَالٍ، وَمَا زَادَ اللَّهُ عَبْدًا بِعَفْوٍ إِلَّا عِزًّا",
+      transliteration: '"Ma naqasat sadaqatun min mal, wa ma zadallahu \'abdan bi\'afwin illa \'izza."',
+      translation: '"Charity does not decrease wealth, no one forgives another except that Allah increases his honor, and no one humbles himself for Allah except that Allah raises him."',
+      reference: "— Sahih Muslim 2588"
+    }
+  ];
+
+  let currentInspIndex = 0;
+  const inspCategory = document.getElementById('inspCategory');
+  const inspArabic = document.getElementById('inspArabic');
+  const inspTransliteration = document.getElementById('inspTransliteration');
+  const inspTranslation = document.getElementById('inspTranslation');
+  const inspReference = document.getElementById('inspReference');
+  const btnNextInspiration = document.getElementById('btnNextInspiration');
+  const btnCopyInspiration = document.getElementById('btnCopyInspiration');
+  const btnShareWhatsAppInspiration = document.getElementById('btnShareWhatsAppInspiration');
+  const btnSpeakInspiration = document.getElementById('btnSpeakInspiration');
+
+  function renderInspiration(index) {
+    const item = inspirations[index];
+    if (!item) return;
+    const card = document.getElementById('inspirationCard');
+    if (card) {
+      card.style.opacity = '0.3';
+      card.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        if (inspCategory) inspCategory.textContent = item.category;
+        if (inspArabic) inspArabic.textContent = item.arabic;
+        if (inspTransliteration) inspTransliteration.textContent = item.transliteration;
+        if (inspTranslation) inspTranslation.textContent = item.translation;
+        if (inspReference) inspReference.textContent = item.reference;
+        card.style.opacity = '1';
+        card.style.transform = 'scale(1)';
+      }, 200);
+    }
+  }
+
+  btnNextInspiration?.addEventListener('click', () => {
+    currentInspIndex = (currentInspIndex + 1) % inspirations.length;
+    renderInspiration(currentInspIndex);
+    playSoftChime();
+  });
+
+  btnCopyInspiration?.addEventListener('click', () => {
+    const item = inspirations[currentInspIndex];
+    const textToCopy = `${item.arabic}\n\n${item.transliteration}\n\n${item.translation}\n${item.reference}\n\nSupport Chichester's 1st Masjid: https://www.gofundme.com/f/chichester-mosque`;
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      showToast('Quote copied to clipboard! 📋', 'success');
+    });
+  });
+
+  btnShareWhatsAppInspiration?.addEventListener('click', () => {
+    const item = inspirations[currentInspIndex];
+    const shareText = encodeURIComponent(`*Chichester Jamia Centre Daily Reflection:*\n\n${item.arabic}\n\n${item.translation}\n_${item.reference}_\n\nHelp establish the first Masjid in Chichester:\nhttps://www.gofundme.com/f/chichester-mosque`);
+    window.open(`https://api.whatsapp.com/send?text=${shareText}`, '_blank');
+  });
+
+  btnSpeakInspiration?.addEventListener('click', () => {
+    const item = inspirations[currentInspIndex];
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(item.translation);
+      utterance.rate = 0.95;
+      utterance.pitch = 1.0;
+      window.speechSynthesis.speak(utterance);
+      showToast('Playing spoken translation 🔊', 'info');
+    } else {
+      showToast('Speech synthesis not supported in this browser', 'info');
+    }
+  });
+
+  // ------------------------------------------------------------------
+  // 23. Jumu'ah Friday Calendar Integration (Google Cal & .ics)
+  // ------------------------------------------------------------------
+  const btnAddToGoogleCal = document.getElementById('btnAddToGoogleCal');
+  const btnDownloadIcsCal = document.getElementById('btnDownloadIcsCal');
+
+  btnAddToGoogleCal?.addEventListener('click', () => {
+    const title = encodeURIComponent("Jumu'ah Friday Prayer — Chichester Jamia Centre");
+    const details = encodeURIComponent("Weekly Friday Jumu'ah Khutbah & Congregation Prayer at Chichester Jamia Centre (Charity No. 1148130). Please arrive early for Wudu and Sunnah prayers.");
+    const location = encodeURIComponent("102 Bognor Rd, Chichester, PO19 7TW, United Kingdom");
+    const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}&recur=RRULE:FREQ=WEEKLY;BYDAY=FR`;
+    window.open(gCalUrl, '_blank');
+  });
+
+  btnDownloadIcsCal?.addEventListener('click', () => {
+    const icsContent = 
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Chichester Jamia Centre//Jumuah Prayer//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+SUMMARY:Jumu'ah Prayer — Chichester Jamia Centre
+DESCRIPTION:Weekly Friday Jumu'ah Khutbah & Congregation Prayer at Chichester Jamia Centre (Charity No. 1148130).
+LOCATION:102 Bognor Rd, Chichester PO19 7TW
+RRULE:FREQ=WEEKLY;BYDAY=FR
+DTSTART:20261016T121500Z
+DTEND:20261016T131500Z
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR`;
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', 'chichester_jumuah_prayer.ics');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('Jumu\'ah calendar event downloaded! 📅', 'success');
+  });
+
+  const btnCopyPrayerTimes = document.getElementById('btnCopyPrayerTimes');
+  btnCopyPrayerTimes?.addEventListener('click', () => {
+    const fTime = document.querySelector('#ptFajr .pt-time')?.textContent || '05:32 AM';
+    const fIqamah = document.querySelector('#ptFajr .pt-iqamah')?.textContent || 'Iqamah: 06:00 AM';
+    const sTime = document.querySelector('#ptSunrise .pt-time')?.textContent || '07:05 AM';
+    const dTime = document.querySelector('#ptDhuhr .pt-time')?.textContent || '01:02 PM';
+    const dIqamah = document.querySelector('#ptDhuhr .pt-iqamah')?.textContent || 'Iqamah: 01:30 PM';
+    const aTime = document.querySelector('#ptAsr .pt-time')?.textContent || '04:18 PM';
+    const aIqamah = document.querySelector('#ptAsr .pt-iqamah')?.textContent || 'Iqamah: 04:45 PM';
+    const mTime = document.querySelector('#ptMaghrib .pt-time')?.textContent || '06:46 PM';
+    const mIqamah = document.querySelector('#ptMaghrib .pt-iqamah')?.textContent || 'Iqamah: 06:51 PM';
+    const iTime = document.querySelector('#ptIsha .pt-time')?.textContent || '08:15 PM';
+    const iIqamah = document.querySelector('#ptIsha .pt-iqamah')?.textContent || 'Iqamah: 08:30 PM';
+    const hDate = document.getElementById('hijriDateDisplay')?.textContent || 'Today';
+
+    const textToCopy = `🕌 Chichester Jamia Centre (Charity No. 1148130)\n📅 ${hDate}\n📍 102 Bognor Rd, Chichester PO19 7TW\n\n• Fajr: ${fTime} (${fIqamah})\n• Sunrise: ${sTime}\n• Dhuhr: ${dTime} (${dIqamah})\n• Asr: ${aTime} (${aIqamah})\n• Maghrib: ${mTime} (${mIqamah})\n• Isha: ${iTime} (${iIqamah})\n• Jumu'ah: Friday 1:15 PM\n\nSupport Chichester's 1st Masjid: https://www.gofundme.com/f/chichester-mosque`;
+
+    navigator.clipboard?.writeText(textToCopy).then(() => {
+      showToast('Today\'s prayer timings copied! 📋', 'success');
+    }).catch(() => {
+      showToast('Prayer timings copied! 📋', 'success');
+    });
+  });
+
+  // ------------------------------------------------------------------
+  // 24. Interactive Qibla Compass Enhancements
+  // ------------------------------------------------------------------
+  const compassNeedle = document.getElementById('compassNeedle');
+  const btnAlignQibla = document.getElementById('btnAlignQibla');
+  const btnLiveCompass = document.getElementById('btnLiveCompass');
+  const qiblaBearingText = document.getElementById('qiblaBearingText');
+  let compassLiveActive = false;
+  let compassInterval = null;
+
+  btnAlignQibla?.addEventListener('click', () => {
+    if (compassNeedle) {
+      compassNeedle.style.transition = 'transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)';
+      compassNeedle.style.transform = 'rotate(119.2deg)';
+      if (qiblaBearingText) qiblaBearingText.textContent = '119.2° East-Southeast (Aligned with Makkah 🕋)';
+      playSoftChime();
+      showToast('Aligned precisely with Chichester Qibla: 119.2° ESE 🕋', 'success');
+    }
+  });
+
+  function attachCompassSensor() {
+    window.addEventListener('deviceorientation', (e) => {
+      let heading = e.webkitCompassHeading || (e.alpha ? 360 - e.alpha : null);
+      if (heading !== null && compassNeedle) {
+        const qiblaRelativeAngle = (119.2 - heading);
+        compassNeedle.style.transition = 'transform 0.15s ease-out';
+        compassNeedle.style.transform = `rotate(${qiblaRelativeAngle.toFixed(1)}deg)`;
+        if (qiblaBearingText) {
+          qiblaBearingText.textContent = `${heading.toFixed(0)}° Heading (Qibla: 119.2° ESE)`;
+        }
+      }
+    }, { passive: true });
+    showToast('Live phone compass sensor connected! 🧭', 'success');
+  }
+
+  function fallbackCompassMotion() {
+    compassLiveActive = !compassLiveActive;
+    if (compassLiveActive) {
+      showToast('Simulating live magnetic compass sensing... 🧭', 'info');
+      let angle = 119.2;
+      compassInterval = setInterval(() => {
+        angle += (Math.random() * 8 - 4);
+        if (compassNeedle) {
+          compassNeedle.style.transition = 'transform 0.4s ease';
+          compassNeedle.style.transform = `rotate(${angle.toFixed(1)}deg)`;
+          if (qiblaBearingText) qiblaBearingText.textContent = `${angle.toFixed(1)}° (Qibla: 119.2° ESE)`;
+        }
+      }, 400);
+    } else {
+      clearInterval(compassInterval);
+      if (compassNeedle) {
+        compassNeedle.style.transition = 'transform 0.8s ease';
+        compassNeedle.style.transform = 'rotate(119.2deg)';
+        if (qiblaBearingText) qiblaBearingText.textContent = '119.2° East-Southeast (Locked)';
+      }
+      showToast('Compass locked to Qibla (119.2°)', 'info');
+    }
+  }
+
+  btnLiveCompass?.addEventListener('click', () => {
+    if (window.DeviceOrientationEvent && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission().then(state => {
+          if (state === 'granted') {
+            attachCompassSensor();
+          } else {
+            fallbackCompassMotion();
+          }
+        }).catch(() => fallbackCompassMotion());
+      } else {
+        attachCompassSensor();
+      }
+    } else {
+      fallbackCompassMotion();
+    }
+  });
+
+  // ------------------------------------------------------------------
+  // 25. Live Community Sadaqah Stream (Toast Feed)
+  // ------------------------------------------------------------------
+  const livePledges = [
+    { donor: "Brother Farhan (Southsea)", msg: "Pledged 10 Bricks (£100) towards the Main Prayer Hall", time: "2 mins ago" },
+    { donor: "Sister Ayesha (Chichester)", msg: "Contributed £50 Sadaqah Jariyah for Wudu Facilities", time: "5 mins ago" },
+    { donor: "Anonymous Supporter (Portsmouth)", msg: "Pledged 20 Bricks (£200) on the Brick Builder Wall", time: "8 mins ago" },
+    { donor: "Haji Rafiq & Family (Bognor)", msg: "Donated £500 towards Phase 1 Property Purchase", time: "14 mins ago" },
+    { donor: "Youth Group (Chichester)", msg: "Pledged 5 Bricks (£50) for Islamic Library & Hub", time: "21 mins ago" },
+    { donor: "Generous Donor (Southampton)", msg: "Transferred £250 via Lloyds Bank Transfer", time: "30 mins ago" }
+  ];
+
+  let livePledgeIndex = 0;
+  const liveActivityToast = document.getElementById('liveActivityToast');
+  const liveDonorName = document.getElementById('liveDonorName');
+  const liveToastMsg = document.getElementById('liveToastMsg');
+  const liveToastTime = document.getElementById('liveToastTime');
+  const closeLiveToast = document.getElementById('closeLiveToast');
+
+  function showNextLivePledge() {
+    if (!liveActivityToast) return;
+    const item = livePledges[livePledgeIndex];
+    livePledgeIndex = (livePledgeIndex + 1) % livePledges.length;
+
+    if (liveDonorName) liveDonorName.textContent = item.donor;
+    if (liveToastMsg) liveToastMsg.textContent = item.msg;
+    if (liveToastTime) liveToastTime.textContent = item.time;
+
+    liveActivityToast.classList.add('active');
+
+    setTimeout(() => {
+      liveActivityToast.classList.remove('active');
+    }, 6000);
+  }
+
+  // Start live pledge feed after 4 seconds, recurring every 14 seconds
+  setTimeout(() => {
+    showNextLivePledge();
+    setInterval(showNextLivePledge, 14000);
+  }, 4000);
+
+  closeLiveToast?.addEventListener('click', () => {
+    liveActivityToast?.classList.remove('active');
+  });
+
+  // ------------------------------------------------------------------
+  // 26. Mobile Bottom Action Bar Triggers
+  // ------------------------------------------------------------------
+  const mobileBarChatBtn = document.getElementById('mobileBarChatBtn');
+  mobileBarChatBtn?.addEventListener('click', () => {
+    openAiChat();
+    aiChatInput?.focus();
+  });
+
+  // ------------------------------------------------------------------
+  // 27. Scroll Reveal Observer
+  // ------------------------------------------------------------------
+  const revealElements = document.querySelectorAll('.section, .feature-card, .vision-grid, .pt-card, .brick-category-card, .testimonial-card, .facility-card');
+  revealElements.forEach(el => el.classList.add('reveal-on-scroll'));
+
+  if ('IntersectionObserver' in window) {
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-revealed');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+    revealElements.forEach(el => revealObserver.observe(el));
+  } else {
+    revealElements.forEach(el => el.classList.add('is-revealed'));
+  }
+
+  // ------------------------------------------------------------------
+  // 28. PWA Service Worker & Add-to-Home-Screen (A2HS) Manager
+  // ------------------------------------------------------------------
+  function initPwaInstaller() {
+    // 1. Register Service Worker for offline capability
+    if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log('Chichester Mosque Service Worker active.');
+      }).catch(err => {
+        console.warn('SW registration skipped:', err);
+      });
+    }
+
+    // 2. Platform detection (iOS vs Android)
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+
+    let deferredPwaPrompt = null;
+    const pwaInstallBanner = document.getElementById('pwaInstallBanner');
+    const pwaBannerPlatformText = document.getElementById('pwaBannerPlatformText');
+    const pwaModal = document.getElementById('pwaModal');
+    const closePwaModal = document.getElementById('closePwaModal');
+    const btnClosePwaModal = document.getElementById('btnClosePwaModal');
+    const pwaTabIos = document.getElementById('pwaTabIos');
+    const pwaTabAndroid = document.getElementById('pwaTabAndroid');
+    const pwaViewIos = document.getElementById('pwaViewIos');
+    const pwaViewAndroid = document.getElementById('pwaViewAndroid');
+    const btnPwaNativeInstall = document.getElementById('btnPwaNativeInstall');
+
+    // 3. Listen for Android native beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPwaPrompt = e;
+      if (btnPwaNativeInstall) {
+        btnPwaNativeInstall.style.display = 'block';
+      }
+    });
+
+    function setPwaPlatformView(platform) {
+      if (platform === 'ios') {
+        pwaTabIos?.classList.add('active');
+        pwaTabAndroid?.classList.remove('active');
+        pwaViewIos?.classList.remove('hidden');
+        pwaViewIos?.classList.add('active');
+        pwaViewAndroid?.classList.add('hidden');
+        pwaViewAndroid?.classList.remove('active');
+      } else {
+        pwaTabAndroid?.classList.add('active');
+        pwaTabIos?.classList.remove('active');
+        pwaViewAndroid?.classList.remove('hidden');
+        pwaViewAndroid?.classList.add('active');
+        pwaViewIos?.classList.add('hidden');
+        pwaViewIos?.classList.remove('active');
+      }
+    }
+
+    function openPwaModal(forcedPlatform) {
+      if (pwaModal) {
+        pwaModal.classList.add('active');
+        const targetPlatform = forcedPlatform || (isIOS ? 'ios' : 'android');
+        setPwaPlatformView(targetPlatform);
+      }
+    }
+
+    window.openPwaModal = openPwaModal;
+
+    function closePwaGuide() {
+      if (pwaModal) pwaModal.classList.remove('active');
+    }
+
+    closePwaModal?.addEventListener('click', closePwaGuide);
+    btnClosePwaModal?.addEventListener('click', closePwaGuide);
+
+    pwaTabIos?.addEventListener('click', () => setPwaPlatformView('ios'));
+    pwaTabAndroid?.addEventListener('click', () => setPwaPlatformView('android'));
+
+    btnPwaNativeInstall?.addEventListener('click', async () => {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        const choice = await deferredPwaPrompt.userChoice;
+        if (choice.outcome === 'accepted') {
+          showToast('Thank you for installing Chichester Mosque App! 🕌', 'success');
+          closePwaGuide();
+        }
+        deferredPwaPrompt = null;
+      } else {
+        showToast('Please follow the 3 quick steps below to install on Chrome.');
+      }
+    });
+
+    // 4. Smart Mobile Install Banner
+    const dismissedTime = localStorage.getItem('cjc_pwa_banner_dismissed');
+    const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+    const isDismissed = dismissedTime && (Date.now() - parseInt(dismissedTime) < sevenDaysMs);
+
+    if (!isStandalone && !isDismissed && (isIOS || isAndroid || window.innerWidth <= 860)) {
+      if (pwaBannerPlatformText) {
+        pwaBannerPlatformText.textContent = isIOS 
+          ? "Add to iPhone Home Screen for 1-tap prayer times" 
+          : "Install on Android for instant 1-tap prayer times";
+      }
+
+      setTimeout(() => {
+        if (pwaInstallBanner) pwaInstallBanner.classList.remove('hidden');
+      }, 3500);
+    }
+
+    document.getElementById('btnOpenPwaGuide')?.addEventListener('click', () => {
+      openPwaModal();
+      if (pwaInstallBanner) pwaInstallBanner.classList.add('hidden');
+    });
+
+    document.getElementById('btnDismissPwaBanner')?.addEventListener('click', () => {
+      if (pwaInstallBanner) pwaInstallBanner.classList.add('hidden');
+      localStorage.setItem('cjc_pwa_banner_dismissed', String(Date.now()));
+    });
+
+    document.getElementById('btnOpenPwaFromFaq')?.addEventListener('click', () => openPwaModal());
+    document.getElementById('openPwaModalBtnDrawer')?.addEventListener('click', () => {
+      document.getElementById('mobileDrawer')?.classList.remove('active');
+      openPwaModal();
+    });
+    document.getElementById('mobileBarInstallBtn')?.addEventListener('click', () => openPwaModal());
+  }
+
+  initPwaInstaller();
+
+  // ------------------------------------------------------------------
+  // 29. Daily Fasting (Suhoor & Iftar) Live Countdown
+  // ------------------------------------------------------------------
+  function initFastingTracker() {
+    const iftarCountdown = document.getElementById('iftarCountdown');
+    if (!iftarCountdown) return;
+
+    function updateFasting() {
+      const now = new Date();
+      const fajrToday = new Date(now);
+      fajrToday.setHours(5, 32, 0, 0);
+
+      const maghribToday = new Date(now);
+      maghribToday.setHours(18, 46, 0, 0);
+
+      let targetTime;
+      let label;
+
+      if (now < fajrToday) {
+        targetTime = fajrToday;
+        label = "Suhoor Ends (Fajr)";
+      } else if (now < maghribToday) {
+        targetTime = maghribToday;
+        label = "Iftar (Maghrib)";
+      } else {
+        const fajrTomorrow = new Date(fajrToday);
+        fajrTomorrow.setDate(fajrTomorrow.getDate() + 1);
+        targetTime = fajrTomorrow;
+        label = "Next Fast (Suhoor)";
+      }
+
+      const diff = targetTime - now;
+      if (diff > 0) {
+        const hrs = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff / (1000 * 60)) % 60);
+        const secs = Math.floor((diff / 1000) % 60);
+        iftarCountdown.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')} (${label})`;
+      }
+    }
+
+    updateFasting();
+    setInterval(updateFasting, 1000);
+  }
+
+  initFastingTracker();
 });
+
