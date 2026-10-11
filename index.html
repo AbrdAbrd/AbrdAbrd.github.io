@@ -43,7 +43,12 @@
   <div id="languageSplash" class="lang-splash-overlay">
     <div class="lang-splash-box">
       <h2>Welcome / স্বাগতম / أهلاً بك</h2>
-      <p>Please select your preferred language.<br>Continuing in English automatically in <span id="langTimer" style="color:var(--accent-gold);font-weight:bold;">8</span> seconds...</p>
+      <div class="lang-splash-timer-lines">
+        <p class="lang-timer-prompt">Please select your preferred language.</p>
+        <p class="lang-timer-line en-line">Continuing in English automatically in <span id="langTimer" class="lang-timer-count" style="color:var(--accent-gold);font-weight:bold;">8</span> seconds...</p>
+        <p class="lang-timer-line bn-line">স্বয়ংক্রিয়ভাবে ইংরেজিতে শুরু হচ্ছে <span id="langTimerBn" class="lang-timer-count" style="color:var(--accent-gold);font-weight:bold;">8</span> সেকেন্ডে...</p>
+        <p class="lang-timer-line ar-line" dir="rtl">المتابعة باللغة الإنجليزية تلقائياً خلال <span id="langTimerAr" class="lang-timer-count" style="color:var(--accent-gold);font-weight:bold;">8</span> ثوانٍ...</p>
+      </div>
       
       <div class="lang-options-grid">
         <button class="btn btn-gold" onclick="selectSplashLanguage('en')">English</button>

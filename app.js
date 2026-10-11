@@ -132,10 +132,12 @@ function initLanguageSplash() {
     }
   } catch(e) {}
 
-  const timerSpan = document.getElementById('langTimer');
+  const timerSpans = document.querySelectorAll('.lang-timer-count, #langTimer, #langTimerBn, #langTimerAr');
   langSplashTimer = setInterval(() => {
     langSeconds--;
-    if (timerSpan) timerSpan.innerText = langSeconds;
+    timerSpans.forEach(span => {
+      span.textContent = langSeconds;
+    });
     
     if (langSeconds <= 0) {
       window.selectSplashLanguage('en');

@@ -3833,8 +3833,33 @@ iframe.goog-te-banner-frame {
 }
 .lang-splash-box p {
   color: var(--text-muted);
-  margin-bottom: 30px;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+}
+.lang-splash-timer-lines {
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.lang-timer-prompt {
+  color: #e2e8f0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 4px !important;
+}
+.lang-timer-line {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin: 0 !important;
+  line-height: 1.5;
+  text-align: center;
+}
+.lang-timer-line.bn-line {
+  font-size: 0.95rem;
+}
+.lang-timer-line.ar-line {
+  font-size: 1.02rem;
+  text-align: center;
 }
 .lang-options-grid {
   display: grid;
