@@ -7,9 +7,80 @@
 // ==========================================
 // LANGUAGE SPLASH SCREEN & TRANSLATION LOGIC
 // ==========================================
-let langSplashTimer;
+let langSplashTimer = null;
+const langTotalSeconds = 8;
 let langSeconds = 8;
+let isTimerPaused = false;
 let currentPendingLang = null;
+
+function toBnDigits(num) {
+  const bn = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+  return String(num).replace(/[0-9]/g, d => bn[d]);
+}
+function toUrDigits(num) {
+  const ur = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return String(num).replace(/[0-9]/g, d => ur[d]);
+}
+function toArDigits(num) {
+  const ar = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+  return String(num).replace(/[0-9]/g, d => ar[d]);
+}
+
+function updateSplashTimerUI() {
+  const elEn = document.getElementById('langTimer');
+  const elBn = document.getElementById('langTimerBn');
+  const elUr = document.getElementById('langTimerUr');
+  const elAr = document.getElementById('langTimerAr');
+  const bar = document.getElementById('langTimerBarFill');
+
+  if (elEn) elEn.textContent = langSeconds;
+  if (elBn) elBn.textContent = toBnDigits(langSeconds);
+  if (elUr) elUr.textContent = toUrDigits(langSeconds);
+  if (elAr) elAr.textContent = toArDigits(langSeconds);
+
+  if (bar) {
+    const pct = Math.max(0, Math.min(100, (langSeconds / langTotalSeconds) * 100));
+    bar.style.width = pct + '%';
+  }
+}
+
+function toggleSplashTimerPause(forcedState) {
+  if (typeof forcedState === 'boolean') {
+    isTimerPaused = forcedState;
+  } else {
+    isTimerPaused = !isTimerPaused;
+  }
+  const label = document.getElementById('langPauseLabel');
+  const icon = document.getElementById('langPauseIcon');
+  const pauseBtn = document.getElementById('langPauseBtn');
+  const hint = document.getElementById('langHoverHint');
+
+  if (isTimerPaused) {
+    if (label) label.textContent = 'Resume Timer';
+    if (icon) icon.textContent = '▶';
+    if (pauseBtn) pauseBtn.classList.add('paused');
+    if (hint) hint.textContent = 'Timer paused';
+  } else {
+    if (label) label.textContent = 'Pause Timer';
+    if (icon) icon.textContent = '⏸';
+    if (pauseBtn) pauseBtn.classList.remove('paused');
+    if (hint) hint.textContent = 'Tip: Hover cards to pause';
+  }
+}
+window.toggleSplashTimerPause = toggleSplashTimerPause;
+
+function updateTopLanguageLabel(langCode) {
+  const label = document.getElementById('activeLangLabel');
+  if (!label) return;
+  const map = {
+    en: '🇬🇧 English',
+    bn: '🇧🇩 বাংলা',
+    ur: '🇵🇰 اردو',
+    ar: '🇸🇦 العربية',
+    hi: 'हिन्दी'
+  };
+  label.textContent = map[langCode] || '🌐 Language';
+}
 
 function setGoogleTranslateCookie(langCode) {
   const host = window.location.hostname;
@@ -41,6 +112,7 @@ function applyTranslateToDom(langCode) {
 
   // Set Google Translate cookie
   setGoogleTranslateCookie(langCode);
+  updateTopLanguageLabel(langCode);
 
   const targetValue = (langCode === 'en') ? '' : langCode;
 
@@ -68,7 +140,7 @@ function applyTranslateToDom(langCode) {
     const combo = document.querySelector('.goog-te-combo');
     if (combo) {
       clearInterval(pollTimer);
-      triggerCombo(combo, langCode);
+      triggerCombo(combo);
     } else if (attempts >= 60) {
       clearInterval(pollTimer);
     }
@@ -84,28 +156,71 @@ window.onGoogleTranslateReady = function() {
   }
 };
 
+window.openLanguageModal = function() {
+  const splash = document.getElementById('languageSplash');
+  if (!splash) return;
+  clearInterval(langSplashTimer);
+  splash.classList.remove('hidden');
+
+  // Pause automatic countdown when opened on demand
+  window.toggleSplashTimerPause(true);
+  const pauseBtn = document.getElementById('langPauseBtn');
+  if (pauseBtn) pauseBtn.classList.add('manual-paused');
+
+  // Highlight active language card
+  const currentLang = sessionStorage.getItem('userLanguage') || localStorage.getItem('userLanguage') || 'en';
+  document.querySelectorAll('.lang-card').forEach(card => {
+    if (card.getAttribute('data-lang') === currentLang) {
+      card.classList.add('active-lang');
+    } else {
+      card.classList.remove('active-lang');
+    }
+  });
+};
+
 window.selectSplashLanguage = function(langCode) {
   clearInterval(langSplashTimer);
   const splash = document.getElementById('languageSplash');
   if (splash) {
     splash.classList.add('hidden');
+    const rememberCheck = document.getElementById('langRememberChoice');
+    const shouldRemember = !rememberCheck || rememberCheck.checked;
     try {
       sessionStorage.setItem('langSelected', 'true');
       sessionStorage.setItem('userLanguage', langCode);
-      localStorage.setItem('userLanguage', langCode);
+      if (shouldRemember) {
+        localStorage.setItem('userLanguage', langCode);
+      }
     } catch(e) {}
   }
 
   currentPendingLang = langCode;
   applyTranslateToDom(langCode);
 
-  const langNames = { bn: 'বাংলা (Bengali)', ur: 'اردو (Urdu)', ar: 'العربية (Arabic)', hi: 'हिन्दी (Hindi)' };
-  if (langCode !== 'en' && langNames[langCode]) {
-    setTimeout(() => {
-      if (typeof window.showToast === 'function') {
-        window.showToast(`Translating site to ${langNames[langCode]}...`);
-      }
-    }, 400);
+  // Update card active classes
+  document.querySelectorAll('.lang-card').forEach(card => {
+    if (card.getAttribute('data-lang') === langCode) {
+      card.classList.add('active-lang');
+    } else {
+      card.classList.remove('active-lang');
+    }
+  });
+
+  const langGreetings = {
+    bn: 'বাংলা (Bengali) — স্বাগতম!',
+    ur: 'اردو (Urdu) — خوش آمدید!',
+    ar: 'العربية (Arabic) — أهلاً وسهلاً!',
+    en: 'English — Welcome to Chichester Jamia Centre!'
+  };
+
+  if (typeof window.showToast === 'function') {
+    if (langCode !== 'en' && langGreetings[langCode]) {
+      setTimeout(() => {
+        window.showToast(`🌐 ${langGreetings[langCode]}`);
+      }, 350);
+    } else if (langCode === 'en' && sessionStorage.getItem('langSelected')) {
+      window.showToast('🌐 Continuing in English');
+    }
   }
 };
 
@@ -113,9 +228,19 @@ function initLanguageSplash() {
   const splash = document.getElementById('languageSplash');
   if (!splash) return;
 
+  // Render initial timer counts
+  updateSplashTimerUI();
+
   // Allow clicking overlay background to dismiss immediately
   splash.addEventListener('click', (e) => {
     if (e.target === splash) {
+      window.selectSplashLanguage('en');
+    }
+  });
+
+  // ESC key dismiss
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !splash.classList.contains('hidden')) {
       window.selectSplashLanguage('en');
     }
   });
@@ -125,21 +250,46 @@ function initLanguageSplash() {
     const savedLang = sessionStorage.getItem('userLanguage') || localStorage.getItem('userLanguage');
     if (sessionStorage.getItem('langSelected')) {
       splash.classList.add('hidden');
-      if (savedLang && savedLang !== 'en') {
+      if (savedLang) {
         applyTranslateToDom(savedLang);
       }
       return;
     }
   } catch(e) {}
 
-  const timerSpans = document.querySelectorAll('.lang-timer-count, #langTimer, #langTimerBn, #langTimerAr');
-  langSplashTimer = setInterval(() => {
-    langSeconds--;
-    timerSpans.forEach(span => {
-      span.textContent = langSeconds;
+  // Highlight default or remembered card
+  const initialLang = localStorage.getItem('userLanguage') || 'en';
+  document.querySelectorAll('.lang-card').forEach(card => {
+    if (card.getAttribute('data-lang') === initialLang) {
+      card.classList.add('active-lang');
+    }
+  });
+
+  // Hover-to-pause capability for uninterrupted reading
+  const grid = document.getElementById('langCardsGrid');
+  if (grid) {
+    grid.addEventListener('mouseenter', () => {
+      window.toggleSplashTimerPause(true);
+      const hint = document.getElementById('langHoverHint');
+      if (hint) hint.textContent = 'Paused (reading)';
     });
+    grid.addEventListener('mouseleave', () => {
+      const pauseBtn = document.getElementById('langPauseBtn');
+      if (!pauseBtn || !pauseBtn.classList.contains('manual-paused')) {
+        window.toggleSplashTimerPause(false);
+      }
+    });
+  }
+
+  // Active countdown timer
+  langSplashTimer = setInterval(() => {
+    if (isTimerPaused) return;
+
+    langSeconds--;
+    updateSplashTimerUI();
     
     if (langSeconds <= 0) {
+      clearInterval(langSplashTimer);
       window.selectSplashLanguage('en');
     }
   }, 1000);
@@ -2800,6 +2950,7 @@ END:VCALENDAR`;
   // ------------------------------------------------------------------
   function initFastingTracker() {
     const iftarCountdown = document.getElementById('iftarCountdown');
+    const iftarCountdownLabel = document.querySelector('.ftb-countdown-label');
     if (!iftarCountdown) return;
 
     function updateFasting() {
@@ -2815,7 +2966,7 @@ END:VCALENDAR`;
 
       if (now < fajrToday) {
         targetTime = fajrToday;
-        label = "Suhoor Ends (Fajr)";
+        label = "Suhoor (Fajr)";
       } else if (now < maghribToday) {
         targetTime = maghribToday;
         label = "Iftar (Maghrib)";
@@ -2823,7 +2974,11 @@ END:VCALENDAR`;
         const fajrTomorrow = new Date(fajrToday);
         fajrTomorrow.setDate(fajrTomorrow.getDate() + 1);
         targetTime = fajrTomorrow;
-        label = "Next Fast (Suhoor)";
+        label = "Next Suhoor";
+      }
+
+      if (iftarCountdownLabel) {
+        iftarCountdownLabel.textContent = `Time to ${label}:`;
       }
 
       const diff = targetTime - now;
@@ -2831,7 +2986,7 @@ END:VCALENDAR`;
         const hrs = Math.floor(diff / (1000 * 60 * 60));
         const mins = Math.floor((diff / (1000 * 60)) % 60);
         const secs = Math.floor((diff / 1000) % 60);
-        iftarCountdown.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')} (${label})`;
+        iftarCountdown.textContent = `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
       }
     }
 
