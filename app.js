@@ -2151,13 +2151,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Copy Du'a Button
-    btnCopyDua?.addEventListener('click', () => {
+    btnCopyDua?.addEventListener('click', function() {
       const duaText = `اللَّهُمَّ رَبَّ هَذِهِ الدَّعْوَةِ التَّامَّةِ، وَالصَّلَاةِ الْقَائِمَةِ، آتِ مُحَمَّداً الْوَسِيلَةَ وَالْفَضِيلَةَ، وَابْعَثْهُ مَقَاماً مَحْمُوداً الَّذِي وَعَدْتَهُ\n\nAllahumma Rabba hadhihid-da'watit-tammah, was-salatil-qa'imah, ati Muhammadan al-wasilata wal-fadilah, wab'ath-hu maqamam-mahmudan alladhi wa'adtah.\n\n"O Allah, Lord of this perfect call and established prayer, grant Muhammad the status of intercession and virtue, and resurrect him to the praiseworthy station which You have promised." (Sahih al-Bukhari 614)`;
-      navigator.clipboard?.writeText(duaText).then(() => {
-        showToast('Sunnah Du\'a copied to clipboard! 📋');
-      }).catch(() => {
-        showToast('Du\'a copied! 📋');
-      });
+      copyToClipboard(duaText, "Sunnah Du'a", this);
     });
   }
 
@@ -2239,34 +2235,80 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.showToast = showToast;
 
-  function copyToClipboard(text, label) {
-    navigator.clipboard.writeText(text).then(() => {
-      showToast(`${label} copied! (${text})`);
-    }).catch(err => {
-      const textArea = document.createElement('textarea');
-      textArea.value = text;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      showToast(`${label} copied! (${text})`);
-    });
+  function setButtonCopiedVisual(btn) {
+    if (!btn) return;
+    if (!btn._origHtml) {
+      btn._origHtml = btn.innerHTML;
+    }
+    btn.classList.add('copy-success');
+    
+    // Check if there is an inner text span to update
+    const span = btn.querySelector('span:not(.mb-icon)');
+    if (span) {
+      span.textContent = '✓ Copied!';
+    } else {
+      btn.innerHTML = '✓ Copied!';
+    }
+
+    clearTimeout(btn._copiedTimer);
+    btn._copiedTimer = setTimeout(() => {
+      btn.classList.remove('copy-success');
+      if (btn._origHtml) {
+        btn.innerHTML = btn._origHtml;
+        delete btn._origHtml;
+      }
+    }, 2000);
   }
 
+  function fallbackCopyText(text, cb) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.opacity = '0';
+    textArea.style.pointerEvents = 'none';
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      if (cb) cb();
+    } catch (e) {
+      if (cb) cb();
+    }
+    document.body.removeChild(textArea);
+  }
+
+  function copyToClipboard(text, label, triggerBtn) {
+    const onSuccess = () => {
+      showToast(`${label} copied! (${text})`);
+      if (triggerBtn) setButtonCopiedVisual(triggerBtn);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(onSuccess).catch(() => {
+        fallbackCopyText(text, onSuccess);
+      });
+    } else {
+      fallbackCopyText(text, onSuccess);
+    }
+  }
+
+  window.copyToClipboard = copyToClipboard;
+  window.setButtonCopiedVisual = setButtonCopiedVisual;
+
   document.querySelectorAll('[data-copy]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const text = btn.getAttribute('data-copy');
-      copyToClipboard(text, 'Detail');
+    btn.addEventListener('click', function() {
+      const text = this.getAttribute('data-copy');
+      copyToClipboard(text, 'Detail', this);
     });
   });
 
-  document.getElementById('quickCopyBankTop')?.addEventListener('click', () => {
-    copyToClipboard('Sort Code: 30-99-50 | Account: 34785863 | Bank: Lloyds Bank', 'Full Bank Details');
+  document.getElementById('quickCopyBankTop')?.addEventListener('click', function() {
+    copyToClipboard('Sort Code: 30-99-50 | Account: 34785863 | Bank: Lloyds Bank', 'Full Bank Details', this);
   });
 
-  document.getElementById('copyAllBankDetails')?.addEventListener('click', () => {
+  document.getElementById('copyAllBankDetails')?.addEventListener('click', function() {
     const info = `CHICHESTER JAMIA CENTRE\nBank: Lloyds Bank\nSort Code: 30-99-50\nAccount No: 34785863\nRef: MASJID`;
-    copyToClipboard(info, 'Full Bank Transfer Details');
+    copyToClipboard(info, 'Full Bank Transfer Details', this);
   });
 
   // Mobile Drawer
@@ -2297,8 +2339,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('shareXBtn')?.addEventListener('click', () => {
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(gofundmeUrl)}`, '_blank');
   });
-  document.getElementById('copyShareLinkBtn')?.addEventListener('click', () => {
-    copyToClipboard(gofundmeUrl, 'GoFundMe Link');
+  document.getElementById('copyShareLinkBtn')?.addEventListener('click', function() {
+    copyToClipboard(gofundmeUrl, 'GoFundMe Link', this);
   });
 
   // ------------------------------------------------------------------
@@ -2571,12 +2613,10 @@ document.addEventListener('DOMContentLoaded', () => {
     playSoftChime();
   });
 
-  btnCopyInspiration?.addEventListener('click', () => {
+  btnCopyInspiration?.addEventListener('click', function() {
     const item = inspirations[currentInspIndex];
     const textToCopy = `${item.arabic}\n\n${item.transliteration}\n\n${item.translation}\n${item.reference}\n\nSupport Chichester's 1st Masjid: https://www.gofundme.com/f/chichester-mosque`;
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      showToast('Quote copied to clipboard! 📋', 'success');
-    });
+    copyToClipboard(textToCopy, 'Reflection Quote', this);
   });
 
   btnShareWhatsAppInspiration?.addEventListener('click', () => {
@@ -2642,7 +2682,7 @@ END:VCALENDAR`;
   });
 
   const btnCopyPrayerTimes = document.getElementById('btnCopyPrayerTimes');
-  btnCopyPrayerTimes?.addEventListener('click', () => {
+  btnCopyPrayerTimes?.addEventListener('click', function() {
     const fTime = document.querySelector('#ptFajr .pt-time')?.textContent || '05:32 AM';
     const fIqamah = document.querySelector('#ptFajr .pt-iqamah')?.textContent || 'Iqamah: 06:00 AM';
     const sTime = document.querySelector('#ptSunrise .pt-time')?.textContent || '07:05 AM';
@@ -2658,11 +2698,7 @@ END:VCALENDAR`;
 
     const textToCopy = `🕌 Chichester Jamia Centre (Charity No. 1148130)\n📅 ${hDate}\n📍 102 Bognor Rd, Chichester PO19 7TW\n\n• Fajr: ${fTime} (${fIqamah})\n• Sunrise: ${sTime}\n• Dhuhr: ${dTime} (${dIqamah})\n• Asr: ${aTime} (${aIqamah})\n• Maghrib: ${mTime} (${mIqamah})\n• Isha: ${iTime} (${iIqamah})\n• Jumu'ah: Friday 1:15 PM\n\nSupport Chichester's 1st Masjid: https://www.gofundme.com/f/chichester-mosque`;
 
-    navigator.clipboard?.writeText(textToCopy).then(() => {
-      showToast('Today\'s prayer timings copied! 📋', 'success');
-    }).catch(() => {
-      showToast('Prayer timings copied! 📋', 'success');
-    });
+    copyToClipboard(textToCopy, "Today's Prayer Timings", this);
   });
 
   // ------------------------------------------------------------------

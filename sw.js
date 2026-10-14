@@ -1,5 +1,5 @@
 // Chichester Jamia Centre Service Worker (PWA Cache & Offline Support)
-const CACHE_NAME = 'cjc-cache-v1';
+const CACHE_NAME = 'cjc-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
