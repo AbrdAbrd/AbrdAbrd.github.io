@@ -318,6 +318,29 @@ document.addEventListener('DOMContentLoaded', () => {
     brickCostGBP: 100
   };
 
+  let livePrayerTimings = {
+    Fajr: "05:32",
+    Sunrise: "07:05",
+    Dhuhr: "13:02",
+    Asr: "16:18",
+    Maghrib: "18:46",
+    Isha: "20:15"
+  };
+
+  const FORM_WEBHOOK_URL = null; // Optional Formspree / Web3Forms / Google Apps Script endpoint
+  async function submitToWebhook(type, data) {
+    if (!FORM_WEBHOOK_URL) return;
+    try {
+      await fetch(FORM_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ formType: type, timestamp: new Date().toISOString(), ...data })
+      });
+    } catch (err) {
+      console.warn('Webhook transmission error:', err);
+    }
+  }
+
   // Initialize the Language Splash Screen
   initLanguageSplash();
 
@@ -552,6 +575,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     updateGiftAidCalculation();
   }
+
+  // ------------------------------------------------------------------
+  // Donation Portal Top Tabs Switching
+  // ------------------------------------------------------------------
+  document.querySelectorAll('.portal-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.portal-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const tabType = tab.getAttribute('data-tab');
+      const rate = currencyRates[activeCurrency]?.rate || 1.0;
+
+      const selectPurpose = (val) => {
+        const radio = document.querySelector(`input[name="purpose"][value="${val}"]`);
+        if (radio) {
+          radio.checked = true;
+          document.querySelectorAll('.cat-radio-card').forEach(c => c.classList.remove('active'));
+          radio.closest('.cat-radio-card')?.classList.add('active');
+        }
+      };
+
+      if (tabType === 'tab-one-off') {
+        selectPurpose('Masjid Property Fund');
+        if (customAmountInput) customAmountInput.value = Math.round(100 * rate);
+      } else if (tabType === 'tab-monthly') {
+        selectPurpose('Masjid Property Fund');
+        switchPaymentMethod('bank');
+        showToast('Set up a monthly Standing Order using our Lloyds Bank details below');
+      } else if (tabType === 'tab-brick') {
+        selectPurpose('Buy a Brick (£100)');
+        if (customAmountInput) customAmountInput.value = Math.round(100 * rate);
+      } else if (tabType === 'tab-musalla') {
+        selectPurpose('Sponsor Prayer Space (£500)');
+        if (customAmountInput) customAmountInput.value = Math.round(500 * rate);
+      }
+      updateGiftAidCalculation();
+    });
+  });
 
   document.querySelectorAll('.pay-method-card').forEach(card => {
     card.addEventListener('click', () => {
@@ -1221,7 +1281,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('mobileMenuDrawer')?.classList.remove('active');
     openAiChat();
   });
-  document.getElementById('triggerAiChatMobileSticky')?.addEventListener('click', openAiChat);
 
   // Sound Synth Helper
   function playSoftChime() {
@@ -1260,82 +1319,36 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
-  // Client-side AI Keys
-  const OR_API_KEY = atob("c2stb3ItdjEtODZlNmIxMmI1YWU4ZjRkMDVjMDQwNDQwYjE5YzIyNmFhZjcxYTZhMzcwNGNjOGU5YTNkMjZhZGIzY2U5MWYyOA==");
-  const GEMINI_API_KEY = atob("QVEuQWI4Uk42SzB1SmdtRmFfT1pzRmJRRWtEdWd4U09KWmhZUkxpUlp6dzdkZF9OTEd0Mnc=");
-
   let chatHistory = [
     {
       role: "system",
-      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, giving money, or payment options, ALWAYS state that donating through our official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) is HIGHLY RECOMMENDED because it supports instant Apple Pay / Google Pay, is 100% verified, and keeps the public campaign milestone tracker transparent. Also explain that other payment options are fully available: Direct Lloyds Bank Transfer (Account 1: Sort 30-99-50, Acc 34785863; Account 2: Sort 30-95-96, Acc 1279 8836), Scan-to-Pay QR code, or online card pledge. Respond with clean, modern HTML formatting (use <p>, <strong>, <ul>, etc.) and keep answers concise, helpful, and respectful. You have web search capability to answer broader Islamic or community questions. If asked about prayer times, mention they are synced with Wifaqul Ulama Hanafi."
+      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, giving money, or payment options, ALWAYS state that donating through our official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) is HIGHLY RECOMMENDED because it supports instant Apple Pay / Google Pay, is 100% verified, and keeps the public campaign milestone tracker transparent. Also explain that other payment options are fully available: Direct Lloyds Bank Transfer (Account 1: Sort 30-99-50, Acc 34785863; Account 2: Sort 30-95-96, Acc 1279 8836), Scan-to-Pay QR code, or online card pledge. We are also running an official community consultation survey for Chichester residents and families to shape the facilities (e.g. dedicated sisters' hall, madrasah, youth hub, food bank, elderly circle, accessibility) and council planning application. Encourage users to take the survey and let them know they can click the '📋 Community Survey' button on the website. Respond with clean, modern HTML formatting (use <p>, <strong>, <ul>, etc.) and keep answers concise, helpful, and respectful. If asked about prayer times, mention they are synced with Wifaqul Ulama Hanafi."
     }
   ];
 
   async function getAiResponse(userQuery) {
     chatHistory.push({ role: "user", content: userQuery });
     
-    try {
-      // 1. Try OpenRouter first (using auto-routing free model to avoid 429s)
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${OR_API_KEY}`,
-          "HTTP-Referer": window.location.href,
-          "X-Title": "Chichester Jamia Centre",
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          model: "openrouter/free", 
-          messages: chatHistory
-        })
-      });
-      const data = await response.json();
-      if(data && data.choices && data.choices.length > 0) {
-          let botContent = data.choices[0].message.content;
-          chatHistory.push({ role: "assistant", content: botContent });
-          let htmlResponse = botContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-          htmlResponse = htmlResponse.replace(/\n/g, '<br>');
-          return htmlResponse;
-      } else {
-          throw new Error(data.error?.message || "OpenRouter failed");
-      }
-    } catch(orError) {
-      console.warn("OpenRouter API Failed, attempting Gemini alternative...", orError.message);
-      
-      // 2. Fallback to Gemini Native API with Google Search Grounding
-      try {
-        const geminiHistory = chatHistory.filter(m => m.role !== 'system').map(m => {
-          return { role: m.role === 'assistant' ? 'model' : 'user', parts: [{text: m.content}] };
-        });
-        const sysMsg = chatHistory.find(m => m.role === 'system')?.content || "";
-
-        const gRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            systemInstruction: { parts: [{text: sysMsg}] },
-            contents: geminiHistory,
-            tools: [{"googleSearch": {}}]
-          })
-        });
-        const gData = await gRes.json();
-        
-        if(gData.candidates && gData.candidates.length > 0) {
-           let botContent = gData.candidates[0].content.parts[0].text;
-           chatHistory.push({ role: "assistant", content: botContent });
-           let htmlResponse = botContent.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-           htmlResponse = htmlResponse.replace(/\n/g, '<br>');
-           return htmlResponse;
-        } else {
-           throw new Error(gData.error?.message || "Gemini API failed");
-        }
-      } catch (geminiError) {
-        console.warn("Gemini API Failed. Falling back to robust local offline brain...", geminiError.message);
-      }
-    }
-
-    // 3. Local Fallback if both APIs fail (e.g. rate limits exhausted)
+    // Jamia AI Knowledge Base & Intelligent Assistant
     const query = userQuery.toLowerCase();
+
+    if (query.includes('survey') || query.includes('consultation') || query.includes('feedback') || query.includes('facilities') || query.includes('opinion') || query.includes('suggestion') || query.includes('wish')) {
+      return `
+        <p>📋 <strong>Chichester Community Consultation Survey:</strong></p>
+        <p>Chichester Jamia Centre (Charity No. 1148130) is currently conducting an active community consultation to shape the design and facilities for <strong>102 Bognor Road</strong>!</p>
+        <p><strong>Key areas you can vote on:</strong><br>
+        • Dedicated Sisters' Prayer Hall &amp; Private Wudhu/Baby-Changing<br>
+        • Children's Weekend Madrasah &amp; Quran Classes<br>
+        • Youth Safe Space &amp; Homework Club<br>
+        • Community Food Bank &amp; Elderly Companionship Circle<br>
+        • Step-Free Disabled Accessibility &amp; Green Transport</p>
+        <p><em>Takes only 1–2 minutes, and you can opt in to browser/email survey notifications.</em></p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+          <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Take Community Survey Now</button>
+          <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openNotificationSettings) window.openNotificationSettings(); document.getElementById('aiChatWindow').classList.remove('active');">🔔 Notification Settings</button>
+        </div>
+      `;
+    }
 
     if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('payment') || query.includes('how to pay') || query.includes('ways to pay') || query.includes('contribute')) {
       return `
@@ -1595,12 +1608,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const notes = donorNotes.value.trim();
       const sym = currencyRates[activeCurrency].symbol;
 
-      if (payMethod === 'gofundme') {
+      if (payMethod === 'gofundme' || payMethod === 'card') {
         showToast('Opening official GoFundMe campaign... JazakAllah Khairan!');
         window.open('https://www.gofundme.com/f/chichester-mosque', '_blank');
         
         addDonorToWall({
-          name: `${name} (via GoFundMe)`,
+          name: `${name} (via ${payMethod === 'card' ? 'Card Checkout' : 'GoFundMe'})`,
           amount: amount,
           notes: notes || 'Pledged on official GoFundMe page towards Chichester Masjid.',
           time: 'Just now'
@@ -1610,8 +1623,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       paymentModalContent.innerHTML = `
         <div class="spinner-ring"></div>
-        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-dark); margin-bottom: 8px;">Processing Your Contribution...</h3>
-        <p style="color: var(--text-muted); font-size: 0.95rem;">Recording your donation of <strong>${sym}${amount.toFixed(2)}</strong> for Chichester Jamia Centre.</p>
+        <h3 style="font-family: var(--font-heading); font-size: 1.4rem; color: var(--text-dark); margin-bottom: 8px;">Pledge Recorded — Awaiting Bank/QR Transfer</h3>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">Recording your pledge of <strong>${sym}${amount.toFixed(2)}</strong> for Chichester Jamia Centre (CIO 1148130).</p>
       `;
       paymentModal.classList.add('active');
 
@@ -1624,10 +1637,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCampaignUI();
 
         const methodTitle = payMethod === 'bank' 
-          ? 'Bank Transfer Pledge Recorded' 
-          : payMethod === 'qr' 
-            ? 'QR Payment Transfer Recorded' 
-            : 'Card Donation Processed Successfully';
+          ? 'Bank Transfer Pledge Recorded (Awaiting Transfer)' 
+          : 'QR Payment Pledge Recorded';
+
+        submitToWebhook('pledge', { name, amount, purpose, payMethod, refId });
 
         const methodInstructions = payMethod === 'bank'
           ? `<div style="background: rgba(245,158,11,0.12); border-left: 3px solid var(--accent-gold); padding: 10px 12px; border-radius: 6px; margin-top: 10px; font-size: 0.85rem; color: var(--text-dark);">
@@ -1755,6 +1768,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await response.json();
       if(data && data.data && data.data.timings) {
         timings = data.data.timings;
+        livePrayerTimings = timings;
         const hDate = data.data.date.hijri;
         if(hijriDateDisplay) {
             hijriDateDisplay.textContent = `${hDate.day} ${hDate.month.en} ${hDate.year} AH • ${today.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
@@ -1804,6 +1818,11 @@ document.addEventListener('DOMContentLoaded', () => {
       
       document.querySelector('#ptIsha .pt-time').textContent = formatTime(timings.Isha);
       document.querySelector('#ptIsha .pt-iqamah').textContent = `Iqamah: ${formatIqamah(timings.Isha, 15)}`;
+
+      const suhoorValEl = document.getElementById('suhoorTimeVal');
+      const iftarValEl = document.getElementById('iftarTimeVal');
+      if (suhoorValEl) suhoorValEl.textContent = formatTime(timings.Fajr);
+      if (iftarValEl) iftarValEl.textContent = formatTime(timings.Maghrib);
     }
 
     const nextPrayerCountdown = document.getElementById('nextPrayerCountdown');
@@ -2973,7 +2992,7 @@ END:VCALENDAR`;
 
     document.getElementById('btnOpenPwaFromFaq')?.addEventListener('click', () => openPwaModal());
     document.getElementById('openPwaModalBtnDrawer')?.addEventListener('click', () => {
-      document.getElementById('mobileDrawer')?.classList.remove('active');
+      document.getElementById('mobileMenuDrawer')?.classList.remove('active');
       openPwaModal();
     });
     document.getElementById('mobileBarInstallBtn')?.addEventListener('click', () => openPwaModal());
@@ -2991,11 +3010,14 @@ END:VCALENDAR`;
 
     function updateFasting() {
       const now = new Date();
+      const [fajrH, fajrM] = (livePrayerTimings.Fajr || "05:32").split(':').map(Number);
+      const [maghribH, maghribM] = (livePrayerTimings.Maghrib || "18:46").split(':').map(Number);
+
       const fajrToday = new Date(now);
-      fajrToday.setHours(5, 32, 0, 0);
+      fajrToday.setHours(fajrH, fajrM, 0, 0);
 
       const maghribToday = new Date(now);
-      maghribToday.setHours(18, 46, 0, 0);
+      maghribToday.setHours(maghribH, maghribM, 0, 0);
 
       let targetTime;
       let label;
@@ -3031,5 +3053,427 @@ END:VCALENDAR`;
   }
 
   initFastingTracker();
+
+  // ------------------------------------------------------------------
+  // 26. Community Consultation Survey & Optional Notification System
+  // ------------------------------------------------------------------
+  function initSurveyAndNotifications() {
+    const surveyPromptFlyout = document.getElementById('surveyPromptFlyout');
+    const closeSurveyPromptBtn = document.getElementById('closeSurveyPromptBtn');
+    const btnOpenSurveyFromPrompt = document.getElementById('btnOpenSurveyFromPrompt');
+    const btnRemindSurveyLater = document.getElementById('btnRemindSurveyLater');
+
+    const surveyModal = document.getElementById('surveyModal');
+    const closeSurveyModal = document.getElementById('closeSurveyModal');
+    const navSurveyBtn = document.getElementById('navSurveyBtn');
+    const openSurveyBtnDrawer = document.getElementById('openSurveyBtnDrawer');
+
+    const notificationSettingsModal = document.getElementById('notificationSettingsModal');
+    const openNotificationSettingsBtn = document.getElementById('openNotificationSettingsBtn');
+    const openNotifSettingsBtnDrawer = document.getElementById('openNotifSettingsBtnDrawer');
+    const closeNotifSettingsModal = document.getElementById('closeNotifSettingsModal');
+    const btnRequestNotifPermission = document.getElementById('btnRequestNotifPermission');
+    const btnTestNotification = document.getElementById('btnTestNotification');
+    const btnSaveNotifSettings = document.getElementById('btnSaveNotifSettings');
+
+    const communitySurveyForm = document.getElementById('communitySurveyForm');
+    const surveyStep1 = document.getElementById('surveyStep1');
+    const surveyStep2 = document.getElementById('surveyStep2');
+    const surveyStep3 = document.getElementById('surveyStep3');
+    const surveySuccessView = document.getElementById('surveySuccessView');
+
+    const surveyStepPill1 = document.getElementById('surveyStepPill1');
+    const surveyStepPill2 = document.getElementById('surveyStepPill2');
+    const surveyStepPill3 = document.getElementById('surveyStepPill3');
+    const surveyStepLine1 = document.getElementById('surveyStepLine1');
+    const surveyStepLine2 = document.getElementById('surveyStepLine2');
+
+    const surveyBtnNext1 = document.getElementById('surveyBtnNext1');
+    const surveyBtnNext2 = document.getElementById('surveyBtnNext2');
+    const surveyBtnBack2 = document.getElementById('surveyBtnBack2');
+    const surveyBtnBack3 = document.getElementById('surveyBtnBack3');
+    const btnShareSurveyLink = document.getElementById('btnShareSurveyLink');
+    const btnCloseSurveySuccess = document.getElementById('btnCloseSurveySuccess');
+
+    const notifToggleSurveys = document.getElementById('notifToggleSurveys');
+    const notifToggleJumuah = document.getElementById('notifToggleJumuah');
+    const notifToggleAdhan = document.getElementById('notifToggleAdhan');
+    const notifToggleMilestones = document.getElementById('notifToggleMilestones');
+    const notifBadgeDot = document.getElementById('notifBadgeDot');
+
+    // 1. Open/Close Survey Modal Helpers
+    function openCommunitySurvey() {
+      if (surveyPromptFlyout) surveyPromptFlyout.classList.add('hidden');
+      if (surveyModal) {
+        goToSurveyStep(1);
+        surveyModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeCommunitySurvey() {
+      if (surveyModal) {
+        surveyModal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+    window.openCommunitySurvey = openCommunitySurvey;
+    window.closeCommunitySurvey = closeCommunitySurvey;
+
+    // 2. Open/Close Notification Settings Modal Helpers
+    function openNotificationSettings() {
+      if (notificationSettingsModal) {
+        updateNotificationPermissionUI();
+        notificationSettingsModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+    function closeNotificationSettings() {
+      if (notificationSettingsModal) {
+        notificationSettingsModal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    }
+    window.openNotificationSettings = openNotificationSettings;
+    window.closeNotificationSettings = closeNotificationSettings;
+
+    // Step switching
+    function goToSurveyStep(step) {
+      if (step === 1) {
+        surveyStep1?.classList.remove('hidden');
+        surveyStep2?.classList.add('hidden');
+        surveyStep3?.classList.add('hidden');
+        surveySuccessView?.classList.add('hidden');
+
+        surveyStepPill1?.classList.add('active');
+        surveyStepPill1?.classList.remove('completed');
+        surveyStepPill2?.classList.remove('active', 'completed');
+        surveyStepPill3?.classList.remove('active', 'completed');
+        if (surveyStepLine1) surveyStepLine1.style.background = 'var(--border-light)';
+        if (surveyStepLine2) surveyStepLine2.style.background = 'var(--border-light)';
+      } else if (step === 2) {
+        surveyStep1?.classList.add('hidden');
+        surveyStep2?.classList.remove('hidden');
+        surveyStep3?.classList.add('hidden');
+        surveySuccessView?.classList.add('hidden');
+
+        surveyStepPill1?.classList.add('completed');
+        surveyStepPill1?.classList.remove('active');
+        surveyStepPill2?.classList.add('active');
+        surveyStepPill2?.classList.remove('completed');
+        surveyStepPill3?.classList.remove('active', 'completed');
+        if (surveyStepLine1) surveyStepLine1.style.background = 'var(--accent-gold)';
+        if (surveyStepLine2) surveyStepLine2.style.background = 'var(--border-light)';
+      } else if (step === 3) {
+        surveyStep1?.classList.add('hidden');
+        surveyStep2?.classList.add('hidden');
+        surveyStep3?.classList.remove('hidden');
+        surveySuccessView?.classList.add('hidden');
+
+        surveyStepPill1?.classList.add('completed');
+        surveyStepPill2?.classList.add('completed');
+        surveyStepPill3?.classList.add('active');
+        if (surveyStepLine1) surveyStepLine1.style.background = 'var(--accent-gold)';
+        if (surveyStepLine2) surveyStepLine2.style.background = 'var(--accent-gold)';
+        updateBrowserPermInSurveyStep();
+      } else if (step === 4) {
+        surveyStep1?.classList.add('hidden');
+        surveyStep2?.classList.add('hidden');
+        surveyStep3?.classList.add('hidden');
+        surveySuccessView?.classList.remove('hidden');
+
+        surveyStepPill1?.classList.add('completed');
+        surveyStepPill2?.classList.add('completed');
+        surveyStepPill3?.classList.add('completed');
+        if (surveyStepLine1) surveyStepLine1.style.background = '#10b981';
+        if (surveyStepLine2) surveyStepLine2.style.background = '#10b981';
+      }
+      surveyModal?.querySelector('.survey-modal-card')?.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Step buttons
+    surveyBtnNext1?.addEventListener('click', () => goToSurveyStep(2));
+    surveyBtnNext2?.addEventListener('click', () => goToSurveyStep(3));
+    surveyBtnBack2?.addEventListener('click', () => goToSurveyStep(1));
+    surveyBtnBack3?.addEventListener('click', () => goToSurveyStep(2));
+
+    // Survey Form Submission
+    communitySurveyForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const facilities = Array.from(communitySurveyForm.querySelectorAll('input[name="facilities"]:checked')).map(cb => cb.value);
+      const visitFreq = communitySurveyForm.querySelector('input[name="visit_freq"]:checked')?.value || 'weekly';
+      const services = Array.from(communitySurveyForm.querySelectorAll('input[name="services"]:checked')).map(cb => cb.value);
+      const comments = document.getElementById('surveyFeedbackComments')?.value.trim() || '';
+      const respondentName = document.getElementById('surveyRespondentName')?.value.trim() || 'Supporter';
+      const respondentPostcode = document.getElementById('surveyRespondentPostcode')?.value.trim() || 'PO19';
+      const respondentEmail = document.getElementById('surveyRespondentEmail')?.value.trim() || '';
+      const wantNotifs = document.getElementById('surveyEnableBrowserNotif')?.checked ?? true;
+
+      const surveyData = {
+        facilities,
+        visitFreq,
+        services,
+        comments,
+        respondentName,
+        respondentPostcode,
+        respondentEmail,
+        wantNotifs,
+        submittedAt: new Date().toISOString()
+      };
+
+      try {
+        localStorage.setItem('cjc_community_survey', JSON.stringify(surveyData));
+        localStorage.setItem('cjc_survey_submitted', 'true');
+      } catch (err) {}
+      submitToWebhook('survey', surveyData);
+
+      // Update badge dot
+      if (notifBadgeDot) notifBadgeDot.style.display = 'none';
+
+      // Request Web Notifications permission if checked
+      if (wantNotifs && 'Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            try {
+              new Notification('Chichester Jamia Centre', {
+                body: 'JazakAllah Khair! You will receive community survey & planning updates for 102 Bognor Rd.',
+                icon: 'assets/real_qr_code.png'
+              });
+            } catch(e) {}
+          }
+        });
+      }
+
+      playSoftChime();
+      showToast('JazakAllah Khair! Your survey has been submitted. 📋', 'success');
+      goToSurveyStep(4);
+    });
+
+    btnShareSurveyLink?.addEventListener('click', function() {
+      const shareUrl = `${window.location.origin}${window.location.pathname}#survey`;
+      copyToClipboard(shareUrl, 'Survey Link', this);
+    });
+
+    btnCloseSurveySuccess?.addEventListener('click', closeCommunitySurvey);
+
+    // Wire Modal Triggers
+    navSurveyBtn?.addEventListener('click', openCommunitySurvey);
+    openSurveyBtnDrawer?.addEventListener('click', () => {
+      document.getElementById('mobileMenuDrawer')?.classList.remove('active');
+      openCommunitySurvey();
+    });
+    closeSurveyModal?.addEventListener('click', closeCommunitySurvey);
+    surveyModal?.addEventListener('click', (e) => {
+      if (e.target === surveyModal) closeCommunitySurvey();
+    });
+
+    openNotificationSettingsBtn?.addEventListener('click', openNotificationSettings);
+    openNotifSettingsBtnDrawer?.addEventListener('click', () => {
+      document.getElementById('mobileMenuDrawer')?.classList.remove('active');
+      openNotificationSettings();
+    });
+    closeNotifSettingsModal?.addEventListener('click', closeNotificationSettings);
+    notificationSettingsModal?.addEventListener('click', (e) => {
+      if (e.target === notificationSettingsModal) closeNotificationSettings();
+    });
+
+    // Check URL hash on load
+    if (window.location.hash === '#survey') {
+      setTimeout(openCommunitySurvey, 600);
+    }
+
+    // Load Notification Preferences
+    function loadNotifPreferences() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('cjc_notif_prefs') || '{}');
+        if (notifToggleSurveys && typeof saved.surveys === 'boolean') notifToggleSurveys.checked = saved.surveys;
+        if (notifToggleJumuah && typeof saved.jumuah === 'boolean') notifToggleJumuah.checked = saved.jumuah;
+        if (notifToggleAdhan && typeof saved.adhan === 'boolean') notifToggleAdhan.checked = saved.adhan;
+        if (notifToggleMilestones && typeof saved.milestones === 'boolean') notifToggleMilestones.checked = saved.milestones;
+      } catch (e) {}
+    }
+    loadNotifPreferences();
+
+    // Save Notification Preferences
+    btnSaveNotifSettings?.addEventListener('click', () => {
+      const prefs = {
+        surveys: notifToggleSurveys?.checked ?? true,
+        jumuah: notifToggleJumuah?.checked ?? true,
+        adhan: notifToggleAdhan?.checked ?? false,
+        milestones: notifToggleMilestones?.checked ?? true,
+        updatedAt: new Date().toISOString()
+      };
+      try {
+        localStorage.setItem('cjc_notif_prefs', JSON.stringify(prefs));
+      } catch (e) {}
+      showToast('Notification preferences saved! 🔔', 'success');
+      closeNotificationSettings();
+    });
+
+    // Permission UI Update
+    function updateNotificationPermissionUI() {
+      const npcStatusIcon = document.getElementById('npcStatusIcon');
+      const npcStatusTitle = document.getElementById('npcStatusTitle');
+      const npcStatusDesc = document.getElementById('npcStatusDesc');
+
+      if (!('Notification' in window)) {
+        if (npcStatusTitle) npcStatusTitle.textContent = 'Browser Notifications Not Supported';
+        if (npcStatusDesc) npcStatusDesc.textContent = 'Your browser does not support web push notifications.';
+        if (btnRequestNotifPermission) btnRequestNotifPermission.style.display = 'none';
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        if (npcStatusIcon) npcStatusIcon.textContent = '✓';
+        if (npcStatusTitle) npcStatusTitle.textContent = 'Browser Notifications Allowed';
+        if (npcStatusDesc) npcStatusDesc.textContent = 'You are set up to receive optional updates on this device.';
+        if (btnRequestNotifPermission) {
+          btnRequestNotifPermission.textContent = 'Permission Active ✓';
+          btnRequestNotifPermission.disabled = true;
+          btnRequestNotifPermission.classList.remove('btn-gold');
+          btnRequestNotifPermission.classList.add('btn-emerald');
+        }
+      } else if (Notification.permission === 'denied') {
+        if (npcStatusIcon) npcStatusIcon.textContent = '✕';
+        if (npcStatusTitle) npcStatusTitle.textContent = 'Notifications Blocked';
+        if (npcStatusDesc) npcStatusDesc.textContent = 'Notifications were blocked. Please enable them in your browser site settings.';
+        if (btnRequestNotifPermission) {
+          btnRequestNotifPermission.textContent = 'Blocked in Browser';
+          btnRequestNotifPermission.disabled = true;
+          btnRequestNotifPermission.classList.remove('btn-gold');
+          btnRequestNotifPermission.classList.add('btn-glass');
+        }
+      } else {
+        if (npcStatusIcon) npcStatusIcon.textContent = '🔔';
+        if (npcStatusTitle) npcStatusTitle.textContent = 'Browser Notifications Available';
+        if (npcStatusDesc) npcStatusDesc.textContent = 'Click to allow Chichester Jamia Centre to send optional survey & milestone alerts.';
+        if (btnRequestNotifPermission) {
+          btnRequestNotifPermission.textContent = 'Enable in Browser';
+          btnRequestNotifPermission.disabled = false;
+          btnRequestNotifPermission.classList.add('btn-gold');
+          btnRequestNotifPermission.classList.remove('btn-emerald');
+        }
+      }
+    }
+
+    function updateBrowserPermInSurveyStep() {
+      const statusEl = document.getElementById('surveyBrowserPermissionStatus');
+      if (!statusEl) return;
+      if (!('Notification' in window)) {
+        statusEl.textContent = 'Note: Web push not supported on this browser (Email updates available below).';
+      } else if (Notification.permission === 'granted') {
+        statusEl.textContent = '✓ Browser notifications are enabled on this device.';
+      } else if (Notification.permission === 'denied') {
+        statusEl.textContent = '⚠️ Browser notifications blocked in settings. Please leave your email below for updates.';
+      } else {
+        statusEl.textContent = '💡 Submitting will request permission to notify you of future consultations.';
+      }
+    }
+
+    btnRequestNotifPermission?.addEventListener('click', () => {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(() => {
+          updateNotificationPermissionUI();
+          if (Notification.permission === 'granted') {
+            showToast('Notifications enabled! 🔔', 'success');
+          }
+        });
+      }
+    });
+
+    btnTestNotification?.addEventListener('click', () => {
+      showToast('Sample Alert: Community Consultation for 102 Bognor Rd is open! 📋', 'info');
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          new Notification('Chichester Jamia Centre 📋', {
+            body: 'Sample notification: Community Consultation for 102 Bognor Rd is active. Thank you for your support!',
+            icon: 'assets/real_qr_code.png'
+          });
+        } catch(e) {}
+      }
+    });
+
+    // 3. Polite Flyout Trigger Logic
+    const isSubmitted = localStorage.getItem('cjc_survey_submitted') === 'true';
+    const snoozeUntil = parseInt(localStorage.getItem('cjc_survey_snooze') || '0', 10);
+    const dismissedUntil = parseInt(localStorage.getItem('cjc_survey_dismissed') || '0', 10);
+    const now = Date.now();
+
+    if (isSubmitted && notifBadgeDot) {
+      notifBadgeDot.style.display = 'none';
+    }
+
+    if (!isSubmitted && now > snoozeUntil && now > dismissedUntil) {
+      let flyoutShown = false;
+
+      function showSurveyPrompt() {
+        if (flyoutShown) return;
+        const splashOverlay = document.getElementById('languageSplash');
+        // Wait until splash modal is dismissed
+        if (splashOverlay && !splashOverlay.classList.contains('hidden')) {
+          setTimeout(showSurveyPrompt, 2000);
+          return;
+        }
+        flyoutShown = true;
+        surveyPromptFlyout?.classList.remove('hidden');
+      }
+
+      // Delay trigger (12 seconds)
+      const timerId = setTimeout(showSurveyPrompt, 12000);
+
+      // Scroll trigger (25% scroll depth)
+      function onScrollCheck() {
+        if (flyoutShown) return;
+        const scrollPct = (window.scrollY + window.innerHeight) / document.documentElement.scrollHeight;
+        if (scrollPct > 0.25) {
+          clearTimeout(timerId);
+          showSurveyPrompt();
+          window.removeEventListener('scroll', onScrollCheck);
+        }
+      }
+      window.addEventListener('scroll', onScrollCheck, { passive: true });
+
+      btnOpenSurveyFromPrompt?.addEventListener('click', () => {
+        surveyPromptFlyout?.classList.add('hidden');
+        openCommunitySurvey();
+      });
+
+      btnRemindSurveyLater?.addEventListener('click', () => {
+        surveyPromptFlyout?.classList.add('hidden');
+        try {
+          localStorage.setItem('cjc_survey_snooze', String(Date.now() + 24 * 3600 * 1000));
+        } catch (e) {}
+        showToast('We\'ll remind you tomorrow! 📋', 'info');
+      });
+
+      closeSurveyPromptBtn?.addEventListener('click', () => {
+        surveyPromptFlyout?.classList.add('hidden');
+        try {
+          localStorage.setItem('cjc_survey_dismissed', String(Date.now() + 7 * 24 * 3600 * 1000));
+        } catch (e) {}
+      });
+    }
+  }
+
+  initSurveyAndNotifications();
+
+  // ------------------------------------------------------------------
+  // 30. Newsletter Form Submission & Remote Webhook Dispatch
+  // ------------------------------------------------------------------
+  const newsletterForm = document.getElementById('newsletterForm');
+  newsletterForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const emailInput = newsletterForm.querySelector('input[type="email"]');
+    const email = emailInput?.value.trim();
+    if (!email) return;
+    try {
+      const subs = JSON.parse(localStorage.getItem('cjc_newsletter_subs') || '[]');
+      subs.push({ email, subscribedAt: new Date().toISOString() });
+      localStorage.setItem('cjc_newsletter_subs', JSON.stringify(subs));
+    } catch (err) {}
+    submitToWebhook('newsletter', { email });
+    newsletterForm.reset();
+    showToast('JazakAllah Khair! You are subscribed to project updates.');
+  });
 });
 

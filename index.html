@@ -97,8 +97,8 @@
           "longitude": -0.7681
         },
         "url": "https://abrdabrd.github.io/",
-        "telephone": "+447956488330",
-        "email": "chichesterjamiacentre@gmail.com",
+        "telephone": "+447598040448",
+        "email": "chichesterjamiacentre@hotmail.com",
         "containedInPlace": {
           "@type": "AdministrativeArea",
           "name": "West Sussex"
@@ -136,7 +136,7 @@
     rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=9" />
+  <link rel="stylesheet" href="style.css?v=11" />
   <style>
     /* Critical fallback for Language Splash to prevent any unstyled layout shift */
     .lang-splash-overlay {
@@ -503,9 +503,19 @@
         <a href="#bank-details" class="nav-link">Bank Info</a>
         <a href="#prayers" class="nav-link">Prayers &amp; Qibla</a>
         <a href="#faq" class="nav-link">FAQs</a>
+        <button type="button" class="nav-link nav-survey-btn" id="navSurveyBtn" title="Take Community Survey">📋 Survey</button>
       </nav>
 
       <div class="header-cta-group">
+        <!-- Notification & Survey Preferences -->
+        <button id="openNotificationSettingsBtn" class="btn-notif-toggle" aria-label="Notification & Survey Preferences" title="Notification & Survey Preferences">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+          <span class="notif-badge-dot" id="notifBadgeDot" title="Community Survey Available"></span>
+        </button>
+
         <!-- Dark/Light Theme Toggle -->
         <button id="themeToggleBtn" class="btn-theme-toggle" aria-label="Toggle Dark/Light Mode" title="Toggle Theme">
           <span class="theme-icon-dark">🌙</span>
@@ -553,6 +563,8 @@
         <a href="#calculator" class="drawer-link">Zakat Calculator</a>
         <a href="#faq" class="drawer-link">Frequently Asked Questions</a>
         <a href="#contact" class="drawer-link">Contact &amp; Location</a>
+        <button type="button" id="openSurveyBtnDrawer" class="drawer-link survey-drawer-link">📋 Community Consultation Survey</button>
+        <button type="button" id="openNotifSettingsBtnDrawer" class="drawer-link notif-drawer-link">🔔 Notification Preferences (Surveys, Jumu'ah)</button>
         <button type="button" id="openPwaModalBtnDrawer" class="drawer-link pwa-drawer-link">📲 Add to Home Screen
           (Install App)</button>
         <button type="button" id="openLangModalBtnDrawer" class="drawer-link lang-drawer-link"
@@ -677,6 +689,7 @@
               <span class="progress-percent" id="percentDisplay">56.0%</span>
             </div>
           </div>
+          <p style="font-size:0.76rem; color:var(--text-muted); margin-top:6px; text-align:center;">Includes <strong>£230,000</strong> secured in bank + <strong>£94,850</strong> in community pledges</p>
 
           <div class="milestones-row">
             <div class="milestone-item reached">
@@ -1492,42 +1505,22 @@
                     complete your card details below:</p>
                 </div>
 
-                <div class="card-inputs-box mt-2">
-                  <div class="form-group">
-                    <label class="form-label" for="cardHolderName">Name on Card</label>
-                    <input type="text" id="cardHolderName" class="form-control" placeholder="Name as displayed on card">
-                  </div>
-                  <div class="form-group mt-2">
-                    <label class="form-label" for="cardNumberInput">Card Number</label>
-                    <div class="card-num-wrapper">
-                      <input type="text" id="cardNumberInput" class="form-control" placeholder="4532 •••• •••• 8892"
-                        maxlength="19">
-                      <span class="card-brand-badge">💳 Visa / MC</span>
-                    </div>
-                  </div>
-                  <div class="form-row mt-2">
-                    <div class="form-group col-half">
-                      <label class="form-label" for="cardExpiry">Expiry Date</label>
-                      <input type="text" id="cardExpiry" class="form-control" placeholder="MM / YY" maxlength="5">
-                    </div>
-                    <div class="form-group col-half">
-                      <label class="form-label" for="cardCvc">Security Code (CVC)</label>
-                      <input type="text" id="cardCvc" class="form-control" placeholder="123" maxlength="4">
-                    </div>
-                  </div>
-                  <div class="card-ssl-badge mt-2">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <div class="card-inputs-box mt-2 text-center">
+                  <div class="card-ssl-badge mb-2" style="justify-content:center;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                     </svg>
-                    <span>256-Bit SSL Encrypted &amp; Gift Aid Enabled</span>
+                    <span>256-Bit SSL Encrypted Charity Checkout via GoFundMe</span>
                   </div>
+                  <p style="font-size:0.9rem; color:var(--text-muted);">
+                    For your security, all <strong>Visa, Mastercard, American Express, Apple Pay, and Google Pay</strong> transactions are processed directly on our verified GoFundMe charity checkout.
+                  </p>
                 </div>
 
                 <div class="mt-3">
                   <button type="submit" class="btn btn-emerald btn-block btn-xl" id="submitCardBtn">
-                    <span>🔒 Pay <strong class="dyn-btn-amount">£100.00</strong> by Card &amp; Generate Sadaqah
-                      Certificate</span>
+                    <span>🔒 Proceed to Secure Card Checkout (<strong class="dyn-btn-amount">£100.00</strong>) ↗</span>
                   </button>
                 </div>
               </div>
@@ -2459,7 +2452,7 @@
             </div>
           </div>
           <div class="psc-action mt-3">
-            <a href="#brick-wall" class="btn btn-outline-gold btn-sm btn-block">
+            <a href="#brick-builder" class="btn btn-outline-gold btn-sm btn-block">
               <span>🧱 Sponsor 1 Brick (£100) for Ramadan Readiness</span>
             </a>
           </div>
@@ -2963,7 +2956,7 @@
           </a>
         </div>
         <div class="charity-verify-link">
-          <a href="https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/4014902"
+          <a href="https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/5026219"
             target="_blank" rel="noopener">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
@@ -3061,6 +3054,7 @@
 
       <!-- Quick Chips -->
       <div class="ai-quick-chips">
+        <button class="chip-btn" data-query="How can I take the community survey and share feedback on the facilities?">📋 Community Survey</button>
         <button class="chip-btn" data-query="Bank transfer details">🏦 Bank Sort Code</button>
         <button class="chip-btn" data-query="How to donate via GoFundMe">❤️ GoFundMe Link</button>
         <button class="chip-btn" data-query="How does the brick builder work?">🧱 Build A Brick</button>
@@ -3340,6 +3334,428 @@
   </div>
 
   <!-- ==========================================
+       POLITE COMMUNITY SURVEY NOTIFICATION FLYOUT
+  =========================================== -->
+  <div id="surveyPromptFlyout" class="survey-prompt-flyout hidden" role="complementary" aria-label="Community Consultation Survey Notice">
+    <div class="spf-inner">
+      <button class="spf-close" id="closeSurveyPromptBtn" aria-label="Dismiss survey prompt">&times;</button>
+      <div class="spf-header">
+        <span class="spf-icon">📋</span>
+        <div class="spf-meta">
+          <span class="spf-badge">Community Consultation</span>
+          <h4 class="spf-title">Shape Chichester's 1st Masjid</h4>
+        </div>
+      </div>
+      <p class="spf-desc">
+        Have your say on facilities, sisters' spaces, youth programs &amp; community services at 102 Bognor Rd. <em>Takes 1–2 mins.</em>
+      </p>
+      <div class="spf-actions">
+        <button type="button" class="btn btn-gold btn-xs" id="btnOpenSurveyFromPrompt">
+          <span>Take Survey</span> &rarr;
+        </button>
+        <button type="button" class="btn btn-glass btn-xs" id="btnRemindSurveyLater">
+          <span>Remind Later</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       COMMUNITY CONSULTATION SURVEY MODAL
+  =========================================== -->
+  <div class="modal-backdrop" id="surveyModal" role="dialog" aria-modal="true" aria-labelledby="surveyModalTitle">
+    <div class="modal-card survey-modal-card">
+      <button class="modal-close" id="closeSurveyModal" aria-label="Close survey modal">&times;</button>
+      
+      <div class="survey-modal-header text-center">
+        <div class="survey-modal-logo">📋</div>
+        <span class="survey-charity-badge">UK Charity No. 1148130 • Official Consultation</span>
+        <h3 id="surveyModalTitle">Community Consultation Survey</h3>
+        <p class="survey-subtitle">Help shape the facilities, education &amp; community services at 102 Bognor Road, Chichester.</p>
+        
+        <!-- Step Progress Indicator -->
+        <div class="survey-steps-bar">
+          <div class="survey-step-pill active" id="surveyStepPill1">
+            <span class="step-num">1</span>
+            <span class="step-label">Facilities</span>
+          </div>
+          <div class="survey-step-line" id="surveyStepLine1"></div>
+          <div class="survey-step-pill" id="surveyStepPill2">
+            <span class="step-num">2</span>
+            <span class="step-label">Community</span>
+          </div>
+          <div class="survey-step-line" id="surveyStepLine2"></div>
+          <div class="survey-step-pill" id="surveyStepPill3">
+            <span class="step-num">3</span>
+            <span class="step-label">Notifications</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Survey Form Body -->
+      <form id="communitySurveyForm" class="survey-form">
+        <!-- Step 1: Facilities Priorities -->
+        <div class="survey-step-view active" id="surveyStep1">
+          <h4 class="survey-step-heading">
+            <span class="step-icon">🏛️</span> Priority Facilities for 102 Bognor Road
+          </h4>
+          <p class="survey-step-sub">Select the facilities most essential to you and your family:</p>
+
+          <div class="survey-options-grid">
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="sisters_prayer" checked>
+              <div class="soc-body">
+                <span class="soc-icon">🧕</span>
+                <div class="soc-text">
+                  <strong>Dedicated Sisters' Prayer Hall</strong>
+                  <span>Private entrance, dedicated wudhu &amp; baby-changing facilities</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="children_madrasah" checked>
+              <div class="soc-body">
+                <span class="soc-icon">📚</span>
+                <div class="soc-text">
+                  <strong>Children's Madrasah &amp; Quran School</strong>
+                  <span>After-school &amp; weekend Islamic studies for boys &amp; girls</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="youth_hub" checked>
+              <div class="soc-body">
+                <span class="soc-icon">🎮</span>
+                <div class="soc-text">
+                  <strong>Youth Hub &amp; Safe Space</strong>
+                  <span>Mentoring, table tennis, IT study desks &amp; wholesome activities</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="food_bank">
+              <div class="soc-body">
+                <span class="soc-icon">🍲</span>
+                <div class="soc-text">
+                  <strong>Community Food Bank &amp; Warm Space</strong>
+                  <span>Local poverty relief &amp; open meals for all Chichester residents</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="elderly_circle">
+              <div class="soc-body">
+                <span class="soc-icon">🤝</span>
+                <div class="soc-text">
+                  <strong>Senior Citizens Companionship Circle</strong>
+                  <span>Tea clubs, health checks &amp; community support for the elderly</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="janazah_service">
+              <div class="soc-body">
+                <span class="soc-icon">⚰️</span>
+                <div class="soc-text">
+                  <strong>Janazah &amp; Bereavement Support</strong>
+                  <span>Cold storage, ghusl washing facility &amp; funeral coordination</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="accessibility">
+              <div class="soc-body">
+                <span class="soc-icon">♿</span>
+                <div class="soc-text">
+                  <strong>Step-Free Accessibility &amp; Lift</strong>
+                  <span>Wheelchair ramps, accessible wudhu &amp; disabled amenities</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+
+            <label class="survey-option-card">
+              <input type="checkbox" name="facilities" value="bike_parking">
+              <div class="soc-body">
+                <span class="soc-icon">🚲</span>
+                <div class="soc-text">
+                  <strong>Bicycle Racks &amp; Green Travel</strong>
+                  <span>Secure bike storage &amp; eco-friendly community transport</span>
+                </div>
+              </div>
+              <div class="soc-indicator">✓</div>
+            </label>
+          </div>
+
+          <div class="survey-nav-actions">
+            <div></div>
+            <button type="button" class="btn btn-gold" id="surveyBtnNext1">
+              <span>Next: Community Needs</span> &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Community Needs & Usage -->
+        <div class="survey-step-view hidden" id="surveyStep2">
+          <h4 class="survey-step-heading">
+            <span class="step-icon">🕌</span> Participation &amp; Community Services
+          </h4>
+          <p class="survey-step-sub">Help us gauge frequency of use and needed community services:</p>
+
+          <div class="survey-field-group">
+            <label class="survey-label">How often do you expect to visit or attend Chichester Jamia Centre?</label>
+            <div class="survey-radios-grid">
+              <label class="survey-radio-card">
+                <input type="radio" name="visit_freq" value="daily" checked>
+                <span>Daily for 5 Prayers</span>
+              </label>
+              <label class="survey-radio-card">
+                <input type="radio" name="visit_freq" value="jumuah">
+                <span>Friday Jumu'ah Weekly</span>
+              </label>
+              <label class="survey-radio-card">
+                <input type="radio" name="visit_freq" value="weekends">
+                <span>Weekends &amp; Classes</span>
+              </label>
+              <label class="survey-radio-card">
+                <input type="radio" name="visit_freq" value="occasional">
+                <span>Ramadan, Eids &amp; Events</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="survey-field-group mt-3">
+            <label class="survey-label">What other services would benefit you most?</label>
+            <div class="survey-check-inline-grid">
+              <label class="survey-check-inline">
+                <input type="checkbox" name="services" value="adult_arabic" checked>
+                <span>Adult Arabic &amp; Tajweed</span>
+              </label>
+              <label class="survey-check-inline">
+                <input type="checkbox" name="services" value="interfaith">
+                <span>Inter-Faith Open Days</span>
+              </label>
+              <label class="survey-check-inline">
+                <input type="checkbox" name="services" value="sports">
+                <span>Youth Sports &amp; Fitness</span>
+              </label>
+              <label class="survey-check-inline">
+                <input type="checkbox" name="services" value="counselling">
+                <span>Mental Health &amp; Counselling</span>
+              </label>
+              <label class="survey-check-inline">
+                <input type="checkbox" name="services" value="revert_support">
+                <span>New Muslim / Revert Care</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="survey-field-group mt-3">
+            <label for="surveyFeedbackComments" class="survey-label">Any specific thoughts or advice for the committee? (Optional)</label>
+            <textarea id="surveyFeedbackComments" class="survey-textarea" rows="2" placeholder="Tell us what you'd love to see or any advice for the centre refurbishment..."></textarea>
+          </div>
+
+          <div class="survey-nav-actions">
+            <button type="button" class="btn btn-glass" id="surveyBtnBack2">&larr; Back</button>
+            <button type="button" class="btn btn-gold" id="surveyBtnNext2">
+              <span>Next: Notification Preferences</span> &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Optional Notification Preferences & Submission -->
+        <div class="survey-step-view hidden" id="surveyStep3">
+          <h4 class="survey-step-heading">
+            <span class="step-icon">🔔</span> Optional Notifications &amp; Submission
+          </h4>
+          <p class="survey-step-sub">Choose if and how you would like to receive optional updates about future surveys and planning:</p>
+
+          <!-- Notification Permission Opt-In Card -->
+          <div class="survey-notif-optin-box">
+            <div class="sno-header">
+              <div class="sno-icon">🔔</div>
+              <div class="sno-info">
+                <strong>Optional Browser Notifications</strong>
+                <p>Receive occasional alerts when new surveys, planning decisions, or major project milestones are published.</p>
+              </div>
+            </div>
+            <div class="sno-toggle-row">
+              <label class="sno-toggle-label">
+                <input type="checkbox" id="surveyEnableBrowserNotif" checked>
+                <span class="sno-toggle-slider"></span>
+                <span class="sno-toggle-text">Enable optional survey &amp; planning notifications</span>
+              </label>
+            </div>
+            <div id="surveyBrowserPermissionStatus" class="sno-perm-status">
+              <span>Status: Browser notification permission available</span>
+            </div>
+          </div>
+
+          <div class="survey-contact-fields mt-3">
+            <div class="scf-row">
+              <div class="scf-col">
+                <label for="surveyRespondentName" class="survey-label">Your Name (Optional)</label>
+                <input type="text" id="surveyRespondentName" class="survey-input" placeholder="Brother / Sister Name">
+              </div>
+              <div class="scf-col">
+                <label for="surveyRespondentPostcode" class="survey-label">Postcode / Area (Optional)</label>
+                <input type="text" id="surveyRespondentPostcode" class="survey-input" placeholder="e.g. PO19, Bognor, West Sussex">
+              </div>
+            </div>
+            <div class="mt-2">
+              <label for="surveyRespondentEmail" class="survey-label">Email for Consultation Bulletins (Optional)</label>
+              <input type="email" id="surveyRespondentEmail" class="survey-input" placeholder="yourname@example.com">
+            </div>
+          </div>
+
+          <div class="survey-gdpr-notice mt-3">
+            <span>🛡️ <strong>Charity Privacy:</strong> Your data is stored securely under UK GDPR and used solely by Chichester Jamia Centre (CIO 1148130) to evaluate community facility demand.</span>
+          </div>
+
+          <div class="survey-nav-actions">
+            <button type="button" class="btn btn-glass" id="surveyBtnBack3">&larr; Back</button>
+            <button type="submit" class="btn btn-emerald pulse-btn" id="surveyBtnSubmit">
+              <span>✓ Submit Consultation Survey</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Success State View -->
+        <div class="survey-step-view hidden" id="surveySuccessView">
+          <div class="survey-success-card text-center">
+            <div class="ssc-icon">🎉 🕌</div>
+            <h3 class="ssc-title">JazakAllah Khair!</h3>
+            <p class="ssc-desc">Your consultation responses have been recorded and will directly inform the architectural design and planning submissions for <strong>Chichester Jamia Centre (102 Bognor Road)</strong>.</p>
+            <div class="ssc-meta" id="surveySuccessSummary">
+              <span>✓ Your facilities priorities and notification preferences have been saved locally on this device.</span>
+            </div>
+            <div class="ssc-actions mt-3">
+              <button type="button" class="btn btn-gold" id="btnShareSurveyLink">
+                <span>📋 Copy Survey Link to Share</span>
+              </button>
+              <button type="button" class="btn btn-glass" id="btnCloseSurveySuccess">Done</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       NOTIFICATION PREFERENCES CENTER MODAL
+  =========================================== -->
+  <div class="modal-backdrop" id="notificationSettingsModal" role="dialog" aria-modal="true" aria-labelledby="notifModalTitle">
+    <div class="modal-card notif-modal-card">
+      <button class="modal-close" id="closeNotifSettingsModal" aria-label="Close notification settings">&times;</button>
+      
+      <div class="notif-modal-header text-center">
+        <div class="notif-modal-logo">🔔</div>
+        <h3 id="notifModalTitle">Notification Preferences</h3>
+        <p>Choose which optional alerts and community updates you would like to receive from Chichester Jamia Centre on this device.</p>
+      </div>
+
+      <!-- Browser Permission Banner -->
+      <div class="notif-perm-card" id="notifPermCard">
+        <div class="npc-left">
+          <span class="npc-icon" id="npcStatusIcon">🔔</span>
+          <div class="npc-info">
+            <strong id="npcStatusTitle">Browser Push Notifications</strong>
+            <p id="npcStatusDesc">Permission is needed so your browser can alert you to important community updates.</p>
+          </div>
+        </div>
+        <button type="button" class="btn btn-gold btn-sm" id="btnRequestNotifPermission">
+          <span>Enable in Browser</span>
+        </button>
+      </div>
+
+      <!-- Toggles List -->
+      <div class="notif-toggles-list mt-3">
+        <!-- 1. Surveys & Consultations -->
+        <div class="notif-toggle-item">
+          <div class="nti-info">
+            <div class="nti-title-row">
+              <span class="nti-badge">📋 Community</span>
+              <strong>Surveys &amp; Consultations</strong>
+            </div>
+            <p>Get notified when new community surveys, feedback polls, or council planning consultation updates are published.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notifToggleSurveys" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- 2. Friday Jumu'ah Reminders -->
+        <div class="notif-toggle-item">
+          <div class="nti-info">
+            <div class="nti-title-row">
+              <span class="nti-badge">🕌 Weekly</span>
+              <strong>Friday Jumu'ah Alert</strong>
+            </div>
+            <p>Helpful notification every Friday morning with Jumu'ah khutbah &amp; jama'at timings at 102 Bognor Road.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notifToggleJumuah" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- 3. Prayer Times & Adhan Audio -->
+        <div class="notif-toggle-item">
+          <div class="nti-info">
+            <div class="nti-title-row">
+              <span class="nti-badge">🌅 Daily</span>
+              <strong>Adhan Audio &amp; Prayer Reminders</strong>
+            </div>
+            <p>Timely reminders and optional soft adhan chime for the 5 daily Hanafi prayer times in Chichester.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notifToggleAdhan">
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+
+        <!-- 4. Ramadan & Appeal Milestones -->
+        <div class="notif-toggle-item">
+          <div class="nti-info">
+            <div class="nti-title-row">
+              <span class="nti-badge">🌙 Milestones</span>
+              <strong>Ramadan 1448 &amp; £580k Appeal Milestones</strong>
+            </div>
+            <p>Occasional progress notifications as the community achieves key milestones towards the £580,000 target.</p>
+          </div>
+          <label class="switch-toggle">
+            <input type="checkbox" id="notifToggleMilestones" checked>
+            <span class="switch-slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Test Notification & Actions -->
+      <div class="notif-modal-actions mt-4">
+        <button type="button" class="btn btn-outline-gold btn-sm" id="btnTestNotification">
+          <span>🔔 Send Sample Notification</span>
+        </button>
+        <button type="button" class="btn btn-emerald" id="btnSaveNotifSettings">
+          <span>Save Preferences</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
        MOBILE STICKY QUICK ACTION BOTTOM BAR
   =========================================== -->
   <div class="mobile-sticky-bar" id="mobileStickyBar">
@@ -3369,7 +3785,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- JavaScript -->
-  <script src="app.js?v=9"></script>
+  <script src="app.js?v=11"></script>
 </body>
 
 </html>
