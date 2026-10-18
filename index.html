@@ -138,7 +138,7 @@
     rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=12" />
+  <link rel="stylesheet" href="style.css?v=13" />
   <style>
     /* Critical fallback for Language Splash to prevent any unstyled layout shift */
     .lang-splash-overlay {
@@ -2991,6 +2991,61 @@
     </div>
   </section>
 
+  <!-- ==========================================
+       SECTION: SUBMIT A WEBSITE ISSUE
+  =========================================== -->
+  <section class="section issue-report-section" id="report-issue">
+    <div class="container">
+      <div class="issue-report-card">
+        <div class="irc-header text-center">
+          <span class="irc-badge">🛠️ Quality &amp; Accessibility</span>
+          <h2 class="irc-title">Submit a Website Issue</h2>
+          <p class="irc-desc">Encountered a bug, display glitch, audio problem, or translation typo on this website? Let our volunteer technical team know so we can resolve it promptly.</p>
+        </div>
+
+        <form id="websiteIssueForm" class="issue-form mt-4">
+          <div class="issue-form-grid">
+            <div class="form-group">
+              <label for="issueCategory" class="form-label-subtle">Issue Category</label>
+              <select id="issueCategory" class="form-control" required>
+                <option value="layout">🎨 Display / Mobile Layout Glitch</option>
+                <option value="audio">🔊 Audio Player / Adhan Synthesis</option>
+                <option value="prayer">🕌 Prayer Timings / Fasting Schedule</option>
+                <option value="donation">💳 Donation Portal / Checkout Link</option>
+                <option value="survey">📋 Consultation Survey / Notifications</option>
+                <option value="translation">🌐 Language / Translation Typo</option>
+                <option value="link">🔗 Broken Link or Resource</option>
+                <option value="other">💬 Other Bug / Feature Suggestion</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="issueContact" class="form-label-subtle">Your Name or Email (Optional)</label>
+              <input type="text" id="issueContact" class="form-control" placeholder="Optional (for follow-up)">
+            </div>
+          </div>
+
+          <div class="form-group mt-3">
+            <label for="issueDescription" class="form-label-subtle">Issue Description *</label>
+            <textarea id="issueDescription" class="form-control" rows="3" placeholder="Please describe what happened, which button you clicked, or which screen had an issue..." required></textarea>
+          </div>
+
+          <div class="irc-env-pill mt-3">
+            <span class="irc-env-icon">💻</span>
+            <span class="irc-env-label">Auto-detected Device &amp; Browser:</span>
+            <code class="irc-env-val" id="issueAutoDetectedEnv">Detecting system...</code>
+          </div>
+
+          <div class="irc-submit-row mt-4 text-center">
+            <button type="submit" class="btn btn-gold btn-lg" id="btnSubmitWebsiteIssue">
+              <span>🚀 Submit Website Issue Report</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
   <!-- Footer -->
   <footer class="site-footer">
     <div class="container footer-grid">
@@ -3032,6 +3087,8 @@
           <li><a href="#donate">Donate Online</a></li>
           <li><a href="#bank-details">Lloyds Bank Details</a></li>
           <li><a href="#prayers">Prayer Times & Qibla</a></li>
+          <li><a href="#report-issue">Report Website Issue</a></li>
+          <li><button type="button" id="openDebugLogsBtnQuick" class="footer-debug-text-btn">🛠️ Developer Debug Logs</button></li>
         </ul>
       </div>
 
@@ -3058,7 +3115,14 @@
     <div class="footer-bottom">
       <div class="container fb-flex">
         <p>&copy; 2026 Chichester Jamia Centre (<a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" style="color:var(--accent-gold);">chichesterjamia.co.uk</a>). Registered UK Charity No. 1148130. JazakAllah Khairan.</p>
-        <div class="fb-sub">Harmonizing Talent, Inspiring Excellence • Serving Chichester &amp; West Sussex</div>
+        <div class="fb-sub">
+          <span>Harmonizing Talent, Inspiring Excellence • Serving Chichester &amp; West Sussex</span>
+          <div class="footer-dev-links mt-1">
+            <a href="#report-issue" class="dev-link-item">🐞 Submit Website Issue</a>
+            <span class="dev-sep">•</span>
+            <button type="button" id="openDebugLogsBtn" class="dev-link-item dev-link-btn" title="Open Runtime Error Logs &amp; Diagnostics">🛠️ Debug Error Logs (Password: salam)</button>
+          </div>
+        </div>
       </div>
     </div>
   </footer>
@@ -3113,6 +3177,7 @@
         <button class="chip-btn" data-query="How does the brick builder work?">🧱 Build A Brick</button>
         <button class="chip-btn" data-query="What is the fundraising target?">🎯 Target Breakdown</button>
         <button class="chip-btn" data-query="Today's prayer times in Chichester">🕌 Prayer Times</button>
+        <button class="chip-btn" data-query="How do I report a website issue or view debug error logs?">🛠️ Report Bug / Debug</button>
       </div>
 
       <!-- Chat Input Form -->
@@ -3837,6 +3902,136 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
+  <!-- ==========================================
+       DEBUG ERROR LOGS & DIAGNOSTICS MODAL (Password: salam)
+  =========================================== -->
+  <div class="modal-backdrop" id="debugLogsModal" role="dialog" aria-modal="true" aria-labelledby="debugModalTitle">
+    <div class="modal-card debug-modal-card">
+      <button class="modal-close" id="closeDebugLogsModal" aria-label="Close debug modal">&times;</button>
+
+      <!-- 1. Password Protection Gate (Default) -->
+      <div id="debugAuthGate" class="debug-auth-card text-center">
+        <div class="debug-gate-icon">🔒</div>
+        <h3 id="debugModalTitle" class="debug-gate-title">Developer &amp; Diagnostics Telemetry</h3>
+        <p class="debug-gate-desc">This section monitors real-time browser runtime exceptions, network connectivity, API status, and diagnostics. Please enter the access password to continue.</p>
+        
+        <form id="debugAuthForm" class="debug-auth-form mt-4">
+          <div class="debug-input-wrap">
+            <input type="password" id="debugPassInput" class="form-control text-center" placeholder="Enter password (hint: salam)" autocomplete="current-password" required>
+            <button type="button" id="btnToggleDebugPass" class="debug-pass-eye" title="Toggle password visibility">👁️</button>
+          </div>
+          <div id="debugAuthError" class="debug-auth-error hidden">❌ Access Denied: Incorrect password. Please try again.</div>
+          <div class="debug-gate-actions mt-3">
+            <button type="submit" class="btn btn-gold btn-block" id="btnUnlockDebug">
+              <span>🔓 Unlock Debug Console</span>
+            </button>
+          </div>
+        </form>
+        <p class="debug-hint-note mt-3">Access password: <code>salam</code></p>
+      </div>
+
+      <!-- 2. Unlocked Diagnostics & Error Logs Dashboard -->
+      <div id="debugDashboard" class="debug-dashboard hidden">
+        <div class="dd-header">
+          <div class="dd-header-left">
+            <div class="dd-title-row">
+              <span class="dd-icon">🛠️</span>
+              <h4>Runtime Telemetry &amp; Error Logs</h4>
+            </div>
+            <p class="dd-sub">Real-time browser error monitor, API latency probe, and DOM health diagnostics.</p>
+          </div>
+          <div class="dd-header-right">
+            <span class="dd-status-badge status-healthy" id="ddSystemStatusBadge">🟢 System Healthy</span>
+            <button type="button" class="btn btn-outline-light btn-xs" id="btnLockDebug" title="Lock session">🔒 Lock</button>
+          </div>
+        </div>
+
+        <!-- Metric Badges Row -->
+        <div class="dd-metrics-grid mt-3">
+          <div class="dd-metric-card">
+            <span class="ddm-label">Caught Errors</span>
+            <span class="ddm-val ddm-red" id="ddMetricErrors">0</span>
+          </div>
+          <div class="dd-metric-card">
+            <span class="ddm-label">Warnings</span>
+            <span class="ddm-val ddm-gold" id="ddMetricWarnings">0</span>
+          </div>
+          <div class="dd-metric-card">
+            <span class="ddm-label">User Issues</span>
+            <span class="ddm-val ddm-blue" id="ddMetricIssues">0</span>
+          </div>
+          <div class="dd-metric-card">
+            <span class="ddm-label">Prayer API Latency</span>
+            <span class="ddm-val ddm-green" id="ddMetricLatency">-- ms</span>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="dd-tabs-nav mt-3">
+          <button type="button" class="dd-tab-btn active" data-tab="logs" id="ddTabLogs">📋 Live Logs Console (<span id="ddTabLogsCount">0</span>)</button>
+          <button type="button" class="dd-tab-btn" data-tab="diagnostics" id="ddTabDiagnostics">🩺 System Self-Test</button>
+          <button type="button" class="dd-tab-btn" data-tab="issues" id="ddTabIssues">🐞 User-Reported Issues (<span id="ddTabIssuesCount">0</span>)</button>
+          <button type="button" class="dd-tab-btn" data-tab="env" id="ddTabEnv">📊 Environment</button>
+        </div>
+
+        <!-- Panel 1: Live Error Console -->
+        <div class="dd-panel active" id="ddPanelLogs">
+          <div class="dd-console-toolbar">
+            <div class="dd-filter-group">
+              <button type="button" class="dd-filter-btn active" data-filter="all">All</button>
+              <button type="button" class="dd-filter-btn" data-filter="error">Errors</button>
+              <button type="button" class="dd-filter-btn" data-filter="warn">Warnings</button>
+              <button type="button" class="dd-filter-btn" data-filter="info">Info / Network</button>
+            </div>
+            <div class="dd-console-actions">
+              <button type="button" class="btn btn-xs btn-outline-gold" id="btnSimulateTestError" title="Trigger a test JavaScript error to verify capture">⚡ Simulate Error</button>
+              <button type="button" class="btn btn-xs btn-glass" id="btnCopyDebugLogs">📋 Copy Report</button>
+              <button type="button" class="btn btn-xs btn-glass" id="btnClearDebugLogs">🗑️ Clear</button>
+            </div>
+          </div>
+
+          <div class="dd-terminal-window mt-2" id="ddTerminalLogList">
+            <div class="dd-log-empty">No runtime errors detected. All systems operating normally.</div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Diagnostics & Self-Test ("Other ways of detecting errors") -->
+        <div class="dd-panel hidden" id="ddPanelDiagnostics">
+          <div class="dd-diag-intro">
+            <p>Run a multi-point automated inspection to detect silent DOM mismatches, audio blockage, CSS failures, or API connectivity drops.</p>
+            <button type="button" class="btn btn-gold btn-sm pulse-btn" id="btnRunDiagnostics">
+              <span>▶ Run Comprehensive Diagnostics Test</span>
+            </button>
+          </div>
+
+          <div class="dd-tests-list mt-3" id="ddTestsList">
+            <div class="dd-test-placeholder text-center text-muted py-3">
+              Click "Run Comprehensive Diagnostics Test" above to execute all 8 error-detection probes.
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 3: User-Reported Issues -->
+        <div class="dd-panel hidden" id="ddPanelIssues">
+          <div class="dd-issues-header">
+            <p>Issues submitted through the <em>"Submit a Website Issue"</em> form stored locally on this device.</p>
+            <button type="button" class="btn btn-xs btn-glass" id="btnClearReportedIssues">🗑️ Clear Submissions</button>
+          </div>
+          <div class="dd-reported-issues-list mt-2" id="ddReportedIssuesList">
+            <div class="dd-log-empty">No website issues have been reported yet.</div>
+          </div>
+        </div>
+
+        <!-- Panel 4: Environment & System -->
+        <div class="dd-panel hidden" id="ddPanelEnv">
+          <div class="dd-env-grid mt-2" id="ddEnvGrid">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Cookie Consent Banner (from chichesterjamia.co.uk) -->
   <div id="cookieBanner" class="cookie-banner-wrap hidden" role="region" aria-label="Cookie Consent">
     <div class="container cookie-banner-inner">
@@ -3852,7 +4047,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script src="app.js?v=12"></script>
+  <script src="app.js?v=13"></script>
 </body>
 
 </html>

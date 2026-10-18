@@ -5,6 +5,92 @@
  */
 
 // ==========================================
+// RUNTIME TELEMETRY & ERROR MONITORING SYSTEM
+// ==========================================
+const CJC_DEBUG_PASSWORD = 'salam';
+const runtimeLogs = [];
+const MAX_RUNTIME_LOGS = 120;
+let updateDebugTerminalUI = null; // Bound inside DOMContentLoaded
+
+function recordRuntimeLog(level, message, meta = null) {
+  const logItem = {
+    id: 'log_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+    iso: new Date().toISOString(),
+    level: String(level || 'info').toLowerCase(), // 'error' | 'warn' | 'info' | 'diag'
+    message: String(message || 'Unknown event'),
+    meta: meta ? (typeof meta === 'object' ? meta : { info: String(meta) }) : null
+  };
+
+  runtimeLogs.unshift(logItem);
+  if (runtimeLogs.length > MAX_RUNTIME_LOGS) {
+    runtimeLogs.pop();
+  }
+
+  // Persist critical issues in localStorage
+  if (level === 'error' || level === 'warn') {
+    try {
+      const persisted = JSON.parse(localStorage.getItem('cjc_debug_logs') || '[]');
+      persisted.unshift(logItem);
+      if (persisted.length > 40) persisted.length = 40;
+      localStorage.setItem('cjc_debug_logs', JSON.stringify(persisted));
+    } catch (e) {}
+  }
+
+  // Live update UI if callback is attached
+  if (typeof updateDebugTerminalUI === 'function') {
+    try {
+      updateDebugTerminalUI();
+    } catch(e) {}
+  }
+}
+
+// Global Uncaught Script Error Listener
+window.addEventListener('error', (event) => {
+  recordRuntimeLog('error', event.message || 'Uncaught JavaScript Exception', {
+    filename: event.filename || 'inline/script',
+    lineno: event.lineno || 0,
+    colno: event.colno || 0,
+    stack: event.error?.stack || null
+  });
+});
+
+// Global Unhandled Promise Rejection Listener
+window.addEventListener('unhandledrejection', (event) => {
+  const reason = event.reason;
+  const msg = reason instanceof Error ? reason.message : String(reason);
+  recordRuntimeLog('error', `Unhandled Promise Rejection: ${msg}`, {
+    stack: reason instanceof Error ? reason.stack : null
+  });
+});
+
+// Intercept console.error & console.warn safely while preserving original browser outputs
+const _originalConsoleError = console.error;
+const _originalConsoleWarn = console.warn;
+
+console.error = function(...args) {
+  _originalConsoleError.apply(console, args);
+  try {
+    const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+    recordRuntimeLog('error', msg, { source: 'console.error' });
+  } catch (err) {}
+};
+
+console.warn = function(...args) {
+  _originalConsoleWarn.apply(console, args);
+  try {
+    const msg = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+    recordRuntimeLog('warn', msg, { source: 'console.warn' });
+  } catch (err) {}
+};
+
+// Initial boot telemetry trace
+recordRuntimeLog('info', 'Chichester Jamia Telemetry Engine initialized. Diagnostics ready.', {
+  ua: navigator.userAgent,
+  timestamp: new Date().toISOString()
+});
+
+// ==========================================
 // LANGUAGE SPLASH SCREEN & TRANSLATION LOGIC
 // ==========================================
 let langSplashTimer = null;
@@ -1319,201 +1405,341 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
   }
 
+  // AI Session State to eliminate repetitiveness and support contextual multi-turn conversation
+  const aiSession = {
+    turnCount: 0,
+    topicsCovered: new Set(),
+    lastTopic: null,
+    greetingsCount: 0,
+    thanksCount: 0
+  };
+
   let chatHistory = [
     {
       role: "system",
-      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). Our motto is 'Harmonizing Talent, Inspiring Excellence' and our community portal is chichesterjamia.co.uk. We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, giving money, or payment options, ALWAYS state that donating through our official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) is HIGHLY RECOMMENDED because it supports instant Apple Pay / Google Pay, is 100% verified, and keeps the public campaign milestone tracker transparent. Also explain that other payment options are fully available: Direct Lloyds Bank Transfer (Account 1: Sort 30-99-50, Acc 34785863; Account 2: Sort 30-95-96, Acc 1279 8836), Scan-to-Pay QR code, or online card pledge. We are also running an official community consultation survey for Chichester residents and families to shape the facilities (e.g. dedicated sisters' hall, madrasah, youth hub, food bank, elderly circle, accessibility) and council planning application. Encourage users to take the survey and let them know they can click the '📋 Community Survey' button on the website. Visitors can also drop us a line via our 'Contact Us' form. Respond with clean, modern HTML formatting (use <p>, <strong>, <ul>, etc.) and keep answers concise, helpful, and respectful. If asked about prayer times, mention they are synced with Wifaqul Ulama Hanafi."
+      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). Our motto is 'Harmonizing Talent, Inspiring Excellence' and our community portal is chichesterjamia.co.uk. We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, recommend GoFundMe for instant Apple Pay/Google Pay or direct Lloyds Bank transfer. Encourage taking the community survey. Keep answers concise, friendly, and non-repetitive."
     }
   ];
 
   async function getAiResponse(userQuery) {
+    aiSession.turnCount++;
     chatHistory.push({ role: "user", content: userQuery });
     
-    // Jamia AI Knowledge Base & Intelligent Assistant
-    const query = userQuery.toLowerCase();
+    const query = userQuery.toLowerCase().trim();
 
-    if (query.includes('slogan') || query.includes('motto') || query.includes('talent') || query.includes('excellence') || query.includes('chichesterjamia')) {
-      return `
-        <p>🌟 <strong>Chichester Jamia Motto:</strong></p>
-        <p><em>« Harmonizing Talent, Inspiring Excellence »</em></p>
-        <p>Chichester Jamia Centre serves to bring our vibrant community together, nurturing youth, supporting families, and establishing Chichester's first dedicated Masjid at 102 Bognor Road.</p>
-        <p>Official community portal: <a href="https://chichesterjamia.co.uk" target="_blank" style="color:var(--accent-gold); font-weight:700;">chichesterjamia.co.uk ↗</a></p>
-      `;
+    // 1. GREETINGS & INTRODUCTIONS (Concise, welcoming, no repetitive fundraising walls!)
+    const isGreeting = /^(salam|assalam|assalamu\s*alaikum|hello|hi|hey|good\s*(morning|afternoon|evening)|salaam)/i.test(query);
+    if (isGreeting && query.length < 40) {
+      aiSession.greetingsCount++;
+      aiSession.lastTopic = 'greeting';
+      if (aiSession.greetingsCount === 1) {
+        return `
+          <p>Wa Alaikum Assalam wa Rahmatullah! Welcome to Chichester Jamia Centre.</p>
+          <p>I can help you with today's prayer times, the Wickham Arms pub transformation, our £580k fundraising progress, taking the community survey, or reporting website issues.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
+            <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-xs btn-gofundme">❤️ GoFundMe</a>
+            <button type="button" class="btn btn-xs btn-glass" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Survey</button>
+            <a href="#report-issue" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Report Issue</a>
+          </div>
+        `;
+      } else {
+        const greetings = [
+          `<p>Wa Alaikum Assalam! How can I assist you right now?</p>`,
+          `<p>Salam! Always happy to assist. What information can I get for you?</p>`,
+          `<p>Assalamu Alaikum! Feel free to ask about our prayer schedule, donations, parking, or site facilities.</p>`
+        ];
+        return greetings[(aiSession.greetingsCount - 2) % greetings.length];
+      }
     }
 
-    if (query.includes('contact') || query.includes('drop us a line') || query.includes('reach out') || query.includes('inquiry') || query.includes('message')) {
+    // 2. GRATITUDE / DUAS
+    const isThanks = /^(thanks|thank\s*you|jazakallah|jazakallahu\s*khair|shukran|barakallah)/i.test(query);
+    if (isThanks && query.length < 35) {
+      aiSession.thanksCount++;
+      aiSession.lastTopic = 'gratitude';
+      const thankReplies = [
+        `<p>Wa Iyyakum! May Allah bless and reward you abundantly. Let me know if you need anything else!</p>`,
+        `<p>You are very welcome! May Allah grant barakah to you and your family.</p>`,
+        `<p>Alhamdulillah, glad to be of assistance! Feel free to ask any other questions anytime.</p>`
+      ];
+      return thankReplies[(aiSession.thanksCount - 1) % thankReplies.length];
+    }
+
+    // 3. WEBSITE BUGS, GLITCHES & ISSUE REPORTING
+    if (query.includes('bug') || query.includes('issue') || query.includes('glitch') || query.includes('broken') || query.includes('not working') || query.includes('problem with site') || query.includes('report issue')) {
+      aiSession.lastTopic = 'issue_reporting';
+      aiSession.topicsCovered.add('issue_reporting');
       return `
-        <p>✉️ <strong>Contact Chichester Jamia:</strong></p>
-        <p>You can drop us a line directly through our website contact form or reach out through our official channels:</p>
-        <p>• <strong>Office &amp; Site:</strong> 102 Bognor Road, Chichester, West Sussex, PO19 7TW<br>
-        • <strong>Email:</strong> <a href="mailto:chichesterjamiacentre@hotmail.com">chichesterjamiacentre@hotmail.com</a><br>
-        • <strong>Phone / WhatsApp:</strong> <a href="tel:+447598040448">+44 (0) 7598 040448</a><br>
-        • <strong>Web:</strong> <a href="https://chichesterjamia.co.uk" target="_blank">chichesterjamia.co.uk ↗</a></p>
+        <p>🛠️ <strong>Report a Website Issue:</strong></p>
+        <p>If you have spotted a bug, broken button, display glitch, audio problem, or translation typo on this site, our volunteer technical team would appreciate your report!</p>
+        <p>You can submit an issue report right here on the website — it will automatically capture your browser environment to help us resolve it quickly.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="#contact" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Go to Contact Form</a>
+          <a href="#report-issue" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Submit Website Issue</a>
+          <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openDebugLogsModal) window.openDebugLogsModal(); document.getElementById('aiChatWindow').classList.remove('active');">🛠️ Open Debug Logs (Password: salam)</button>
         </div>
       `;
     }
 
-    if (query.includes('survey') || query.includes('consultation') || query.includes('feedback') || query.includes('facilities') || query.includes('opinion') || query.includes('suggestion') || query.includes('wish')) {
+    // 4. DEBUG ERROR LOGS, DIAGNOSTICS & PASSWORD
+    if (query.includes('debug') || query.includes('error log') || query.includes('telemetry') || query.includes('diagnostic') || query.includes('console') || (query.includes('salam') && (query.includes('pass') || query.includes('access') || query.includes('code')))) {
+      aiSession.lastTopic = 'debug';
+      aiSession.topicsCovered.add('debug');
+      return `
+        <p>🔧 <strong>Developer Telemetry &amp; Error Logs:</strong></p>
+        <p>This website includes a live runtime error monitor and automated system diagnostics suite (DOM integrity, CSS tokens, Web Audio, API latency benchmark, and layout overflow detection).</p>
+        <p>• <strong>Access Password:</strong> <code>salam</code><br>
+        • <strong>Includes:</strong> Real-time exception capture, error simulation, and 8-point automated self-test.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openDebugLogsModal) window.openDebugLogsModal(); document.getElementById('aiChatWindow').classList.remove('active');">🔓 Open Debug Console</button>
+        </div>
+      `;
+    }
+
+    // 5. LOCATION, PARKING & DIRECTIONS
+    if (query.includes('where') || query.includes('address') || query.includes('location') || query.includes('parking') || query.includes('car park') || query.includes('direction') || query.includes('postcode') || query.includes('po19')) {
+      aiSession.lastTopic = 'location';
+      aiSession.topicsCovered.add('location');
+      return `
+        <p>📍 <strong>Masjid Location &amp; Parking:</strong></p>
+        <p>• <strong>Address:</strong> 102 Bognor Road, Chichester, West Sussex, <strong>PO19 7TW</strong><br>
+        • <strong>Building:</strong> Former 'The Wickham Arms' pub (historic Sussex flint property).<br>
+        • <strong>Car Park:</strong> Dedicated on-site car park with ~12 spaces.<br>
+        • <strong>Public Transit:</strong> 8-minute walk from Chichester railway station and bus terminus.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="https://maps.google.com/?q=102+Bognor+Road,+Chichester+PO19+7TW" target="_blank" class="btn btn-sm btn-gold">🗺️ Open in Google Maps ↗</a>
+          <a href="#transformation" class="btn btn-sm btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Explore Building Plans</a>
+        </div>
+      `;
+    }
+
+    // 6. SISTERS' FACILITIES & FAMILY ACCOMMODATION
+    if (query.includes('sister') || query.includes('women') || query.includes('female') || query.includes('ladies') || query.includes('baby') || query.includes('stroller')) {
+      aiSession.lastTopic = 'sisters';
+      aiSession.topicsCovered.add('sisters');
+      return `
+        <p>🧕 <strong>Dedicated Sisters' Facilities:</strong></p>
+        <p>Ensuring full, dignified, and comfortable facilities for our sisters is a top priority for Chichester Jamia Centre:</p>
+        <p>• Dedicated first-floor Sisters' Prayer Hall with acoustic separation.<br>
+        • Private, dignified wudhu and ablution facilities.<br>
+        • Baby-changing room and stroller access.<br>
+        • Safe family gathering and mother-and-toddler activities.</p>
+        <p><em>Have specific requirements? Voice your preferences in our 1-minute survey!</em></p>
+        <button type="button" class="btn btn-sm btn-gold mt-2" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Vote in Sisters' Consultation</button>
+      `;
+    }
+
+    // 7. CHILDREN, MADRASAH & YOUTH
+    if (query.includes('madrasah') || query.includes('child') || query.includes('kid') || query.includes('youth') || query.includes('class') || query.includes('quran') || query.includes('homework') || query.includes('school')) {
+      aiSession.lastTopic = 'youth';
+      aiSession.topicsCovered.add('youth');
+      return `
+        <p>📚 <strong>Madrasah &amp; Youth Development:</strong></p>
+        <p>Our goal is to nurture the next generation with knowledge, confidence, and community belonging:</p>
+        <p>• Weekend Madrasah &amp; Quran recitation classes (Hifz &amp; Tajweed).<br>
+        • Supervised after-school homework club and study space.<br>
+        • Positive youth safe space for sports, workshops, and mentoring.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">Vote on Madrasah Curriculum</button>
+          <a href="#contact" class="btn btn-sm btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Register Interest</a>
+        </div>
+      `;
+    }
+
+    // 8. FASTING, RAMADAN, SUHOOR & IFTAR
+    if (query.includes('fasting') || query.includes('ramadan') || query.includes('suhoor') || query.includes('sehri') || query.includes('iftar') || query.includes('roza')) {
+      aiSession.lastTopic = 'fasting';
+      aiSession.topicsCovered.add('fasting');
+      return `
+        <p>🌙 <strong>Fasting &amp; Ramadan Schedule:</strong></p>
+        <p>Our website features an integrated fasting tracker synchronized with Wifaqul Ulama Hanafi for Chichester:</p>
+        <p>• <strong>Suhoor / Sehri Ends:</strong> Exact Fajr start time.<br>
+        • <strong>Iftar Time:</strong> Exact Maghrib adhan time.<br>
+        • <strong>Live Countdown:</strong> Automatically counts down hours and minutes to today's Iftar or tomorrow's Suhoor.</p>
+        <a href="#prayers" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Live Fasting Countdown</a>
+      `;
+    }
+
+    // 9. PRAYER TIMES, JUMUAH, QIBLA
+    if (query.includes('prayer') || query.includes('namaz') || query.includes('salah') || query.includes('jumuah') || query.includes('jummah') || query.includes('friday') || query.includes('qibla')) {
+      aiSession.lastTopic = 'prayer';
+      aiSession.topicsCovered.add('prayer');
+      return `
+        <p>🕌 <strong>Chichester Prayer Timings &amp; Qibla:</strong></p>
+        <p>• Synced with <strong>Wifaqul Ulama Hanafi</strong> timetable for Chichester.<br>
+        • <strong>Friday Jumu'ah:</strong> Khutbah begins at <strong>01:15 PM</strong>.<br>
+        • <strong>Qibla Direction:</strong> <strong>119.2° ESE</strong> from Chichester towards the Holy Ka'bah.<br>
+        • Features automated Web Audio Adhan synthesis with customizable alerts.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="#prayers" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Open Prayer Timetable</a>
+          <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openNotificationSettings) window.openNotificationSettings(); document.getElementById('aiChatWindow').classList.remove('active');">🔔 Adhan Alerts</button>
+        </div>
+      `;
+    }
+
+    // 10. MOTTO & SLOGAN
+    if (query.includes('slogan') || query.includes('motto') || query.includes('talent') || query.includes('excellence') || query.includes('chichesterjamia')) {
+      aiSession.lastTopic = 'motto';
+      return `
+        <p>🌟 <strong>Chichester Jamia Motto:</strong></p>
+        <p><em>« Harmonizing Talent, Inspiring Excellence »</em></p>
+        <p>Serving Chichester &amp; West Sussex to establish Chichester's first dedicated Masjid and community centre at 102 Bognor Road.</p>
+        <p>Official community portal: <a href="https://chichesterjamia.co.uk" target="_blank" style="color:var(--accent-gold); font-weight:700;">chichesterjamia.co.uk ↗</a></p>
+      `;
+    }
+
+    // 11. CONTACT US
+    if (query.includes('contact') || query.includes('drop us a line') || query.includes('reach out') || query.includes('inquiry') || query.includes('phone') || query.includes('email')) {
+      aiSession.lastTopic = 'contact';
+      return `
+        <p>✉️ <strong>Contact Chichester Jamia:</strong></p>
+        <p>• <strong>Site:</strong> 102 Bognor Road, Chichester, West Sussex, PO19 7TW<br>
+        • <strong>Email:</strong> <a href="mailto:chichesterjamiacentre@hotmail.com">chichesterjamiacentre@hotmail.com</a><br>
+        • <strong>Phone / WhatsApp:</strong> <a href="tel:+447598040448">+44 (0) 7598 040448</a><br>
+        • <strong>Web:</strong> <a href="https://chichesterjamia.co.uk" target="_blank">chichesterjamia.co.uk ↗</a></p>
+        <a href="#contact" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Go to Contact Form</a>
+      `;
+    }
+
+    // 12. SURVEY & COMMUNITY CONSULTATION
+    if (query.includes('survey') || query.includes('consultation') || query.includes('feedback') || query.includes('facility') || query.includes('opinion') || query.includes('suggestion') || query.includes('wish')) {
+      aiSession.lastTopic = 'survey';
       return `
         <p>📋 <strong>Chichester Community Consultation Survey:</strong></p>
-        <p>Chichester Jamia Centre (Charity No. 1148130) is currently conducting an active community consultation to shape the design and facilities for <strong>102 Bognor Road</strong>!</p>
-        <p><strong>Key areas you can vote on:</strong><br>
-        • Dedicated Sisters' Prayer Hall &amp; Private Wudhu/Baby-Changing<br>
-        • Children's Weekend Madrasah &amp; Quran Classes<br>
-        • Youth Safe Space &amp; Homework Club<br>
-        • Community Food Bank &amp; Elderly Companionship Circle<br>
-        • Step-Free Disabled Accessibility &amp; Green Transport</p>
-        <p><em>Takes only 1–2 minutes, and you can opt in to browser/email survey notifications.</em></p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
+        <p>We are running an active community consultation to finalize the layout and services for 102 Bognor Road before our council planning submission.</p>
+        <p>Vote on Sisters' facilities, weekend madrasah, youth lounge, food bank, and disabled access. Takes only 1–2 minutes!</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
           <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Take Community Survey Now</button>
           <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openNotificationSettings) window.openNotificationSettings(); document.getElementById('aiChatWindow').classList.remove('active');">🔔 Notification Settings</button>
         </div>
       `;
     }
 
-    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('payment') || query.includes('how to pay') || query.includes('ways to pay') || query.includes('contribute')) {
+    // 13. DONATE / PAYMENT / GOFUNDME / BANK / SHORTFALL / BRICKS
+    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('payment') || query.includes('how to pay') || query.includes('ways to pay') || query.includes('contribute') || query.includes('gofundme') || query.includes('bank') || query.includes('shortfall') || query.includes('brick') || query.includes('target') || query.includes('580') || query.includes('230') || query.includes('350')) {
+      const alreadyCoveredDonation = aiSession.topicsCovered.has('donation');
+      aiSession.topicsCovered.add('donation');
+      aiSession.lastTopic = 'donation';
+
+      if (query.includes('brick') || query.includes('builder') || query.includes('wall')) {
+        return `
+          <p>🧱 <strong>Interactive Brick Builder Wall:</strong></p>
+          <p>Sponsor a brick for <strong>£100</strong> as Sadaqah Jariyah with your family name inscribed on our interactive digital wall.</p>
+          <a href="#brick-builder" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Sponsor a Brick (£100)</a>
+        `;
+      }
+
+      if (query.includes('bank') || query.includes('sort code') || query.includes('lloyds') || query.includes('transfer')) {
+        return `
+          <p>🏦 <strong>Lloyds Bank Transfer (0% Fees):</strong></p>
+          <p>• <strong>Account 1:</strong> Sort: <strong>30-99-50</strong> | Acc: <strong>34785863</strong><br>
+          • <strong>Account 2:</strong> Sort: <strong>30-95-96</strong> | Acc: <strong>1279 8836</strong><br>
+          • <strong>Beneficiary:</strong> Chichester Jamia Centre | <strong>Ref:</strong> MASJID</p>
+          <p style="font-size:0.86rem; color:var(--text-muted); margin-top:4px;">Tip: For instant Apple Pay / Google Pay, use our <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">Official GoFundMe</a>.</p>
+        `;
+      }
+
+      if (query.includes('shortfall') || query.includes('target') || query.includes('580') || query.includes('230') || query.includes('350')) {
+        return `
+          <p>💰 <strong>Financial Shortfall & Funds in Bank:</strong></p>
+          <p>• <strong>Total Target Required:</strong> £580,000<br>
+          • <strong>Already Secured in Bank:</strong> £230,000 (39.7%)<br>
+          • <strong>Urgent Shortfall Needed:</strong> £350,000</p>
+          <p>With community pledges, we have surpassed £324,850! Please help us close the remaining gap.</p>
+          <a href="#target" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Target Details</a>
+        `;
+      }
+
+      // If user already discussed donations in this session, provide a concise follow-up rather than repeating everything
+      if (alreadyCoveredDonation) {
+        return `
+          <p>❤️ <strong>Quick Donation Links:</strong></p>
+          <p>• <strong>Instant Apple Pay / Google Pay / Card:</strong> <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">Official GoFundMe Page ↗</a><br>
+          • <strong>Fee-Free Direct Bank Transfer:</strong> Lloyds Sort: <strong>30-99-50</strong> | Acc: <strong>34785863</strong><br>
+          • <strong>Sponsor a Brick:</strong> £100 per brick with your name on the wall.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+            <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">Donate on GoFundMe ↗</a>
+            <a href="#donate" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">All Payment Methods</a>
+          </div>
+        `;
+      }
+
+      // First time asking about donation
       return `
         <p>❤️ <strong>How to Donate — Official GoFundMe (Highly Recommended):</strong></p>
-        <p>We <strong>strongly recommend</strong> giving via our official GoFundMe page:<br>
+        <p>We <strong>strongly recommend</strong> donating through our verified GoFundMe campaign:<br>
         <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:800;">gofundme.com/f/chichester-mosque ↗</a></p>
-        <p><strong>Why GoFundMe is recommended:</strong><br>
-        • Instant 1-Tap Apple Pay, Google Pay, Card &amp; PayPal.<br>
-        • Keeps our public £580,000 target progress bar live &amp; unified.<br>
-        • 100% verified UK charity transfer with GoFundMe Giving Guarantee.</p>
-        
-        <p style="margin-top:10px;"><strong>Other Payment Options Are Also Available:</strong><br>
-        • <strong>Lloyds Bank Transfer (0% Fees):</strong> Sort: <strong>30-99-50</strong> | Acc: <strong>34785863</strong> (Ref: MASJID)<br>
-        • <strong>Scan-to-Pay QR:</strong> Instant UK banking app camera transfer.<br>
-        • <strong>Interactive Brick Builder:</strong> Sponsor 1 brick for £100 with your family's name.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;">
-          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">Open GoFundMe (Recommended) ↗</a>
-          <a href="#donate" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View All Payment Options</a>
-        </div>
-      `;
-    }
-
-    if (query.includes('pub') || query.includes('wickham') || query.includes('history') || query.includes('transformation') || query.includes('before')) {
-      return `
-        <p>🏛 <strong>From Pub to Masjid Transformation:</strong></p>
-        <p>We are converting the former <strong>"The Wickham Arms" pub</strong> located at <strong>102 Bognor Road, Chichester PO19 7TW</strong> into Chichester's first permanent Masjid.</p>
-        <p>The historic Sussex flint stone building has been secured under our Charitable Incorporated Organisation (CIO). It features an on-site car park and grounds.</p>
-        <a href="#transformation" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Explore Pub to Masjid Journey</a>
-      `;
-    }
-
-    if (query.includes('bank') || query.includes('sort code') || query.includes('lloyds') || query.includes('account number') || query.includes('transfer')) {
-      return `
-        <p><strong>🏦 Official Lloyds Bank Transfer Accounts (0% Fees):</strong></p>
-        <p style="background:rgba(245,158,11,0.12); border-left:3px solid var(--accent-gold); padding:6px 10px; border-radius:4px; font-size:0.88rem; margin-bottom:8px;">
-          💡 <em>Note:</em> For quickest card/mobile checkout and live public counter updates, donating via our <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">Official GoFundMe Page</a> is highly recommended! For direct bank transfer:
-        </p>
-        <p>• <strong>Account 1 (General Appeal):</strong><br>
-        Sort Code: <span style="color:var(--accent-gold); font-weight:800;">30-99-50</span> | Acc: <span style="color:var(--accent-gold); font-weight:800;">34785863</span></p>
-        <p>• <strong>Account 2 (Building CIO & QR Pay):</strong><br>
-        Sort Code: <span style="color:var(--accent-gold); font-weight:800;">30-95-96</span> | Acc: <span style="color:var(--accent-gold); font-weight:800;">1279 8836</span></p>
-        <p>• <strong>Account Name:</strong> Chichester Jamia Centre<br>
-        • <strong>Reference:</strong> MASJID</p>
+        <p>• Instant Apple Pay, Google Pay, Card &amp; PayPal.<br>
+        • Updates the live £580k milestone tracker automatically.<br>
+        • Direct Lloyds Bank Transfer is also available: Sort <strong>30-99-50</strong>, Acc <strong>34785863</strong>.</p>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">GoFundMe (Recommended)</a>
-          <a href="#bank-details" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Bank & QR Code</a>
+          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">Open GoFundMe ↗</a>
+          <a href="#donate" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">All Payment Options</a>
         </div>
       `;
     }
 
-    if (query.includes('qr') || query.includes('scan') || query.includes('mobile pay')) {
+    // 14. PUB TO MASJID HISTORY & DETAILS
+    if (query.includes('pub') || query.includes('wickham') || query.includes('history') || query.includes('transformation') || query.includes('before') || query.includes('building')) {
+      aiSession.lastTopic = 'transformation';
       return `
-        <p>📱 <strong>Scan-to-Pay QR Code:</strong></p>
-        <p>You can scan our official QR code directly inside your UK mobile banking app to donate with zero fees.</p>
-        <p>Linked to Lloyds Bank Sort Code <strong>30-95-96</strong>, Account <strong>1279 8836</strong>.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">GoFundMe (Recommended)</a>
-          <a href="#bank-details" class="btn btn-sm btn-emerald" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View QR Code</a>
-        </div>
+        <p>🏛️ <strong>The Wickham Arms Transformation:</strong></p>
+        <p>We are converting the former 'The Wickham Arms' pub at 102 Bognor Road into Chichester's first permanent Masjid. The historic building has a private car park and ample room for community activities.</p>
+        <a href="#transformation" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">See Before &amp; After Journey</a>
       `;
     }
 
-    if (query.includes('shortfall') || query.includes('230') || query.includes('350') || query.includes('balance')) {
-      return `
-        <p>💰 <strong>Financial Shortfall & Funds in Bank:</strong></p>
-        <p>• <strong>Total Target Required:</strong> £580,000<br>
-        • <strong>Already Secured in Bank:</strong> £230,000 (39.7%)<br>
-        • <strong>Urgent Shortfall Needed:</strong> £350,000</p>
-        <p>With community pledges, we have surpassed £324,850! Please help us close the remaining gap.</p>
-        <a href="#target" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Target Details</a>
-      `;
-    }
-
+    // 15. BENGALI / OTHER LANGUAGES
     if (query.includes('bengali') || query.includes('বাংলা') || query.includes('bangla')) {
       return `
-        <p>🇧🇩 <strong>চিচেস্টার জামিয়া সেন্টার (ইসলামিক সেন্টার):</strong></p>
-        <p>১০২ বগোর রোডে £৫৮০,০০০ মূল্যের প্রোপার্টির জন্য ব্যাংকে £২৩০,০০০ জমা আছে, এবং অবশিষ্ট £৩৫০,০০০ প্রয়োজন। GoFundMe অথবা সরাসরি ব্যাংক ট্রান্সফারের মাধ্যমে দান করুন।</p>
+        <p>🇧🇩 <strong>চিচেস্টার জামিয়া সেন্টার:</strong></p>
+        <p>১০২ বগোর রোডের ঐতিহাসিক ভবনকে মসজিদে রূপান্তরের জন্য £৫৮০,০০০ প্রয়োজন। ব্যাংকে জমা আছে £২৩০,০০০। GoFundMe বা সরাসরি ব্যাংক ট্রান্সফারের মাধ্যমে সাদাকায়ে জারিয়াহ প্রদান করুন।</p>
         <a href="#documents" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">বাংলায় আবেদন দেখুন</a>
       `;
     }
 
-    if (query.includes('document') || query.includes('flyer') || query.includes('banner')) {
-      return `
-        <p>📄 <strong>Official Campaign Documents:</strong></p>
-        <p>You can view both our official appeal flyer and our roll-up banner with Charity Commission credentials (No. 1148130) in high resolution.</p>
-        <a href="#documents" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Official Documents</a>
-      `;
-    }
-
-    if (query.includes('gofundme') || query.includes('go fund me') || query.includes('link')) {
-      return `
-        <p>❤️ <strong>Official GoFundMe Appeal (★ Highly Recommended):</strong></p>
-        <p>We strongly recommend donating directly through our official GoFundMe page:<br>
-        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:800;">gofundme.com/f/chichester-mosque ↗</a></p>
-        <p>All donations go directly to Chichester Jamia Centre for property purchase & refurbishment, and instantly update our £580,000 community tracker.</p>
-        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme mt-2">Open GoFundMe ↗</a>
-      `;
-    }
-
-    if (query.includes('brick') || query.includes('builder') || query.includes('wall')) {
-      return `
-        <p>🧱 <strong>Interactive Brick Builder Wall:</strong></p>
-        <p>You can visually click on any available brick on our interactive wall in the <strong>"Brick Builder"</strong> section to sponsor it for <strong>£100</strong>.</p>
-        <p>You can also inscribe your family or loved one's name as an eternal Sadaqah Jariyah.</p>
-        <a href="#brick-builder" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Go to Brick Builder</a>
-      `;
-    }
-
-    if (query.includes('target') || query.includes('580') || query.includes('breakdown')) {
-      return `
-        <p>🎯 <strong>Fundraising Target Breakdown (£580,000):</strong></p>
-        <p>• <strong>£420,000 (72.4%):</strong> Freehold Property Purchase<br>
-        • <strong>£95,000 (16.4%):</strong> Refurbishment & Wudu Area<br>
-        • <strong>£35,000 (6.0%):</strong> Planning & Legal Fees<br>
-        • <strong>£30,000 (5.2%):</strong> Operational Reserves</p>
-        <p>So far we have raised over <strong>£324,850 (56.0%)</strong>!</p>
-      `;
-    }
-
-    if (query.includes('prayer') || query.includes('jumuah') || query.includes('qibla')) {
-      return `
-        <p>🕌 <strong>Chichester Prayers & Qibla Direction:</strong></p>
-        <p>Our prayer times are synced dynamically with Wifaqul Ulama Hanafi for Chichester.<br>
-        • <strong>Qibla:</strong> 119.2° ESE towards Makkah.<br>
-        Friday Jumu'ah Khutbah starts at 01:15 PM.</p>
-      `;
-    }
-
-    if (query.includes('certificate') || query.includes('receipt')) {
+    // 16. CERTIFICATES & RECEIPTS
+    if (query.includes('certificate') || query.includes('receipt') || query.includes('tax') || query.includes('gift aid')) {
       return `
         <p>📜 <strong>Official Sadaqah Jariyah Certificate:</strong></p>
-        <p>Every donation comes with an official digital certificate of appreciation and tax receipt from Chichester Jamia Centre (Charity No: 1148130).</p>
-        <button class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('btnOpenCertBlank').click()">View Sample Certificate</button>
+        <p>Every donation to Chichester Jamia Centre (Charity No. 1148130) is eligible for an official digital certificate of appreciation and donation receipt.</p>
+        <button class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('btnOpenCertBlank')?.click()">View Sample Certificate</button>
       `;
     }
 
-    return `
-      <p>Assalamu Alaikum! Chichester Jamia Centre (Charity No. 1148130) is transforming the former Wickham Arms pub (102 Bognor Rd) into Chichester's first permanent Masjid.</p>
-      <p>We have <strong>£230,000 in the bank</strong> and need <strong>£350,000 shortfall</strong>. We <strong>highly recommend donating through our official <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">GoFundMe Campaign</a></strong> for instant Apple Pay / Google Pay and live public tracking.</p>
-      <p>Other payment options are also readily available: <strong>Lloyds Bank Transfer (Sort: 30-99-50 / Acc: 34785863)</strong>, <strong>Scan-to-Pay QR</strong>, or our <strong>Interactive Brick Wall</strong>.</p>
-      <p>How else may I help you?</p>
-    `;
+    // 17. CONVERSATIONAL FALLBACKS (Rotating, Fresh, Non-Repetitive)
+    // No more single massive identical wall-of-text!
+    const fallbackIndex = aiSession.turnCount % 3;
+    if (fallbackIndex === 1) {
+      return `
+        <p>I'm here to assist you with everything regarding Chichester Jamia Centre (Charity No. 1148130)!</p>
+        <p>Would you like to check today's prayer times, see our pub transformation story, explore ways to donate, or voice your thoughts in our community survey?</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
+          <a href="#transformation" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🏛️ Pub Story</a>
+          <button type="button" class="btn btn-xs btn-glass" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Survey</button>
+        </div>
+      `;
+    } else if (fallbackIndex === 2) {
+      return `
+        <p>Assalamu Alaikum! You can ask me specific questions like:</p>
+        <p>• <em>"What time is Jumu'ah?"</em><br>
+        • <em>"Where is the parking located?"</em><br>
+        • <em>"What facilities are planned for sisters and children?"</em><br>
+        • <em>"How do I donate via GoFundMe or Bank Transfer?"</em></p>
+        <p>How can I best assist you today?</p>
+      `;
+    } else {
+      return `
+        <p>Thank you for reaching out to Chichester Jamia Centre! Our team is dedicated to serving the Muslim community across Chichester and West Sussex.</p>
+        <p>Let me know how I can help, or explore our site using the quick links below:</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="#donate" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">❤️ Donate</a>
+          <a href="#report-issue" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Report an Issue</a>
+          <a href="#contact" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">✉️ Contact Us</a>
+        </div>
+      `;
+    }
   }
 
   function appendChatMessage(sender, text) {
@@ -3569,5 +3795,667 @@ END:VCALENDAR`;
     localStorage.setItem('cjc_cookie_consent', 'declined');
     cookieBanner?.classList.add('hidden');
   });
+
+  // ------------------------------------------------------------------
+  // 33. Submit Website Issue Form (#websiteIssueForm)
+  // ------------------------------------------------------------------
+  const websiteIssueForm = document.getElementById('websiteIssueForm');
+  const issueAutoDetectedEnv = document.getElementById('issueAutoDetectedEnv');
+
+  function getClientEnvironmentString() {
+    try {
+      const ua = navigator.userAgent;
+      let browser = 'Unknown Browser';
+      if (ua.includes('Edg/')) browser = 'Edge ' + (ua.match(/Edg\/([\d.]+)/)?.[1] || '');
+      else if (ua.includes('Chrome/')) browser = 'Chrome ' + (ua.match(/Chrome\/([\d.]+)/)?.[1] || '');
+      else if (ua.includes('Safari/') && !ua.includes('Chrome/')) browser = 'Safari ' + (ua.match(/Version\/([\d.]+)/)?.[1] || '');
+      else if (ua.includes('Firefox/')) browser = 'Firefox ' + (ua.match(/Firefox\/([\d.]+)/)?.[1] || '');
+
+      const os = navigator.userAgentData?.platform || navigator.platform || 'Unknown OS';
+      const screenRes = `${window.screen.width}x${window.screen.height}`;
+      const viewport = `${window.innerWidth}x${window.innerHeight}`;
+      const dpr = (window.devicePixelRatio || 1) + 'x';
+      return `${os} • ${browser} • Screen: ${screenRes} • Viewport: ${viewport} (${dpr} DPR)`;
+    } catch(e) {
+      return 'Generic Web Client';
+    }
+  }
+
+  const clientEnvStr = getClientEnvironmentString();
+  if (issueAutoDetectedEnv) {
+    issueAutoDetectedEnv.textContent = clientEnvStr;
+  }
+
+  let updateDebugIssuesUI = null;
+
+  websiteIssueForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const categorySelect = document.getElementById('issueCategory');
+    const contactInput = document.getElementById('issueContact');
+    const descriptionInput = document.getElementById('issueDescription');
+
+    const category = categorySelect?.value || 'other';
+    const contact = contactInput?.value.trim() || 'Anonymous';
+    const description = descriptionInput?.value.trim();
+
+    if (!description) {
+      showToast('Please provide a description of the issue.', 'error');
+      return;
+    }
+
+    const payload = {
+      id: 'issue_' + Date.now(),
+      category,
+      contact,
+      description,
+      environment: clientEnvStr,
+      url: window.location.href,
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      const issues = JSON.parse(localStorage.getItem('cjc_reported_issues') || '[]');
+      issues.unshift(payload);
+      if (issues.length > 50) issues.length = 50;
+      localStorage.setItem('cjc_reported_issues', JSON.stringify(issues));
+    } catch (err) {}
+
+    recordRuntimeLog('info', `User reported website issue [${category}]: ${description.slice(0, 80)}`, payload);
+
+    if (typeof updateDebugIssuesUI === 'function') {
+      updateDebugIssuesUI();
+    }
+
+    submitToWebhook('website_issue', payload);
+    websiteIssueForm.reset();
+    if (issueAutoDetectedEnv) issueAutoDetectedEnv.textContent = clientEnvStr;
+
+    showToast('JazakAllah Khair! Issue report submitted. Our technical volunteers will investigate promptly.', 'success');
+  });
+
+  // ------------------------------------------------------------------
+  // 34. Developer Telemetry, Error Logs & Diagnostics Console (Password: salam)
+  // ------------------------------------------------------------------
+  const debugLogsModal = document.getElementById('debugLogsModal');
+  const closeDebugLogsModal = document.getElementById('closeDebugLogsModal');
+  const openDebugLogsBtn = document.getElementById('openDebugLogsBtn');
+  const openDebugLogsBtnQuick = document.getElementById('openDebugLogsBtnQuick');
+
+  const debugAuthGate = document.getElementById('debugAuthGate');
+  const debugDashboard = document.getElementById('debugDashboard');
+  const debugAuthForm = document.getElementById('debugAuthForm');
+  const debugPassInput = document.getElementById('debugPassInput');
+  const btnToggleDebugPass = document.getElementById('btnToggleDebugPass');
+  const debugAuthError = document.getElementById('debugAuthError');
+  const btnLockDebug = document.getElementById('btnLockDebug');
+
+  const ddMetricErrors = document.getElementById('ddMetricErrors');
+  const ddMetricWarnings = document.getElementById('ddMetricWarnings');
+  const ddMetricIssues = document.getElementById('ddMetricIssues');
+  const ddMetricLatency = document.getElementById('ddMetricLatency');
+  const ddSystemStatusBadge = document.getElementById('ddSystemStatusBadge');
+
+  const ddTerminalLogList = document.getElementById('ddTerminalLogList');
+  const ddTabLogsCount = document.getElementById('ddTabLogsCount');
+  const ddTabIssuesCount = document.getElementById('ddTabIssuesCount');
+  const btnSimulateTestError = document.getElementById('btnSimulateTestError');
+  const btnCopyDebugLogs = document.getElementById('btnCopyDebugLogs');
+  const btnClearDebugLogs = document.getElementById('btnClearDebugLogs');
+  const btnRunDiagnostics = document.getElementById('btnRunDiagnostics');
+  const ddTestsList = document.getElementById('ddTestsList');
+  const ddReportedIssuesList = document.getElementById('ddReportedIssuesList');
+  const btnClearReportedIssues = document.getElementById('btnClearReportedIssues');
+  const ddEnvGrid = document.getElementById('ddEnvGrid');
+
+  let activeLogFilter = 'all';
+  let measuredApiLatency = null;
+
+  function isDebugAuthenticated() {
+    return sessionStorage.getItem('cjc_debug_auth') === 'unlocked';
+  }
+
+  function openDebugModal() {
+    if (!debugLogsModal) return;
+    debugLogsModal.classList.add('active');
+
+    if (isDebugAuthenticated()) {
+      debugAuthGate?.classList.add('hidden');
+      debugDashboard?.classList.remove('hidden');
+      renderDebugDashboard();
+    } else {
+      debugAuthGate?.classList.remove('hidden');
+      debugDashboard?.classList.add('hidden');
+      debugPassInput?.focus();
+    }
+  }
+
+  function closeDebugModal() {
+    if (!debugLogsModal) return;
+    debugLogsModal.classList.remove('active');
+    if (debugAuthError) debugAuthError.classList.add('hidden');
+  }
+
+  window.openDebugLogsModal = openDebugModal;
+
+  openDebugLogsBtn?.addEventListener('click', openDebugModal);
+  openDebugLogsBtnQuick?.addEventListener('click', openDebugModal);
+  closeDebugLogsModal?.addEventListener('click', closeDebugModal);
+
+  debugLogsModal?.addEventListener('click', (e) => {
+    if (e.target === debugLogsModal) closeDebugModal();
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && debugLogsModal?.classList.contains('active')) {
+      closeDebugModal();
+    }
+  });
+
+  // Password submission logic (Password: 'salam')
+  debugAuthForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const entered = debugPassInput?.value.trim().toLowerCase();
+
+    if (entered === CJC_DEBUG_PASSWORD) {
+      sessionStorage.setItem('cjc_debug_auth', 'unlocked');
+      if (debugAuthError) debugAuthError.classList.add('hidden');
+      debugAuthGate?.classList.add('hidden');
+      debugDashboard?.classList.remove('hidden');
+      if (debugPassInput) debugPassInput.value = '';
+      renderDebugDashboard();
+      showToast('Developer Diagnostics Console unlocked.', 'success');
+    } else {
+      if (debugAuthError) {
+        debugAuthError.classList.remove('hidden');
+        debugAuthError.textContent = '❌ Access Denied: Incorrect password. Please try again.';
+      }
+      if (debugPassInput) {
+        debugPassInput.classList.add('input-shake');
+        setTimeout(() => debugPassInput.classList.remove('input-shake'), 600);
+      }
+    }
+  });
+
+  // Toggle password visibility
+  btnToggleDebugPass?.addEventListener('click', () => {
+    if (!debugPassInput) return;
+    if (debugPassInput.type === 'password') {
+      debugPassInput.type = 'text';
+      btnToggleDebugPass.textContent = '🙈';
+    } else {
+      debugPassInput.type = 'password';
+      btnToggleDebugPass.textContent = '👁️';
+    }
+  });
+
+  // Lock debug session
+  btnLockDebug?.addEventListener('click', () => {
+    sessionStorage.removeItem('cjc_debug_auth');
+    debugDashboard?.classList.add('hidden');
+    debugAuthGate?.classList.remove('hidden');
+    if (debugPassInput) debugPassInput.value = '';
+    showToast('Debug Console locked.');
+  });
+
+  // Tab switching
+  const tabButtons = debugLogsModal?.querySelectorAll('.dd-tab-btn');
+  const tabPanels = debugLogsModal?.querySelectorAll('.dd-panel');
+
+  tabButtons?.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      tabPanels?.forEach(p => p.classList.add('hidden'));
+
+      btn.classList.add('active');
+      const targetTab = btn.getAttribute('data-tab');
+      if (targetTab === 'logs') document.getElementById('ddPanelLogs')?.classList.remove('hidden');
+      else if (targetTab === 'diagnostics') document.getElementById('ddPanelDiagnostics')?.classList.remove('hidden');
+      else if (targetTab === 'issues') document.getElementById('ddPanelIssues')?.classList.remove('hidden');
+      else if (targetTab === 'env') document.getElementById('ddPanelEnv')?.classList.remove('hidden');
+    });
+  });
+
+  // Filter buttons in Log Console
+  const filterButtons = debugLogsModal?.querySelectorAll('.dd-filter-btn');
+  filterButtons?.forEach(fBtn => {
+    fBtn.addEventListener('click', () => {
+      filterButtons.forEach(b => b.classList.remove('active'));
+      fBtn.classList.add('active');
+      activeLogFilter = fBtn.getAttribute('data-filter') || 'all';
+      renderDebugTerminal();
+    });
+  });
+
+  function updateDebugMetrics() {
+    const errorCount = runtimeLogs.filter(l => l.level === 'error').length;
+    const warnCount = runtimeLogs.filter(l => l.level === 'warn').length;
+    let issuesCount = 0;
+    try {
+      issuesCount = JSON.parse(localStorage.getItem('cjc_reported_issues') || '[]').length;
+    } catch(e) {}
+
+    if (ddMetricErrors) ddMetricErrors.textContent = errorCount;
+    if (ddMetricWarnings) ddMetricWarnings.textContent = warnCount;
+    if (ddMetricIssues) ddMetricIssues.textContent = issuesCount;
+    if (ddTabIssuesCount) ddTabIssuesCount.textContent = issuesCount;
+    if (ddTabLogsCount) ddTabLogsCount.textContent = runtimeLogs.length;
+
+    if (ddMetricLatency) {
+      ddMetricLatency.textContent = measuredApiLatency ? `${measuredApiLatency} ms` : '-- ms';
+    }
+
+    if (ddSystemStatusBadge) {
+      if (errorCount > 0) {
+        ddSystemStatusBadge.className = 'dd-status-badge status-warning';
+        ddSystemStatusBadge.textContent = `🔴 Issues Detected (${errorCount})`;
+      } else {
+        ddSystemStatusBadge.className = 'dd-status-badge status-healthy';
+        ddSystemStatusBadge.textContent = '🟢 System Healthy';
+      }
+    }
+  }
+
+  function renderDebugTerminal() {
+    if (!ddTerminalLogList) return;
+    updateDebugMetrics();
+
+    let filtered = runtimeLogs;
+    if (activeLogFilter !== 'all') {
+      if (activeLogFilter === 'info') {
+        filtered = runtimeLogs.filter(l => l.level === 'info' || l.level === 'diag');
+      } else {
+        filtered = runtimeLogs.filter(l => l.level === activeLogFilter);
+      }
+    }
+
+    if (filtered.length === 0) {
+      ddTerminalLogList.innerHTML = `<div class="dd-log-empty">No ${activeLogFilter === 'all' ? '' : activeLogFilter + ' '}logs recorded in this session. All systems operating normally.</div>`;
+      return;
+    }
+
+    ddTerminalLogList.innerHTML = filtered.map(item => {
+      const levelUpper = item.level.toUpperCase();
+      let metaHtml = '';
+      if (item.meta) {
+        metaHtml = `
+          <details class="dd-log-details">
+            <summary class="dd-log-summary">Details &amp; Stack</summary>
+            <pre class="dd-log-pre">${JSON.stringify(item.meta, null, 2)}</pre>
+          </details>
+        `;
+      }
+
+      return `
+        <div class="dd-log-row log-${item.level}">
+          <span class="dd-log-time">[${item.time}]</span>
+          <span class="dd-log-badge badge-${item.level}">${levelUpper}</span>
+          <span class="dd-log-msg">${item.message}</span>
+          ${metaHtml}
+        </div>
+      `;
+    }).join('');
+  }
+
+  updateDebugTerminalUI = () => {
+    if (isDebugAuthenticated() && debugLogsModal?.classList.contains('active')) {
+      renderDebugTerminal();
+    }
+  };
+
+  function renderReportedIssues() {
+    if (!ddReportedIssuesList) return;
+    let issues = [];
+    try {
+      issues = JSON.parse(localStorage.getItem('cjc_reported_issues') || '[]');
+    } catch(e) {}
+
+    updateDebugMetrics();
+
+    if (issues.length === 0) {
+      ddReportedIssuesList.innerHTML = `<div class="dd-log-empty">No website issues have been reported yet on this device.</div>`;
+      return;
+    }
+
+    ddReportedIssuesList.innerHTML = issues.map(iss => {
+      const timeStr = iss.submittedAt ? new Date(iss.submittedAt).toLocaleString() : 'Unknown';
+      return `
+        <div class="dd-issue-card">
+          <div class="dd-issue-top">
+            <span class="dd-issue-category">${iss.category?.toUpperCase() || 'GENERAL'}</span>
+            <span class="dd-issue-time">${timeStr}</span>
+          </div>
+          <p class="dd-issue-desc">${iss.description || 'No description provided'}</p>
+          <div class="dd-issue-meta">
+            <span>👤 Contact: <strong>${iss.contact || 'Anonymous'}</strong></span>
+            <span>💻 Client: <code>${iss.environment || 'N/A'}</code></span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  updateDebugIssuesUI = renderReportedIssues;
+
+  btnClearReportedIssues?.addEventListener('click', () => {
+    if (confirm('Clear all stored user-reported issue submissions?')) {
+      localStorage.removeItem('cjc_reported_issues');
+      renderReportedIssues();
+      showToast('Reported issues cleared.');
+    }
+  });
+
+  // Simulate test error button
+  btnSimulateTestError?.addEventListener('click', () => {
+    try {
+      throw new Error(`Simulated test runtime exception at ${new Date().toLocaleTimeString()} (Verify capture)`);
+    } catch (err) {
+      console.error(err.message, { stack: err.stack, simulated: true });
+      showToast('Simulated error captured and logged!', 'info');
+      renderDebugTerminal();
+    }
+  });
+
+  // Copy debug report
+  btnCopyDebugLogs?.addEventListener('click', () => {
+    const errorCount = runtimeLogs.filter(l => l.level === 'error').length;
+    const warnCount = runtimeLogs.filter(l => l.level === 'warn').length;
+
+    const report = [
+      `# Chichester Jamia Centre — Runtime Diagnostics Report`,
+      `Generated: ${new Date().toISOString()}`,
+      `URL: ${window.location.href}`,
+      `Status: ${errorCount === 0 ? 'Healthy (0 Errors)' : `Warning (${errorCount} Errors, ${warnCount} Warnings)`}`,
+      `Measured API Latency: ${measuredApiLatency ? measuredApiLatency + ' ms' : 'N/A'}`,
+      `Client Environment: ${clientEnvStr}`,
+      ``,
+      `## System Telemetry Logs (${runtimeLogs.length} entries)`,
+      ...runtimeLogs.map(l => `[${l.time}] [${l.level.toUpperCase()}] ${l.message} ${l.meta ? JSON.stringify(l.meta) : ''}`),
+      ``,
+      `## User Reported Issues`,
+      localStorage.getItem('cjc_reported_issues') || '[]'
+    ].join('\n');
+
+    navigator.clipboard?.writeText(report).then(() => {
+      showToast('Diagnostics report copied to clipboard! 📋', 'success');
+    }).catch(() => {
+      showToast('Copied to memory buffer.', 'info');
+    });
+  });
+
+  // Clear logs button
+  btnClearDebugLogs?.addEventListener('click', () => {
+    runtimeLogs.length = 0;
+    try {
+      localStorage.removeItem('cjc_debug_logs');
+    } catch(e) {}
+    recordRuntimeLog('info', 'Logs cleared by developer.');
+    renderDebugTerminal();
+    showToast('Telemetry logs cleared.');
+  });
+
+  // 8-Point Comprehensive Diagnostics Self-Test Suite ("Other ways to detecting errors")
+  btnRunDiagnostics?.addEventListener('click', async () => {
+    if (!ddTestsList) return;
+    btnRunDiagnostics.disabled = true;
+    btnRunDiagnostics.innerHTML = '<span>⏳ Running 8 Automated Diagnostics Probes...</span>';
+
+    ddTestsList.innerHTML = `<div class="text-center text-muted py-3">Executing automated system integrity checks...</div>`;
+
+    const results = [];
+
+    // Probe 1: DOM Elements Integrity Check
+    const probe1Start = performance.now();
+    const criticalDomIds = [
+      'aiChatWindow', 'prayerTimesCard', 'brickWallCanvas',
+      'websiteIssueForm', 'debugLogsModal', 'viewGoFundMe',
+      'viewCard', 'cookieBanner', 'surveyModal', 'notificationModal'
+    ];
+    const missingDom = criticalDomIds.filter(id => !document.getElementById(id));
+    const probe1Duration = Math.round(performance.now() - probe1Start);
+    results.push({
+      icon: '🏗️',
+      name: 'DOM Integrity & Element Anchors',
+      status: missingDom.length === 0 ? 'PASS' : 'FAIL',
+      duration: `${probe1Duration} ms`,
+      detail: missingDom.length === 0
+        ? `All ${criticalDomIds.length} vital interactive element anchors verified in DOM.`
+        : `Missing DOM anchors: ${missingDom.join(', ')}`
+    });
+
+    // Probe 2: CSS Theme & Tokens Health
+    const probe2Start = performance.now();
+    const computed = window.getComputedStyle(document.documentElement);
+    const goldColor = computed.getPropertyValue('--accent-gold').trim();
+    const bgPrimary = computed.getPropertyValue('--bg-primary').trim();
+    const fontHeading = computed.getPropertyValue('--font-heading').trim();
+    const cssHealthy = !!goldColor && !!bgPrimary && !!fontHeading;
+    const probe2Duration = Math.round(performance.now() - probe2Start);
+    results.push({
+      icon: '🎨',
+      name: 'CSS Design System & Theme Tokens',
+      status: cssHealthy ? 'PASS' : 'FAIL',
+      duration: `${probe2Duration} ms`,
+      detail: cssHealthy
+        ? `Theme tokens verified. Accent Gold: ${goldColor}, Heading Font: ${fontHeading}`
+        : 'Missing core CSS variables (--accent-gold or --bg-primary).'
+    });
+
+    // Probe 3: Web Audio & Speech Synthesizer
+    const probe3Start = performance.now();
+    let audioStatus = 'PASS';
+    let audioDetail = '';
+    try {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) {
+        const testCtx = new AudioContextClass();
+        audioDetail = `Web Audio API active (${testCtx.state}). Sample rate: ${testCtx.sampleRate}Hz.`;
+        if (window.speechSynthesis) {
+          audioDetail += ' SpeechSynthesis supported.';
+        }
+        testCtx.close();
+      } else {
+        audioStatus = 'WARN';
+        audioDetail = 'Web AudioContext not available in this browser environment.';
+      }
+    } catch(e) {
+      audioStatus = 'WARN';
+      audioDetail = `Web Audio initialization note: ${e.message}`;
+    }
+    const probe3Duration = Math.round(performance.now() - probe3Start);
+    results.push({
+      icon: '🔊',
+      name: 'Web Audio Adhan & Voice Synthesis',
+      status: audioStatus,
+      duration: `${probe3Duration} ms`,
+      detail: audioDetail
+    });
+
+    // Probe 4: Service Worker & PWA Cache
+    const probe4Start = performance.now();
+    let swStatus = 'PASS';
+    let swDetail = '';
+    if ('serviceWorker' in navigator) {
+      const hasController = !!navigator.serviceWorker.controller;
+      let cacheCount = 0;
+      try {
+        const keys = await caches.keys();
+        cacheCount = keys.length;
+        swDetail = `Service Worker supported. Controller: ${hasController ? 'Active' : 'Uncontrolled (Reload to attach)'}. Cache stores: ${keys.join(', ') || '0'}`;
+      } catch(e) {
+        swDetail = `Service Worker supported. Controller: ${hasController ? 'Active' : 'Inactive'}.`;
+      }
+    } else {
+      swStatus = 'WARN';
+      swDetail = 'Service Workers not supported on this browser or origin.';
+    }
+    const probe4Duration = Math.round(performance.now() - probe4Start);
+    results.push({
+      icon: '⚙️',
+      name: 'Service Worker & Offline PWA Cache',
+      status: swStatus,
+      duration: `${probe4Duration} ms`,
+      detail: swDetail
+    });
+
+    // Probe 5: Storage Subsystem Quota Test
+    const probe5Start = performance.now();
+    let storageStatus = 'PASS';
+    let storageDetail = '';
+    try {
+      const testKey = '__cjc_storage_probe__';
+      localStorage.setItem(testKey, 'probe_val');
+      const read = localStorage.getItem(testKey);
+      localStorage.removeItem(testKey);
+      sessionStorage.setItem(testKey, 'probe_val');
+      sessionStorage.removeItem(testKey);
+      storageDetail = `LocalStorage and SessionStorage write/read roundtrip passed without quota errors.`;
+    } catch(e) {
+      storageStatus = 'FAIL';
+      storageDetail = `Storage quota or security restriction: ${e.message}`;
+    }
+    const probe5Duration = Math.round(performance.now() - probe5Start);
+    results.push({
+      icon: '💾',
+      name: 'Browser LocalStorage Subsystem',
+      status: storageStatus,
+      duration: `${probe5Duration} ms`,
+      detail: storageDetail
+    });
+
+    // Probe 6: Prayer API Connectivity & Latency Benchmark
+    let apiStatus = 'PASS';
+    let apiDetail = '';
+    let apiMs = 0;
+    try {
+      const apiBenchStart = performance.now();
+      const resp = await fetch('https://api.aladhan.com/v1/timings/today?latitude=50.8365&longitude=-0.7792&method=3', { cache: 'no-cache' });
+      apiMs = Math.round(performance.now() - apiBenchStart);
+      measuredApiLatency = apiMs;
+      if (resp.ok) {
+        apiDetail = `Aladhan API reachable (HTTP ${resp.status}). Roundtrip latency: ${apiMs} ms.`;
+      } else {
+        apiStatus = 'WARN';
+        apiDetail = `Aladhan API returned HTTP status ${resp.status}. Latency: ${apiMs} ms.`;
+      }
+    } catch(e) {
+      apiStatus = 'WARN';
+      apiDetail = `Aladhan API offline or blocked: ${e.message}. Fallback Hanafi table will be utilized.`;
+    }
+    results.push({
+      icon: '🌐',
+      name: 'Prayer Times API Benchmark (Aladhan)',
+      status: apiStatus,
+      duration: `${apiMs} ms`,
+      detail: apiDetail
+    });
+
+    // Probe 7: Browser Notification System
+    const probe7Start = performance.now();
+    let notifStatus = 'PASS';
+    let notifDetail = '';
+    if ('Notification' in window) {
+      notifDetail = `Notification API supported. Current permission: ${Notification.permission}.`;
+    } else {
+      notifStatus = 'WARN';
+      notifDetail = 'Web Notification API is not supported on this platform.';
+    }
+    const probe7Duration = Math.round(performance.now() - probe7Start);
+    results.push({
+      icon: '🔔',
+      name: 'Push & Browser Notification Alerts',
+      status: notifStatus,
+      duration: `${probe7Duration} ms`,
+      detail: notifDetail
+    });
+
+    // Probe 8: Responsive Layout & Broken Asset Probe
+    const probe8Start = performance.now();
+    let layoutStatus = 'PASS';
+    let layoutIssues = [];
+
+    // Horizontal overflow check
+    if (document.documentElement.scrollWidth > window.innerWidth + 2) {
+      layoutIssues.push(`Horizontal overflow detected (${document.documentElement.scrollWidth}px > ${window.innerWidth}px viewport)`);
+    }
+
+    // Broken image check
+    const images = Array.from(document.images);
+    const brokenImages = images.filter(img => img.complete && img.naturalWidth === 0 && img.src && !img.src.includes('data:'));
+    if (brokenImages.length > 0) {
+      layoutIssues.push(`${brokenImages.length} unrendered image(s) detected`);
+    }
+
+    if (layoutIssues.length > 0) {
+      layoutStatus = 'WARN';
+    }
+    const probe8Duration = Math.round(performance.now() - probe8Start);
+    results.push({
+      icon: '📐',
+      name: 'Layout Overflow & Broken Assets Probe',
+      status: layoutStatus,
+      duration: `${probe8Duration} ms`,
+      detail: layoutIssues.length === 0
+        ? `Clean layout: No horizontal bleed. Verified ${images.length} image elements loaded properly.`
+        : layoutIssues.join('; ')
+    });
+
+    // Render results
+    ddTestsList.innerHTML = results.map(r => `
+      <div class="dd-test-item status-${r.status.toLowerCase()}">
+        <div class="dd-test-main">
+          <span class="dd-test-icon">${r.icon}</span>
+          <div class="dd-test-info">
+            <div class="dd-test-title-row">
+              <strong class="dd-test-name">${r.name}</strong>
+              <span class="dd-test-badge badge-${r.status.toLowerCase()}">${r.status}</span>
+              <span class="dd-test-time">${r.duration}</span>
+            </div>
+            <p class="dd-test-detail">${r.detail}</p>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    btnRunDiagnostics.disabled = false;
+    btnRunDiagnostics.innerHTML = '<span>▶ Re-run Diagnostics Test</span>';
+
+    recordRuntimeLog('diag', `Diagnostics Test Suite finished: ${results.filter(r => r.status === 'PASS').length}/8 probes passed.`, results);
+    updateDebugMetrics();
+    showToast('Diagnostics self-test completed!', 'success');
+  });
+
+  // Environment & Diagnostics Panel
+  function renderEnvironmentInfo() {
+    if (!ddEnvGrid) return;
+    const ua = navigator.userAgent;
+    const items = [
+      { label: 'Operating System', val: navigator.userAgentData?.platform || navigator.platform || 'Unknown' },
+      { label: 'User Agent', val: ua },
+      { label: 'Screen Resolution', val: `${window.screen.width} x ${window.screen.height} (${window.screen.colorDepth}-bit)` },
+      { label: 'Viewport Window', val: `${window.innerWidth} x ${window.innerHeight} (${window.devicePixelRatio || 1}x DPR)` },
+      { label: 'Online Status', val: navigator.onLine ? '🟢 Online' : '🔴 Offline' },
+      { label: 'Network Connection', val: navigator.connection?.effectiveType ? `${navigator.connection.effectiveType.toUpperCase()} (downlink: ${navigator.connection.downlink || 'N/A'} Mbps)` : 'Standard Broadband / Unknown' },
+      { label: 'Device Memory', val: navigator.deviceMemory ? `~${navigator.deviceMemory} GB RAM` : 'Not exposed by browser' },
+      { label: 'Browser Language', val: `${navigator.language} (${(navigator.languages || []).join(', ')})` },
+      { label: 'Cookies Enabled', val: navigator.cookieEnabled ? 'Yes' : 'No' },
+      { label: 'Page Protocol', val: window.location.protocol },
+      { label: 'Session Storage Auth', val: sessionStorage.getItem('cjc_debug_auth') === 'unlocked' ? 'Unlocked (salam)' : 'Locked' },
+      { label: 'Current Timestamp', val: new Date().toLocaleString() }
+    ];
+
+    ddEnvGrid.innerHTML = items.map(it => `
+      <div class="dd-env-card">
+        <span class="dd-env-card-label">${it.label}</span>
+        <span class="dd-env-card-val">${it.val}</span>
+      </div>
+    `).join('');
+  }
+
+  function renderDebugDashboard() {
+    updateDebugMetrics();
+    renderDebugTerminal();
+    renderReportedIssues();
+    renderEnvironmentInfo();
+  }
 });
 
