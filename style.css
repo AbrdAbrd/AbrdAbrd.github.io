@@ -6081,4 +6081,222 @@ button.copy-success svg {
   gap: 10px;
 }
 
+/* ==========================================================================
+   CHICHESTERJAMIA.CO.UK INTEGRATIONS: SLOGAN, CONTACT US & COOKIE BANNER
+   ========================================================================== */
+.hero-subbadge-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0 16px;
+}
+.hero-subbadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: var(--accent-gold);
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+}
+.hero-domain-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  color: #6ee7b7;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+.hero-domain-badge:hover {
+  background: rgba(16, 185, 129, 0.25);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.contact-slogan-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.csb-slogan {
+  font-family: var(--font-heading);
+  font-size: 1.05rem;
+  font-style: italic;
+  color: var(--accent-gold);
+  font-weight: 600;
+}
+.csb-portal-link {
+  font-size: 0.82rem;
+  color: #6ee7b7;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.csb-portal-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.contact-form-card {
+  background: var(--bg-secondary);
+  border: 1.5px solid rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-lg);
+}
+.cfc-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.cfc-badge {
+  display: inline-block;
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--accent-gold);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+.cfc-title {
+  font-family: var(--font-heading);
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+.cfc-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 0;
+}
+.form-label-subtle {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.contact-checkbox-row {
+  margin: 16px 0;
+}
+.contact-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.contact-checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent-gold);
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.recaptcha-notice {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.4;
+}
+.recaptcha-notice a {
+  color: var(--accent-gold);
+  text-decoration: underline;
+}
+.quick-newsletter-bar {
+  margin-top: 20px;
+}
+.qnb-title {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.qnb-input-group {
+  display: flex;
+  gap: 8px;
+}
+.qnb-input-group input {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+}
+.border-top-light {
+  border-top: 1px solid var(--border-light);
+}
+
+/* Cookie Consent Banner */
+.cookie-banner-wrap {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(245, 158, 11, 0.35);
+  padding: 16px 20px;
+  z-index: 1050;
+  box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5);
+  animation: slideUpCookie 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@media (max-width: 768px) {
+  .cookie-banner-wrap {
+    bottom: 60px; /* Above the mobile sticky bottom bar */
+    padding: 14px 16px;
+  }
+}
+@keyframes slideUpCookie {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.cookie-banner-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.cookie-banner-text {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 280px;
+}
+.cookie-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+.cookie-banner-text p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  color: #cbd5e1;
+}
+.cookie-banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+
 

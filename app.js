@@ -1322,7 +1322,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let chatHistory = [
     {
       role: "system",
-      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, giving money, or payment options, ALWAYS state that donating through our official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) is HIGHLY RECOMMENDED because it supports instant Apple Pay / Google Pay, is 100% verified, and keeps the public campaign milestone tracker transparent. Also explain that other payment options are fully available: Direct Lloyds Bank Transfer (Account 1: Sort 30-99-50, Acc 34785863; Account 2: Sort 30-95-96, Acc 1279 8836), Scan-to-Pay QR code, or online card pledge. We are also running an official community consultation survey for Chichester residents and families to shape the facilities (e.g. dedicated sisters' hall, madrasah, youth hub, food bank, elderly circle, accessibility) and council planning application. Encourage users to take the survey and let them know they can click the '📋 Community Survey' button on the website. Respond with clean, modern HTML formatting (use <p>, <strong>, <ul>, etc.) and keep answers concise, helpful, and respectful. If asked about prayer times, mention they are synced with Wifaqul Ulama Hanafi."
+      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). Our motto is 'Harmonizing Talent, Inspiring Excellence' and our community portal is chichesterjamia.co.uk. We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, giving money, or payment options, ALWAYS state that donating through our official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) is HIGHLY RECOMMENDED because it supports instant Apple Pay / Google Pay, is 100% verified, and keeps the public campaign milestone tracker transparent. Also explain that other payment options are fully available: Direct Lloyds Bank Transfer (Account 1: Sort 30-99-50, Acc 34785863; Account 2: Sort 30-95-96, Acc 1279 8836), Scan-to-Pay QR code, or online card pledge. We are also running an official community consultation survey for Chichester residents and families to shape the facilities (e.g. dedicated sisters' hall, madrasah, youth hub, food bank, elderly circle, accessibility) and council planning application. Encourage users to take the survey and let them know they can click the '📋 Community Survey' button on the website. Visitors can also drop us a line via our 'Contact Us' form. Respond with clean, modern HTML formatting (use <p>, <strong>, <ul>, etc.) and keep answers concise, helpful, and respectful. If asked about prayer times, mention they are synced with Wifaqul Ulama Hanafi."
     }
   ];
 
@@ -1331,6 +1331,29 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Jamia AI Knowledge Base & Intelligent Assistant
     const query = userQuery.toLowerCase();
+
+    if (query.includes('slogan') || query.includes('motto') || query.includes('talent') || query.includes('excellence') || query.includes('chichesterjamia')) {
+      return `
+        <p>🌟 <strong>Chichester Jamia Motto:</strong></p>
+        <p><em>« Harmonizing Talent, Inspiring Excellence »</em></p>
+        <p>Chichester Jamia Centre serves to bring our vibrant community together, nurturing youth, supporting families, and establishing Chichester's first dedicated Masjid at 102 Bognor Road.</p>
+        <p>Official community portal: <a href="https://chichesterjamia.co.uk" target="_blank" style="color:var(--accent-gold); font-weight:700;">chichesterjamia.co.uk ↗</a></p>
+      `;
+    }
+
+    if (query.includes('contact') || query.includes('drop us a line') || query.includes('reach out') || query.includes('inquiry') || query.includes('message')) {
+      return `
+        <p>✉️ <strong>Contact Chichester Jamia:</strong></p>
+        <p>You can drop us a line directly through our website contact form or reach out through our official channels:</p>
+        <p>• <strong>Office &amp; Site:</strong> 102 Bognor Road, Chichester, West Sussex, PO19 7TW<br>
+        • <strong>Email:</strong> <a href="mailto:chichesterjamiacentre@hotmail.com">chichesterjamiacentre@hotmail.com</a><br>
+        • <strong>Phone / WhatsApp:</strong> <a href="tel:+447598040448">+44 (0) 7598 040448</a><br>
+        • <strong>Web:</strong> <a href="https://chichesterjamia.co.uk" target="_blank">chichesterjamia.co.uk ↗</a></p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+          <a href="#contact" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Go to Contact Form</a>
+        </div>
+      `;
+    }
 
     if (query.includes('survey') || query.includes('consultation') || query.includes('feedback') || query.includes('facilities') || query.includes('opinion') || query.includes('suggestion') || query.includes('wish')) {
       return `
@@ -3474,6 +3497,77 @@ END:VCALENDAR`;
     submitToWebhook('newsletter', { email });
     newsletterForm.reset();
     showToast('JazakAllah Khair! You are subscribed to project updates.');
+  });
+
+  // ------------------------------------------------------------------
+  // 31. Contact Us Form ("Drop us a line!" from chichesterjamia.co.uk)
+  // ------------------------------------------------------------------
+  const contactUsForm = document.getElementById('contactUsForm');
+  contactUsForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nameInput = document.getElementById('contactName');
+    const emailInput = document.getElementById('contactEmail');
+    const messageInput = document.getElementById('contactMessage');
+    const optIn = document.getElementById('contactNewsletterOptIn')?.checked;
+
+    const name = nameInput?.value.trim() || 'Anonymous Supporter';
+    const email = emailInput?.value.trim();
+    const message = messageInput?.value.trim();
+
+    if (!email || !message) return;
+
+    const payload = {
+      name,
+      email,
+      message,
+      newsletterOptIn: !!optIn,
+      sentAt: new Date().toISOString()
+    };
+
+    try {
+      const msgs = JSON.parse(localStorage.getItem('cjc_contact_messages') || '[]');
+      msgs.push(payload);
+      localStorage.setItem('cjc_contact_messages', JSON.stringify(msgs));
+    } catch (err) {}
+
+    // If opted into email list, also register for newsletter updates
+    if (optIn) {
+      try {
+        const subs = JSON.parse(localStorage.getItem('cjc_newsletter_subs') || '[]');
+        if (!subs.some(s => s.email === email)) {
+          subs.push({ email, name, subscribedAt: new Date().toISOString() });
+          localStorage.setItem('cjc_newsletter_subs', JSON.stringify(subs));
+        }
+      } catch (err) {}
+      submitToWebhook('newsletter', { email, name });
+    }
+
+    submitToWebhook('contact', payload);
+    contactUsForm.reset();
+    showToast('JazakAllah Khair! Your message has been sent. We will get back to you soon.', 'success');
+  });
+
+  // ------------------------------------------------------------------
+  // 32. Cookie Consent Banner (from chichesterjamia.co.uk)
+  // ------------------------------------------------------------------
+  const cookieBanner = document.getElementById('cookieBanner');
+  const cookieConsent = localStorage.getItem('cjc_cookie_consent');
+
+  if (!cookieConsent && cookieBanner) {
+    setTimeout(() => {
+      cookieBanner.classList.remove('hidden');
+    }, 1200);
+  }
+
+  document.getElementById('btnAcceptCookies')?.addEventListener('click', () => {
+    localStorage.setItem('cjc_cookie_consent', 'accepted');
+    cookieBanner?.classList.add('hidden');
+    showToast('Cookie preferences saved.');
+  });
+
+  document.getElementById('btnDeclineCookies')?.addEventListener('click', () => {
+    localStorage.setItem('cjc_cookie_consent', 'declined');
+    cookieBanner?.classList.add('hidden');
   });
 });
 

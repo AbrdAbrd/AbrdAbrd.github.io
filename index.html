@@ -64,8 +64,10 @@
         },
         "sameAs": [
           "https://www.gofundme.com/f/chichester-mosque",
-          "https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/5026219"
+          "https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/5026219",
+          "https://chichesterjamia.co.uk/"
         ],
+        "slogan": "Harmonizing Talent, Inspiring Excellence",
         "potentialAction": {
           "@type": "DonateAction",
           "target": {
@@ -136,7 +138,7 @@
     rel="stylesheet">
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=12" />
   <style>
     /* Critical fallback for Language Splash to prevent any unstyled layout shift */
     .lang-splash-overlay {
@@ -592,6 +594,11 @@
         <div class="hero-badge">
           <span class="hero-badge-dot"></span>
           <span>Historic Appeal: The Wickham Arms Pub → Chichester Jamia Centre</span>
+        </div>
+
+        <div class="hero-subbadge-row">
+          <span class="hero-subbadge">✨ Harmonizing Talent, Inspiring Excellence</span>
+          <a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" class="hero-domain-badge">🌐 chichesterjamia.co.uk ↗</a>
         </div>
 
         <h1 class="hero-title">
@@ -2777,8 +2784,11 @@
         <div class="contact-info-col">
           <span class="section-subtitle">Get In Touch</span>
           <h2 class="section-title">Chichester Jamia Centre</h2>
-          <p>We welcome all community members, donors, and visitors. Feel free to contact our committee for inquiries or
-            standing order forms.</p>
+          <div class="contact-slogan-box mb-3">
+            <span class="csb-slogan">« Harmonizing Talent, Inspiring Excellence »</span>
+            <a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" class="csb-portal-link">🌐 Official Portal: chichesterjamia.co.uk ↗</a>
+          </div>
+          <p>We welcome all community members, donors, and visitors. Feel free to reach out to our team with inquiries, support requests, or standing order forms.</p>
 
           <div class="contact-detail-list mt-4">
             <div class="cd-item">
@@ -2815,14 +2825,57 @@
           </div>
         </div>
 
-        <div class="newsletter-col">
-          <div class="newsletter-box">
-            <h3>Subscribe to Project Updates</h3>
-            <p>Receive Friday Jumu'ah venue notices, building refurbishment updates, and fundraising milestones.</p>
-            <form id="newsletterForm" class="newsletter-form mt-3">
-              <input type="email" class="form-control" placeholder="Enter your email address" required>
-              <button type="submit" class="btn btn-gold btn-block mt-2">Subscribe for Updates</button>
+        <!-- Contact Us Form (Drop us a line!) from chichesterjamia.co.uk -->
+        <div class="contact-form-col">
+          <div class="contact-form-card">
+            <div class="cfc-header">
+              <span class="cfc-badge">💬 Direct Inquiry</span>
+              <h3 class="cfc-title">Contact Us</h3>
+              <p class="cfc-subtitle">Drop us a line!</p>
+            </div>
+
+            <form id="contactUsForm" class="contact-us-form mt-3">
+              <div class="form-group mb-3">
+                <label for="contactName" class="form-label-subtle">Name</label>
+                <input type="text" id="contactName" name="name" class="form-control" placeholder="Name">
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="contactEmail" class="form-label-subtle">Email*</label>
+                <input type="email" id="contactEmail" name="email" class="form-control" placeholder="Email*" required>
+              </div>
+
+              <div class="form-group mb-3">
+                <label for="contactMessage" class="form-label-subtle">Message</label>
+                <textarea id="contactMessage" name="message" class="form-control" rows="4" placeholder="Message" required></textarea>
+              </div>
+
+              <div class="contact-checkbox-row mb-3">
+                <label class="contact-checkbox-label">
+                  <input type="checkbox" id="contactNewsletterOptIn" checked>
+                  <span class="checkbox-text">Sign up for our email list for updates, promotions, and more.</span>
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn-gold btn-block btn-lg" id="btnSubmitContact">
+                <span>SEND</span>
+              </button>
+
+              <p class="recaptcha-notice mt-2">
+                This site is protected by reCAPTCHA and the Google <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy Policy</a> and <a href="https://policies.google.com/terms" target="_blank" rel="noopener">Terms of Service</a> apply.
+              </p>
             </form>
+
+            <!-- Quick Project Newsletter Bar -->
+            <div class="quick-newsletter-bar mt-4 pt-3 border-top-light">
+              <p class="qnb-title"><strong>Prefer Friday updates only?</strong></p>
+              <form id="newsletterForm" class="newsletter-form-compact mt-2">
+                <div class="qnb-input-group">
+                  <input type="email" class="form-control" placeholder="Enter email for Jumu'ah bulletins" required>
+                  <button type="submit" class="btn btn-outline-gold btn-sm">Subscribe</button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -3004,8 +3057,8 @@
 
     <div class="footer-bottom">
       <div class="container fb-flex">
-        <p>&copy; 2026 Chichester Jamia Centre. Registered UK Charity No. 1148130. JazakAllah Khairan.</p>
-        <div class="fb-sub">Built with devotion for the Chichester Muslim Community</div>
+        <p>&copy; 2026 Chichester Jamia Centre (<a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" style="color:var(--accent-gold);">chichesterjamia.co.uk</a>). Registered UK Charity No. 1148130. JazakAllah Khairan.</p>
+        <div class="fb-sub">Harmonizing Talent, Inspiring Excellence • Serving Chichester &amp; West Sussex</div>
       </div>
     </div>
   </footer>
@@ -3784,8 +3837,22 @@
   <!-- Toast Notification Container -->
   <div id="toastContainer" class="toast-container"></div>
 
+  <!-- Cookie Consent Banner (from chichesterjamia.co.uk) -->
+  <div id="cookieBanner" class="cookie-banner-wrap hidden" role="region" aria-label="Cookie Consent">
+    <div class="container cookie-banner-inner">
+      <div class="cookie-banner-text">
+        <span class="cookie-icon">🍪</span>
+        <p>This website uses cookies. We use cookies to analyze website traffic and optimize your website experience. By accepting our use of cookies, your data will be aggregated with all other user data.</p>
+      </div>
+      <div class="cookie-banner-actions">
+        <button type="button" class="btn btn-sm btn-glass" id="btnDeclineCookies">Decline</button>
+        <button type="button" class="btn btn-sm btn-gold" id="btnAcceptCookies">Accept</button>
+      </div>
+    </div>
+  </div>
+
   <!-- JavaScript -->
-  <script src="app.js?v=11"></script>
+  <script src="app.js?v=12"></script>
 </body>
 
 </html>
