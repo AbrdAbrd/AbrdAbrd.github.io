@@ -1397,13 +1397,55 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!speechEnabled || !window.speechSynthesis) return;
     try {
       window.speechSynthesis.cancel();
-      const cleanText = text.replace(/<[^>]*>?/gm, '');
+      const cleanText = text
+        .replace(/<[^>]*>?/gm, ' ')
+        .replace(/https?:\/\/\S+/gi, '')
+        .replace(/[*_#`~[\]()]/g, ' ')
+        .replace(/[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/gu, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!cleanText) return;
       const utterance = new SpeechSynthesisUtterance(cleanText);
       utterance.rate = 1.0;
       utterance.pitch = 1.0;
       window.speechSynthesis.speak(utterance);
     } catch(e) {}
   }
+
+  // Centralized Website Bug & Issue Reporting (used by AI chat and on-page form)
+  function saveReportedWebsiteIssue({ category = 'other', contact = 'Anonymous', description = '' }) {
+    if (!description) return null;
+    const clientEnv = (typeof clientEnvStr !== 'undefined' && clientEnvStr) 
+      ? clientEnvStr 
+      : (typeof getClientEnvironmentString === 'function' ? getClientEnvironmentString() : navigator.userAgent);
+
+    const payload = {
+      id: 'issue_' + Date.now(),
+      category,
+      contact,
+      description,
+      environment: clientEnv,
+      url: window.location.href,
+      submittedAt: new Date().toISOString()
+    };
+
+    try {
+      const issues = JSON.parse(localStorage.getItem('cjc_reported_issues') || '[]');
+      issues.unshift(payload);
+      if (issues.length > 50) issues.length = 50;
+      localStorage.setItem('cjc_reported_issues', JSON.stringify(issues));
+    } catch (err) {}
+
+    recordRuntimeLog('info', `User reported website issue [${category}]: ${description.slice(0, 80)}`, payload);
+
+    if (typeof updateDebugIssuesUI === 'function') {
+      try { updateDebugIssuesUI(); } catch (e) {}
+    }
+
+    submitToWebhook('website_issue', payload);
+    return payload;
+  }
+  window.saveReportedWebsiteIssue = saveReportedWebsiteIssue;
 
   // AI Session State to eliminate repetitiveness and support contextual multi-turn conversation
   const aiSession = {
@@ -1418,32 +1460,55 @@ document.addEventListener('DOMContentLoaded', () => {
   const GEMINI_API_KEY = atob("QVEuQWI4Uk42SzB1SmdtRmFfT1pzRmJRRWtEdWd4U09KWmhZUkxpUlp6dzdkZF9OTEd0Mnc=");
   const OR_API_KEY = atob("c2stb3ItdjEtODZlNmIxMmI1YWU4ZjRkMDVjMDQwNDQwYjE5YzIyNmFhZjcxYTZhMzcwNGNjOGU5YTNkMjZhZGIzY2U5MWYyOA==");
 
+  function getAiSystemInstruction() {
+    const p = livePrayerTimings || {
+      Fajr: "05:32",
+      Sunrise: "07:05",
+      Dhuhr: "13:02",
+      Asr: "16:18",
+      Maghrib: "18:46",
+      Isha: "20:15"
+    };
+
+    return `You are the friendly, knowledgeable AI Assistant for Chichester Jamia Centre (Registered UK Charity No. 1148130).
+
+PROJECT OVERVIEW:
+• Location: Converting former "The Wickham Arms" pub at 102 Bognor Road, Chichester PO19 7TW into Chichester's first permanent Masjid & community centre.
+• Financial Target: £580,000 total. Bank funds: £230,000. Pledges: £324,850+. Urgent gap: £255,000+.
+• Key Facilities: On-site car park (~12 spaces), dedicated first-floor Sisters' Prayer Hall with acoustic separation, private wudhu, baby changing and stroller access; weekend children's madrasah & Quran classes; youth homework club; community food bank; step-free disabled access.
+• Donation Methods:
+  1. Official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) for instant Apple Pay, Google Pay, Card & PayPal with live milestone tracking.
+  2. Lloyds Bank Transfer (0% fees):
+     - Account 1 (General Appeal): Sort Code 30-99-50 | Acc 34785863 (Ref: MASJID)
+     - Account 2 (Building CIO & QR Pay): Sort Code 30-95-96 | Acc 1279 8836
+  3. Interactive Brick Builder Wall: Sponsor a brick for £100 with family name.
+• Community Consultation Survey: Active on the site (#survey) shaping facilities and council planning application.
+
+LIVE DAILY PRAYER TIMINGS IN CHICHESTER (Synced with Wifaqul Ulama Hanafi):
+• Fajr: ${p.Fajr}
+• Sunrise: ${p.Sunrise}
+• Dhuhr: ${p.Dhuhr}
+• Asr: ${p.Asr}
+• Maghrib (Iftar): ${p.Maghrib}
+• Isha: ${p.Isha}
+• Friday Jumu'ah: Khutbah starts promptly at 01:15 PM, Salah at 01:45 PM.
+• Qibla: 119.2° ESE towards Makkah.
+CRITICAL INSTRUCTION: You HAVE the exact live prayer timetable above! When asked about prayer times, fasting, iftar, suhoor, or Jumu'ah, ALWAYS provide these exact times directly in your response. NEVER claim you lack a live timetable or daily feed.
+
+BUG & ISSUE REPORTING:
+• Users can submit bug reports, glitches, or typos DIRECTLY IN THIS CHATBOT! They can click the "🐞 Report Bug" button in the chat header, or type "report: [details]" right in this chat window.
+• They can also submit reports via the "Submit Website Issue" section on the page (#report-issue).
+• Developer Diagnostics & Runtime Error Logs can be accessed in the Developer Debug Logs modal using the access password: "salam".
+
+STRICT PROHIBITION & STYLE RULES:
+• NEVER mention or link to "chichesterjamia.co.uk". That domain is obsolete. Refer only to our community portal or on-page section anchors (#prayers, #donate, #survey, #report-issue).
+• Conversational style: Be natural, attentive, concise, and helpful. Do not repeat long canned pitches when answering casual greetings or simple questions. Format response with clean HTML (<p>, <strong>, <a>, <ul>, <li>). Do NOT use raw markdown asterisks.`;
+  }
+
   let chatHistory = [
     {
       role: "system",
-      content: `You are the friendly, knowledgeable AI Assistant for Chichester Jamia Centre (Registered UK Charity No. 1148130).
-Community Portal: chichesterjamia.co.uk | Motto: "Harmonizing Talent, Inspiring Excellence".
-Project Overview: Converting the former "The Wickham Arms" pub at 102 Bognor Road, Chichester PO19 7TW into Chichester's first permanent Masjid.
-Financial Target: £580,000 total. Funds secured in bank: £230,000. Pledges: £324,850+. Urgent shortfall: £255,000+.
-Facilities: On-site car park (~12 spaces), dedicated first-floor Sisters' Prayer Hall with acoustic separation, private wudhu, baby changing and stroller access; weekend children's madrasah & Quran classes; youth homework club & safe space; community food bank; step-free disabled access.
-Prayer & Fasting: Prayer times synced with Wifaqul Ulama Hanafi for Chichester. Friday Jumu'ah khutbah is at 01:15 PM. Qibla is 119.2° ESE towards Makkah. Suhoor/Iftar live countdown available in Prayers section.
-Donation Methods:
-1. Official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) - HIGHLY RECOMMENDED for instant Apple Pay, Google Pay, Card & PayPal with live public milestone tracking.
-2. Direct Lloyds Bank Transfer (0% fees):
-   - Account 1 (General Appeal): Sort Code 30-99-50 | Acc 34785863 (Ref: MASJID)
-   - Account 2 (Building CIO & QR Pay): Sort Code 30-95-96 | Acc 1279 8836
-3. Interactive Brick Builder Wall: Sponsor a brick for £100 with family name.
-Community Consultation Survey: Active on the site (#survey) shaping the facilities and council planning application.
-Website Bugs & Issues: Users can report website bugs, glitches, or typos at the "Submit Website Issue" section (#report-issue).
-Developer Debug Logs: Runtime error telemetry and 8-point automated diagnostics can be accessed at the Developer Debug Logs modal (access password: "salam").
-
-CONVERSATIONAL GUIDELINES:
-- Always be human-like, attentive, direct, and conversational.
-- NEVER be repetitive, robotic, or repeat canned static paragraphs.
-- Keep answers concise, helpful, and respectful (typically 1 to 3 short paragraphs or bullet points).
-- If the user greets you casually ("hi", "bro", "salam", "what's up"), greet them warmly and conversationally without dumping the entire £580k pitch unless they ask for it.
-- If the user asks technical or casual questions ("What API?", "Stop being repetitive", "Tell me about Chichester"), address their exact question directly and candidly.
-- Format your response with clean modern HTML (<p>, <strong>, <a>, <ul>, <li>). Do NOT use raw markdown asterisks.`
+      content: getAiSystemInstruction()
     }
   ];
 
@@ -1482,19 +1547,39 @@ CONVERSATIONAL GUIDELINES:
       return `<p>Wa Iyyakum! May Allah bless and reward you abundantly. Let me know if you need anything else!</p>`;
     }
 
-    // Bug / Issue
-    if (query.includes('bug') || query.includes('issue') || query.includes('glitch') || query.includes('broken')) {
+    // Prayer timings
+    if (query.includes('prayer') || query.includes('salah') || query.includes('namaz') || query.includes('time') || query.includes('jumu') || query.includes('fajr') || query.includes('maghrib') || query.includes('iftar') || query.includes('suhoor')) {
+      const p = livePrayerTimings || { Fajr: "05:32", Sunrise: "07:05", Dhuhr: "13:02", Asr: "16:18", Maghrib: "18:46", Isha: "20:15" };
+      return `
+        <p>🕌 <strong>Today's Chichester Prayer Times</strong> (Wifaqul Ulama Hanafi):</p>
+        <ul style="margin:6px 0; padding-left:20px; line-height:1.6;">
+          <li><strong>Fajr:</strong> ${p.Fajr}</li>
+          <li><strong>Sunrise:</strong> ${p.Sunrise}</li>
+          <li><strong>Dhuhr:</strong> ${p.Dhuhr}</li>
+          <li><strong>Asr:</strong> ${p.Asr}</li>
+          <li><strong>Maghrib (Iftar):</strong> ${p.Maghrib}</li>
+          <li><strong>Isha:</strong> ${p.Isha}</li>
+          <li><strong>Friday Jumu'ah:</strong> Khutbah at 01:15 PM, Salah at 01:45 PM</li>
+        </ul>
+        <p>You can also check the live countdown and adhan on our <a href="#prayers" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Prayers Widget</a>.</p>
+      `;
+    }
+
+    // Bug / Issue / Report
+    if (query.includes('bug') || query.includes('issue') || query.includes('glitch') || query.includes('broken') || query.includes('error') || query.includes('report')) {
       return `
         <p>🛠️ <strong>Report Website Issue:</strong></p>
-        <p>Please report any glitch at our <a href="#report-issue" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Submit Website Issue</a> section!</p>
+        <p>You can report bugs or glitches directly in this chat! Click <strong>🐞 Report Bug</strong> in the chat header, or type <code>report: [your issue]</code> below.</p>
+        <p>You can also use the <a href="#report-issue" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Submit Website Issue</a> section on the page.</p>
+        <button type="button" class="btn btn-sm btn-gold mt-2" onclick="if(window.showInChatReportCard) window.showInChatReportCard();">Open In-Chat Report Form 🐞</button>
       `;
     }
 
     // Debug
-    if (query.includes('debug') || query.includes('diagnostic') || query.includes('password') || query.includes('telemetry')) {
+    if (query.includes('debug') || query.includes('diagnostic') || query.includes('password') || query.includes('telemetry') || query.includes('log')) {
       return `
         <p>🔧 <strong>Developer Debug Console:</strong></p>
-        <p>You can access the telemetry console in the footer. The password is <code>salam</code>.</p>
+        <p>Access runtime error telemetry and diagnostics using password <code>salam</code>.</p>
         <button type="button" class="btn btn-sm btn-gold mt-2" onclick="if(window.openDebugLogsModal) window.openDebugLogsModal(); document.getElementById('aiChatWindow').classList.remove('active');">Open Debug Console</button>
       `;
     }
@@ -1512,23 +1597,23 @@ CONVERSATIONAL GUIDELINES:
     if (query.includes('sister') || query.includes('women') || query.includes('female') || query.includes('ladies')) {
       return `
         <p>🧕 <strong>Sisters' Facilities:</strong></p>
-        <p>Features a dedicated 1st-floor Sisters' Prayer Hall, private wudhu, baby changing, and stroller access.</p>
+        <p>Dedicated 1st-floor Sisters' Prayer Hall with acoustic separation, private wudhu, baby changing, and stroller access.</p>
       `;
     }
 
     // Donations
-    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('gofundme') || query.includes('bank')) {
+    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('gofundme') || query.includes('bank') || query.includes('brick')) {
       return `
         <p>❤️ <strong>Donating to Chichester Jamia:</strong></p>
         <p>• <strong>GoFundMe (Recommended):</strong> <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">gofundme.com/f/chichester-mosque ↗</a><br>
-        • <strong>Lloyds Bank:</strong> Sort: 30-99-50 | Acc: 34785863<br>
-        • <strong>Brick Wall:</strong> Sponsor a brick for £100.</p>
+        • <strong>Lloyds Bank:</strong> Sort: 30-99-50 | Acc: 34785863 (Ref: MASJID)<br>
+        • <strong>Brick Wall:</strong> Sponsor a brick for £100 with family name.</p>
       `;
     }
 
     // Fallback
     return `
-      <p>I am the Chichester Jamia Centre AI Assistant. I can help with prayer timings, our £580k property appeal, our community survey, or reporting website issues.</p>
+      <p>I am the Chichester Jamia Centre AI Assistant. I can help with today's prayer times, our £580k property appeal, our community survey, or reporting website issues.</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
         <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
         <a href="#donate" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">❤️ Donate</a>
@@ -1539,6 +1624,14 @@ CONVERSATIONAL GUIDELINES:
 
   async function getAiResponse(userQuery) {
     aiSession.turnCount++;
+
+    // Ensure system instruction is always fresh with live prayer timings
+    if (!chatHistory.length || chatHistory[0].role !== "system") {
+      chatHistory.unshift({ role: "system", content: getAiSystemInstruction() });
+    } else {
+      chatHistory[0].content = getAiSystemInstruction();
+    }
+
     chatHistory.push({ role: "user", content: userQuery });
 
     // Keep history compact
@@ -1547,6 +1640,14 @@ CONVERSATIONAL GUIDELINES:
       const recent = chatHistory.slice(-10);
       chatHistory = [systemPrompt, ...recent];
     }
+
+    // Sanitizer helper to strictly filter out any obsolete domain reference
+    const sanitizeOutput = (str) => {
+      if (!str) return '';
+      return str
+        .replace(/https?:\/\/chichesterjamia\.co\.uk\/?/gi, '#prayers')
+        .replace(/chichesterjamia\.co\.uk/gi, 'our community portal');
+    };
 
     // 1. Try Google Gemini API (gemini-3.5-flash-lite)
     if (navigator.onLine !== false) {
@@ -1574,8 +1675,9 @@ CONVERSATIONAL GUIDELINES:
 
         if (response.ok) {
           const data = await response.json();
-          const botRaw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          let botRaw = data.candidates?.[0]?.content?.parts?.[0]?.text;
           if (botRaw) {
+            botRaw = sanitizeOutput(botRaw);
             chatHistory.push({ role: "assistant", content: botRaw });
             return formatAiResponseToHtml(botRaw);
           }
@@ -1607,8 +1709,9 @@ CONVERSATIONAL GUIDELINES:
 
         if (response.ok) {
           const data = await response.json();
-          const botRaw = data.choices?.[0]?.message?.content;
+          let botRaw = data.choices?.[0]?.message?.content;
           if (botRaw) {
+            botRaw = sanitizeOutput(botRaw);
             chatHistory.push({ role: "assistant", content: botRaw });
             return formatAiResponseToHtml(botRaw);
           }
@@ -1639,11 +1742,135 @@ CONVERSATIONAL GUIDELINES:
     }
   }
 
+  // Interactive In-Chat Bug / Issue Reporting Card
+  function showInChatReportCard() {
+    const existing = document.getElementById('activeInChatReportCard');
+    if (existing) {
+      existing.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    const card = document.createElement('div');
+    card.className = 'ai-msg bot';
+    card.innerHTML = `
+      <div class="ai-msg-bubble" style="width: 100%; max-width: 380px;">
+        <div class="ai-inchat-report-card" id="activeInChatReportCard">
+          <div class="airc-header">🐞 <span>Report Website Issue / Bug</span></div>
+          <div class="airc-sub">Spotted a bug, broken feature, audio glitch, or typo? Submit it directly here:</div>
+          <form class="airc-form" id="aiInChatIssueForm">
+            <select class="airc-select" id="aiInChatCategory">
+              <option value="bug">🐛 Bug / Broken Feature</option>
+              <option value="prayer_timing">🕌 Prayer Timetable Issue</option>
+              <option value="audio_adhan">🔊 Audio / Adhan Issue</option>
+              <option value="visual">🎨 Display / Mobile Layout Glitch</option>
+              <option value="typo">📝 Content / Typo</option>
+              <option value="other">💬 Other / Suggestion</option>
+            </select>
+            <textarea class="airc-textarea" id="aiInChatDesc" rows="3" placeholder="Describe what went wrong or what you experienced..." required></textarea>
+            <input type="text" class="airc-select" id="aiInChatContact" placeholder="Your name or email (optional)">
+            <div class="airc-actions">
+              <button type="submit" class="btn btn-xs btn-gold" style="font-weight:700;">Submit Bug Report</button>
+              <button type="button" class="btn btn-xs btn-glass" id="aiCancelInChatReport">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <span class="ai-msg-time">Just now</span>
+    `;
+
+    aiChatMessages.appendChild(card);
+    aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+    const form = card.querySelector('#aiInChatIssueForm');
+    const cancelBtn = card.querySelector('#aiCancelInChatReport');
+
+    cancelBtn?.addEventListener('click', () => {
+      card.remove();
+    });
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const cat = card.querySelector('#aiInChatCategory')?.value || 'other';
+      const desc = card.querySelector('#aiInChatDesc')?.value.trim();
+      const contact = card.querySelector('#aiInChatContact')?.value.trim() || 'Chatbot User';
+
+      if (!desc) {
+        showToast('Please enter an issue description.', 'error');
+        return;
+      }
+
+      const report = saveReportedWebsiteIssue({ category: cat, contact, description: desc });
+      card.innerHTML = `
+        <div class="ai-msg-bubble">
+          <p>✅ <strong>JazakAllah Khair! Issue Report Submitted.</strong></p>
+          <p>Your report has been logged to our developer telemetry queue (ID: <code>${report ? report.id : 'logged'}</code>). Our technical volunteers will review it promptly!</p>
+        </div>
+        <span class="ai-msg-time">Just now</span>
+      `;
+      playSoftChime();
+      showToast('Bug report submitted from AI chat. Thank you!', 'success');
+    });
+  }
+  window.showInChatReportCard = showInChatReportCard;
+
+  const aiReportIssueHeaderBtn = document.getElementById('aiReportIssueHeaderBtn');
+  aiReportIssueHeaderBtn?.addEventListener('click', () => {
+    showInChatReportCard();
+  });
+
+  const aiClearChatBtn = document.getElementById('aiClearChatBtn');
+  aiClearChatBtn?.addEventListener('click', () => {
+    chatHistory = [
+      {
+        role: "system",
+        content: getAiSystemInstruction()
+      }
+    ];
+    aiSession.turnCount = 0;
+    aiSession.topicsCovered.clear();
+    aiSession.greetingsCount = 0;
+    aiSession.thanksCount = 0;
+
+    if (aiChatMessages) {
+      aiChatMessages.innerHTML = `
+        <div class="ai-msg bot">
+          <div class="ai-msg-bubble">
+            <p>Assalamu Alaikum! 🌙 I am the <strong>Chichester Jamia Centre AI Assistant</strong>.</p>
+            <p>I can help you with today's <strong>Prayer Times &amp; Fasting</strong>, our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>GoFundMe &amp; Lloyds Bank details</strong>, or you can <strong>report a website bug directly here</strong>!</p>
+          </div>
+          <span class="ai-msg-time">Just now</span>
+        </div>
+      `;
+    }
+    showToast('Chat history cleared.');
+  });
+
   if (aiChatForm) {
     aiChatForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const userText = aiChatInput.value.trim();
       if (!userText) return;
+
+      // Intercept direct bug report commands e.g. "report: ..." or "bug: ..."
+      const isReportCommand = /^(report|bug|issue|glitch):\s*(.+)/i.exec(userText);
+      if (isReportCommand) {
+        appendChatMessage('user', userText);
+        aiChatInput.value = '';
+        const issueText = isReportCommand[2].trim();
+        const rep = saveReportedWebsiteIssue({
+          category: 'chatbot_report',
+          contact: 'Chatbot Direct User',
+          description: issueText
+        });
+        appendChatMessage('bot', `
+          <p>✅ <strong>JazakAllah Khair! Issue Report Recorded.</strong></p>
+          <p>We've automatically logged your issue: <em>"${issueText}"</em> into our developer diagnostics console (Ref: <code>${rep ? rep.id : 'logged'}</code>).</p>
+          <p>Our technical team will inspect and resolve this promptly.</p>
+        `);
+        playSoftChime();
+        showToast('Bug report submitted. JazakAllah Khair!', 'success');
+        return;
+      }
 
       appendChatMessage('user', userText);
       aiChatInput.value = '';
@@ -1666,6 +1893,11 @@ CONVERSATIONAL GUIDELINES:
     chip.addEventListener('click', async () => {
       const query = chip.getAttribute('data-query');
       if (query) {
+        if (query.includes('report an issue') || query.includes('report a bug')) {
+          showInChatReportCard();
+          return;
+        }
+
         appendChatMessage('user', query);
         playSoftChime();
         
@@ -3606,7 +3838,7 @@ END:VCALENDAR`;
   });
 
   // ------------------------------------------------------------------
-  // 31. Contact Us Form ("Drop us a line!" from chichesterjamia.co.uk)
+  // 31. Contact Us Form ("Drop us a line!")
   // ------------------------------------------------------------------
   const contactUsForm = document.getElementById('contactUsForm');
   contactUsForm?.addEventListener('submit', (e) => {
@@ -3654,7 +3886,7 @@ END:VCALENDAR`;
   });
 
   // ------------------------------------------------------------------
-  // 32. Cookie Consent Banner (from chichesterjamia.co.uk)
+  // 32. Cookie Consent Banner
   // ------------------------------------------------------------------
   const cookieBanner = document.getElementById('cookieBanner');
   const cookieConsent = localStorage.getItem('cjc_cookie_consent');
@@ -3723,30 +3955,7 @@ END:VCALENDAR`;
       return;
     }
 
-    const payload = {
-      id: 'issue_' + Date.now(),
-      category,
-      contact,
-      description,
-      environment: clientEnvStr,
-      url: window.location.href,
-      submittedAt: new Date().toISOString()
-    };
-
-    try {
-      const issues = JSON.parse(localStorage.getItem('cjc_reported_issues') || '[]');
-      issues.unshift(payload);
-      if (issues.length > 50) issues.length = 50;
-      localStorage.setItem('cjc_reported_issues', JSON.stringify(issues));
-    } catch (err) {}
-
-    recordRuntimeLog('info', `User reported website issue [${category}]: ${description.slice(0, 80)}`, payload);
-
-    if (typeof updateDebugIssuesUI === 'function') {
-      updateDebugIssuesUI();
-    }
-
-    submitToWebhook('website_issue', payload);
+    saveReportedWebsiteIssue({ category, contact, description });
     websiteIssueForm.reset();
     if (issueAutoDetectedEnv) issueAutoDetectedEnv.textContent = clientEnvStr;
 

@@ -1999,6 +1999,78 @@ iframe.goog-te-banner-frame {
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   font-size: 0.9rem;
+  border: none;
+  cursor: pointer;
+  color: #ffffff;
+}
+
+.ai-header-action-btn {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+.ai-header-action-btn:hover {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* In-Chat Bug / Issue Reporting Card */
+.ai-inchat-report-card {
+  background: #1e293b;
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: #f1f5f9;
+  margin-top: 4px;
+}
+.airc-header {
+  font-weight: 700;
+  font-size: 0.88rem;
+  color: var(--accent-gold);
+  margin-bottom: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.airc-sub {
+  font-size: 0.76rem;
+  color: #94a3b8;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.airc-form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.airc-select, .airc-textarea {
+  width: 100%;
+  background: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: #ffffff;
+  padding: 6px 9px;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+.airc-select:focus, .airc-textarea:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+}
+.airc-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 3px;
 }
 
 .ai-chat-body {
@@ -6082,7 +6154,7 @@ button.copy-success svg {
 }
 
 /* ==========================================================================
-   CHICHESTERJAMIA.CO.UK INTEGRATIONS: SLOGAN, CONTACT US & COOKIE BANNER
+   COMMUNITY INTEGRATIONS: SLOGAN, CONTACT US & COOKIE BANNER
    ========================================================================== */
 .hero-subbadge-row {
   display: flex;

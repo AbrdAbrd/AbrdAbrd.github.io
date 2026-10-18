@@ -64,8 +64,7 @@
         },
         "sameAs": [
           "https://www.gofundme.com/f/chichester-mosque",
-          "https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/5026219",
-          "https://chichesterjamia.co.uk/"
+          "https://register-of-charities.charitycommission.gov.uk/charity-search/-/charity-details/5026219"
         ],
         "slogan": "Harmonizing Talent, Inspiring Excellence",
         "potentialAction": {
@@ -598,7 +597,7 @@
 
         <div class="hero-subbadge-row">
           <span class="hero-subbadge">✨ Harmonizing Talent, Inspiring Excellence</span>
-          <a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" class="hero-domain-badge">🌐 chichesterjamia.co.uk ↗</a>
+          <span class="hero-domain-badge">🕌 102 Bognor Road, PO19 7TW</span>
         </div>
 
         <h1 class="hero-title">
@@ -2786,7 +2785,6 @@
           <h2 class="section-title">Chichester Jamia Centre</h2>
           <div class="contact-slogan-box mb-3">
             <span class="csb-slogan">« Harmonizing Talent, Inspiring Excellence »</span>
-            <a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" class="csb-portal-link">🌐 Official Portal: chichesterjamia.co.uk ↗</a>
           </div>
           <p>We welcome all community members, donors, and visitors. Feel free to reach out to our team with inquiries, support requests, or standing order forms.</p>
 
@@ -2825,7 +2823,7 @@
           </div>
         </div>
 
-        <!-- Contact Us Form (Drop us a line!) from chichesterjamia.co.uk -->
+        <!-- Contact Us Form (Drop us a line!) -->
         <div class="contact-form-col">
           <div class="contact-form-card">
             <div class="cfc-header">
@@ -3114,7 +3112,7 @@
 
     <div class="footer-bottom">
       <div class="container fb-flex">
-        <p>&copy; 2026 Chichester Jamia Centre (<a href="https://chichesterjamia.co.uk" target="_blank" rel="noopener" style="color:var(--accent-gold);">chichesterjamia.co.uk</a>). Registered UK Charity No. 1148130. JazakAllah Khairan.</p>
+        <p>&copy; 2026 Chichester Jamia Centre. Registered UK Charity No. 1148130. JazakAllah Khairan.</p>
         <div class="fb-sub">
           <span>Harmonizing Talent, Inspiring Excellence • Serving Chichester &amp; West Sussex</span>
           <div class="footer-dev-links mt-1">
@@ -3151,8 +3149,10 @@
           </div>
         </div>
         <div class="ai-header-actions">
+          <button type="button" class="ai-header-action-btn" id="aiReportIssueHeaderBtn" title="Report a Website Issue / Bug directly here">🐞 Report Bug</button>
+          <button type="button" class="ai-header-action-btn" id="aiClearChatBtn" title="Clear Chat History">🗑️</button>
           <button class="ai-sound-toggle" id="toggleSpeechBtn" title="Toggle AI Voice Aloud">🔊</button>
-          <button class="ai-chat-close" id="closeAiChatBtn">&times;</button>
+          <button class="ai-chat-close" id="closeAiChatBtn" aria-label="Close AI chat">&times;</button>
         </div>
       </div>
 
@@ -3161,9 +3161,7 @@
         <div class="ai-msg bot">
           <div class="ai-msg-bubble">
             <p>Assalamu Alaikum! 🌙 I am the <strong>Chichester Jamia Centre AI Assistant</strong>.</p>
-            <p>I can help you with our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>,
-              <strong>Lloyds Bank details</strong>, <strong>GoFundMe link</strong>, or <strong>Chichester Prayer Times &
-                Qibla</strong>!</p>
+            <p>I can help you with today's <strong>Prayer Times &amp; Fasting</strong>, our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>GoFundMe &amp; Lloyds Bank details</strong>, or you can <strong>report a website bug directly here</strong>!</p>
           </div>
           <span class="ai-msg-time">Just now</span>
         </div>
@@ -3171,13 +3169,14 @@
 
       <!-- Quick Chips -->
       <div class="ai-quick-chips">
-        <button class="chip-btn" data-query="How can I take the community survey and share feedback on the facilities?">📋 Community Survey</button>
-        <button class="chip-btn" data-query="Bank transfer details">🏦 Bank Sort Code</button>
-        <button class="chip-btn" data-query="How to donate via GoFundMe">❤️ GoFundMe Link</button>
-        <button class="chip-btn" data-query="How does the brick builder work?">🧱 Build A Brick</button>
-        <button class="chip-btn" data-query="What is the fundraising target?">🎯 Target Breakdown</button>
-        <button class="chip-btn" data-query="Today's prayer times in Chichester">🕌 Prayer Times</button>
-        <button class="chip-btn" data-query="How do I report a website issue or view debug error logs?">🛠️ Report Bug / Debug</button>
+        <button type="button" class="chip-btn" data-query="Today's prayer times in Chichester">🕌 Today's Prayer Times</button>
+        <button type="button" class="chip-btn" data-query="How to donate via GoFundMe">❤️ GoFundMe Link</button>
+        <button type="button" class="chip-btn" data-query="Bank transfer details">🏦 Bank Sort Code</button>
+        <button type="button" class="chip-btn" data-query="How does the brick builder work?">🧱 Build A Brick</button>
+        <button type="button" class="chip-btn" data-query="How can I take the community survey and share feedback on the facilities?">📋 Community Survey</button>
+        <button type="button" class="chip-btn" data-query="Where is the car park and how do I get to 102 Bognor Road?">📍 Location &amp; Parking</button>
+        <button type="button" class="chip-btn" data-query="I want to report an issue or bug with the website">🐞 Report a Bug</button>
+        <button type="button" class="chip-btn" data-query="How do I access developer debug error logs?">🛠️ Debug Console (salam)</button>
       </div>
 
       <!-- Chat Input Form -->
@@ -4032,7 +4031,7 @@
     </div>
   </div>
 
-  <!-- Cookie Consent Banner (from chichesterjamia.co.uk) -->
+  <!-- Cookie Consent Banner -->
   <div id="cookieBanner" class="cookie-banner-wrap hidden" role="region" aria-label="Cookie Consent">
     <div class="container cookie-banner-inner">
       <div class="cookie-banner-text">
@@ -4047,7 +4046,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script src="app.js?v=14"></script>
+  <script src="app.js?v=15"></script>
 </body>
 
 </html>
