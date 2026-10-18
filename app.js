@@ -1483,6 +1483,7 @@ PROJECT OVERVIEW:
      - Account 2 (Building CIO & QR Pay): Sort Code 30-95-96 | Acc 1279 8836
   3. Interactive Brick Builder Wall: Sponsor a brick for £100 with family name.
 • Community Consultation Survey: Active on the site (#survey) shaping facilities and council planning application.
+• Contact Phone & WhatsApp: +44 (0) 7598 040448 and +44 (0) 7932 331390 | Email: chichesterjamiacentre@hotmail.com
 
 LIVE DAILY PRAYER TIMINGS IN CHICHESTER (Synced with Wifaqul Ulama Hanafi):
 • Fajr: ${p.Fajr}
@@ -1545,6 +1546,19 @@ STRICT PROHIBITION & STYLE RULES:
     // Gratitude
     if (/^(thanks|thank\s*you|jazakallah|jazakallahu\s*khair|shukran|barakallah)/i.test(query)) {
       return `<p>Wa Iyyakum! May Allah bless and reward you abundantly. Let me know if you need anything else!</p>`;
+    }
+
+    // Phone / WhatsApp / Contact
+    if (query.includes('phone') || query.includes('whatsapp') || query.includes('call') || query.includes('contact') || query.includes('number') || query.includes('mobile')) {
+      return `
+        <p>📞 <strong>Phone &amp; WhatsApp:</strong></p>
+        <ul style="margin:6px 0; padding-left:20px; line-height:1.6;">
+          <li><a href="tel:+447598040448">+44 (0) 7598 040448</a> (<a href="https://wa.me/447598040448" target="_blank" rel="noopener">WhatsApp Chat ↗</a>)</li>
+          <li><a href="tel:+447932331390">+44 (0) 7932 331390</a> (<a href="https://wa.me/447932331390" target="_blank" rel="noopener">WhatsApp Chat ↗</a>)</li>
+        </ul>
+        <p>✉️ Email: <a href="mailto:chichesterjamiacentre@hotmail.com">chichesterjamiacentre@hotmail.com</a><br>
+        📍 Office: 102 Bognor Road, Chichester PO19 7TW</p>
+      `;
     }
 
     // Prayer timings
