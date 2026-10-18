@@ -3156,6 +3156,7 @@
           </div>
         </div>
         <div class="ai-header-actions">
+          <button type="button" class="ai-header-action-btn" id="aiWebSearchHeaderBtn" title="Toggle Real-Time Web Search">🌐 Web Search</button>
           <button type="button" class="ai-header-action-btn" id="aiReportIssueHeaderBtn" title="Report a Website Issue / Bug directly here">🐞 Report Bug</button>
           <button type="button" class="ai-header-action-btn" id="aiClearChatBtn" title="Clear Chat History">🗑️</button>
           <button class="ai-sound-toggle" id="toggleSpeechBtn" title="Toggle AI Voice Aloud">🔊</button>
@@ -3168,7 +3169,7 @@
         <div class="ai-msg bot">
           <div class="ai-msg-bubble">
             <p>Assalamu Alaikum! 🌙 I am the <strong>Chichester Jamia Centre AI Assistant</strong>.</p>
-            <p>I can help you with today's <strong>Prayer Times &amp; Fasting</strong>, our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>GoFundMe &amp; Lloyds Bank details</strong>, or you can <strong>report a website bug directly here</strong>!</p>
+            <p>I can help you with today's <strong>Prayer Times &amp; Fasting</strong>, our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>GoFundMe &amp; Lloyds Bank details</strong>, <strong>live web search (weather &amp; local facts)</strong>, or you can <strong>report a website bug directly here</strong>!</p>
           </div>
           <span class="ai-msg-time">Just now</span>
         </div>
@@ -3177,6 +3178,8 @@
       <!-- Quick Chips -->
       <div class="ai-quick-chips">
         <button type="button" class="chip-btn" data-query="Today's prayer times in Chichester">🕌 Today's Prayer Times</button>
+        <button type="button" class="chip-btn" data-query="What is the weather like in Chichester right now?">🌦️ Chichester Weather</button>
+        <button type="button" class="chip-btn" data-query="Search the web for Chichester Cathedral and historic city walls">🌐 Search Web</button>
         <button type="button" class="chip-btn" data-query="How to donate via GoFundMe">❤️ GoFundMe Link</button>
         <button type="button" class="chip-btn" data-query="Bank transfer details">🏦 Bank Sort Code</button>
         <button type="button" class="chip-btn" data-query="How does the brick builder work?">🧱 Build A Brick</button>
@@ -3188,7 +3191,7 @@
 
       <!-- Chat Input Form -->
       <form id="aiChatForm" class="ai-chat-input-row">
-        <input type="text" id="aiChatInput" class="ai-chat-control" placeholder="Ask a question about the project..."
+        <input type="text" id="aiChatInput" class="ai-chat-control" placeholder="Ask a question, check Chichester weather, or search..."
           required autocomplete="off">
         <button type="submit" class="btn-ai-send" aria-label="Send message">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -4053,7 +4056,7 @@
   </div>
 
   <!-- JavaScript -->
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17"></script>
 </body>
 
 </html>

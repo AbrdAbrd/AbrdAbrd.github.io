@@ -1398,6 +1398,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       window.speechSynthesis.cancel();
       const cleanText = text
+        .replace(/<div class="ai-sources-bar">[\s\S]*?<\/div>/gi, ' ')
         .replace(/<[^>]*>?/gm, ' ')
         .replace(/https?:\/\/\S+/gi, '')
         .replace(/[*_#`~[\]()]/g, ' ')
@@ -1456,6 +1457,9 @@ document.addEventListener('DOMContentLoaded', () => {
     thanksCount: 0
   };
 
+  // Real-Time Web Search State
+  let isWebSearchMode = false;
+
   // Client-side AI Keys (Decoded at runtime)
   const GEMINI_API_KEY = atob("QVEuQWI4Uk42SzB1SmdtRmFfT1pzRmJRRWtEdWd4U09KWmhZUkxpUlp6dzdkZF9OTEd0Mnc=");
   const OR_API_KEY = atob("c2stb3ItdjEtODZlNmIxMmI1YWU4ZjRkMDVjMDQwNDQwYjE5YzIyNmFhZjcxYTZhMzcwNGNjOGU5YTNkMjZhZGIzY2U5MWYyOA==");
@@ -1496,6 +1500,11 @@ LIVE DAILY PRAYER TIMINGS IN CHICHESTER (Synced with Wifaqul Ulama Hanafi):
 • Qibla: 119.2° ESE towards Makkah.
 CRITICAL INSTRUCTION: You HAVE the exact live prayer timetable above! When asked about prayer times, fasting, iftar, suhoor, or Jumu'ah, ALWAYS provide these exact times directly in your response. NEVER claim you lack a live timetable or daily feed.
 
+REAL-TIME WEB SEARCH & LIVE DATA CAPABILITY:
+• You now possess real-time multi-source web search and live Chichester weather data capability!
+• When live web search results or Chichester weather readings are supplied under [LIVE REAL-TIME WEB SEARCH DATA], synthesize them cleanly, accurately, and naturally into your response with proper HTML.
+• Do not claim you lack real-time information or feeds when search data is provided.
+
 BUG & ISSUE REPORTING:
 • Users can submit bug reports, glitches, or typos DIRECTLY IN THIS CHATBOT! They can click the "🐞 Report Bug" button in the chat header, or type "report: [details]" right in this chat window.
 • They can also submit reports via the "Submit Website Issue" section on the page (#report-issue).
@@ -1534,9 +1543,187 @@ STRICT PROHIBITION & STYLE RULES:
     return `<p>${html}</p>`;
   }
 
+  // WMO weather code descriptions
+  function getWeatherConditionDescription(code) {
+    if (code === 0) return 'Clear sky ☀️';
+    if (code === 1) return 'Mainly clear 🌤️';
+    if (code === 2) return 'Partly cloudy ⛅';
+    if (code === 3) return 'Overcast ☁️';
+    if (code === 45 || code === 48) return 'Foggy 🌫️';
+    if (code >= 51 && code <= 55) return 'Drizzle 🌦️';
+    if (code >= 61 && code <= 65) return 'Rain 🌧️';
+    if (code >= 71 && code <= 77) return 'Snow fall 🌨️';
+    if (code >= 80 && code <= 82) return 'Rain showers 🌦️';
+    if (code >= 95) return 'Thunderstorm ⛈️';
+    return 'Cloudy ⛅';
+  }
+
+  function buildSourcesBarHtml(sources) {
+    if (!sources || !sources.length) return '';
+    const chips = sources.map(s => `
+      <a href="${s.url}" target="_blank" rel="noopener" class="ai-source-chip" title="${s.title}">
+        <span>🔗</span> ${s.title.length > 28 ? s.title.slice(0, 26) + '…' : s.title} ↗
+      </a>
+    `).join('');
+    return `<div class="ai-sources-bar"><span style="font-weight:600;">🌐 Verified Live Sources:</span> ${chips}</div>`;
+  }
+
+  // Multi-source real-time search engine
+  async function performMultiSourceWebSearch(query) {
+    const cleanQuery = query
+      .replace(/^(search|web|find|google|lookup|check):\s*/i, '')
+      .replace(/^\/search\s*/i, '')
+      .trim();
+
+    const isWeather = /\b(weather|temperature|forecast|rain|cloudy|sunny|cold|degrees|temp|how hot|how cold)\b/i.test(cleanQuery);
+
+    if (isWeather) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4500);
+        const wUrl = "https://api.open-meteo.com/v1/forecast?latitude=50.8365&longitude=-0.7792&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Europe%2FLondon";
+        const res = await fetch(wUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const w = await res.json();
+          const curr = w.current || {};
+          const daily = w.daily || {};
+          const cond = getWeatherConditionDescription(curr.weather_code);
+          const maxT = daily.temperature_2m_max?.[0] != null ? `${daily.temperature_2m_max[0]}°C` : 'N/A';
+          const minT = daily.temperature_2m_min?.[0] != null ? `${daily.temperature_2m_min[0]}°C` : 'N/A';
+          const rainProb = daily.precipitation_probability_max?.[0] != null ? `${daily.precipitation_probability_max[0]}%` : '0%';
+
+          const summary = `Location: Chichester, West Sussex (PO19)\nCondition: ${cond}\nCurrent Temperature: ${curr.temperature_2m}°C (Feels like ${curr.apparent_temperature}°C)\nHumidity: ${curr.relative_humidity_2m}%\nWind Speed: ${curr.wind_speed_10m} km/h\nToday Forecast: High ${maxT} / Low ${minT}\nRain Probability Today: ${rainProb}`;
+
+          return {
+            type: 'weather',
+            query: cleanQuery,
+            summaryText: summary,
+            sources: [
+              { title: 'Open-Meteo UK Met Model', url: 'https://open-meteo.com' }
+            ],
+            weatherData: {
+              temp: curr.temperature_2m,
+              feelsLike: curr.apparent_temperature,
+              condition: cond,
+              humidity: curr.relative_humidity_2m,
+              wind: curr.wind_speed_10m,
+              high: maxT,
+              low: minT,
+              rainChance: rainProb
+            }
+          };
+        }
+      } catch (err) {
+        console.warn('Weather search error:', err.message);
+      }
+    }
+
+    // General Web Search: Wikipedia Search API + DuckDuckGo Instant Answer
+    const searchResults = [];
+    const sources = [];
+
+    // 1. DuckDuckGo Instant Answer
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+      const ddgUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(cleanQuery)}&format=json&no_html=1&skip_disambig=1`;
+      const ddgRes = await fetch(ddgUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (ddgRes.ok) {
+        const ddg = await ddgRes.json();
+        if (ddg.AbstractText) {
+          searchResults.push(`[Source: ${ddg.AbstractSource || 'DuckDuckGo Knowledge'}] ${ddg.AbstractText}`);
+          if (ddg.AbstractURL) {
+            sources.push({ title: ddg.AbstractSource || 'DuckDuckGo Instant Answer', url: ddg.AbstractURL });
+          }
+        }
+      }
+    } catch (e) {}
+
+    // 2. Wikipedia Live Search API
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+      const wikiUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(cleanQuery)}&utf8=&format=json&origin=*`;
+      const wikiRes = await fetch(wikiUrl, { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (wikiRes.ok) {
+        const wiki = await wikiRes.json();
+        const hits = wiki.query?.search || [];
+        for (let i = 0; i < Math.min(hits.length, 3); i++) {
+          const hit = hits[i];
+          const cleanSnippet = hit.snippet.replace(/<[^>]*>/g, '').trim();
+          searchResults.push(`[Source: Wikipedia - "${hit.title}"] ${cleanSnippet}`);
+          sources.push({
+            title: `Wikipedia: ${hit.title}`,
+            url: `https://en.wikipedia.org/wiki/${encodeURIComponent(hit.title.replace(/\s+/g, '_'))}`
+          });
+        }
+      }
+    } catch (e) {}
+
+    if (searchResults.length > 0) {
+      return {
+        type: 'web',
+        query: cleanQuery,
+        summaryText: searchResults.join('\n\n'),
+        sources: sources.slice(0, 4)
+      };
+    }
+
+    return null;
+  }
+
+  function shouldTriggerWebSearch(query) {
+    if (isWebSearchMode) return true;
+    const q = query.toLowerCase().trim();
+    if (/^(search|web|google|find|lookup):\s*/i.test(q)) return true;
+    if (q.startsWith('/search')) return true;
+    if (/\b(weather|temperature|forecast|rain|cloudy|sunny|cold|degrees)\b/i.test(q)) return true;
+    if (/\b(search the web|search web|google this|latest news|who was|who is|history of|tell me about)\b/i.test(q) &&
+        !q.includes('jamia') && !q.includes('masjid') && !q.includes('wickham') && !q.includes('prayer')) return true;
+    return false;
+  }
+
   // Local Offline Knowledge Base Engine (Graceful fallback if completely offline)
-  function getLocalAiFallback(userQuery) {
+  function getLocalAiFallback(userQuery, searchResult = null) {
     const query = userQuery.toLowerCase().trim();
+
+    // If search result was already retrieved, render rich live card directly
+    if (searchResult) {
+      if (searchResult.type === 'weather' && searchResult.weatherData) {
+        const wd = searchResult.weatherData;
+        return `
+          <p>🌦️ <strong>Live Chichester Weather Report:</strong></p>
+          <ul style="margin:6px 0; padding-left:20px; line-height:1.6;">
+            <li><strong>Conditions:</strong> ${wd.condition}</li>
+            <li><strong>Current Temperature:</strong> ${wd.temp}°C (Feels like ${wd.feelsLike}°C)</li>
+            <li><strong>Humidity:</strong> ${wd.humidity}% | <strong>Wind:</strong> ${wd.wind} km/h</li>
+            <li><strong>Today's Forecast:</strong> High ${wd.high} / Low ${wd.low} (Rain chance: ${wd.rainChance})</li>
+          </ul>
+          <p style="font-size:0.85rem; color:#94a3b8;">Synced live with Open-Meteo UK weather forecast for PO19 / Chichester, West Sussex.</p>
+          ${buildSourcesBarHtml(searchResult.sources)}
+        `;
+      }
+      if (searchResult.type === 'web' && searchResult.summaryText) {
+        return `
+          <p>🌐 <strong>Real-Time Web Search Results for "<em>${searchResult.query}</em>":</strong></p>
+          <div style="margin:8px 0; font-size:0.92rem; line-height:1.6;">
+            ${searchResult.summaryText.split('\n\n').map(snip => `<p style="margin-bottom:6px;">${snip}</p>`).join('')}
+          </div>
+          ${buildSourcesBarHtml(searchResult.sources)}
+        `;
+      }
+    }
+
+    // Weather query when offline without live feed
+    if (query.includes('weather') || query.includes('forecast') || query.includes('temperature') || query.includes('rain')) {
+      return `
+        <p>🌦️ <strong>Chichester Weather Information:</strong></p>
+        <p>Chichester typically enjoys a temperate maritime climate on the south coast of West Sussex. Connect to the internet or click <strong>🌐 Web Search</strong> in the chat header to fetch live real-time temperatures &amp; rain probability!</p>
+      `;
+    }
 
     // Greetings
     if (/^(salam|assalam|assalamu\s*alaikum|hello|hi|hey|good\s*(morning|afternoon|evening)|salaam)/i.test(query)) {
@@ -1627,7 +1814,7 @@ STRICT PROHIBITION & STYLE RULES:
 
     // Fallback
     return `
-      <p>I am the Chichester Jamia Centre AI Assistant. I can help with today's prayer times, our £580k property appeal, our community survey, or reporting website issues.</p>
+      <p>I am the Chichester Jamia Centre AI Assistant. I can help with today's prayer times, our £580k property appeal, our community survey, live weather, or reporting website issues.</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
         <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
         <a href="#donate" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">❤️ Donate</a>
@@ -1636,8 +1823,27 @@ STRICT PROHIBITION & STYLE RULES:
     `;
   }
 
-  async function getAiResponse(userQuery) {
+  async function getAiResponse(userQuery, onSearchProgress = null) {
     aiSession.turnCount++;
+
+    // Check if web search is needed
+    const needsSearch = shouldTriggerWebSearch(userQuery);
+    let searchResult = null;
+
+    if (needsSearch && navigator.onLine !== false) {
+      if (onSearchProgress) {
+        onSearchProgress('Searching live web & weather data...');
+      }
+      try {
+        searchResult = await performMultiSourceWebSearch(userQuery);
+      } catch (e) {
+        console.warn('Web search lookup failed:', e.message);
+      }
+    }
+
+    if (onSearchProgress) {
+      onSearchProgress('Synthesizing answer...');
+    }
 
     // Ensure system instruction is always fresh with live prayer timings
     if (!chatHistory.length || chatHistory[0].role !== "system") {
@@ -1663,6 +1869,12 @@ STRICT PROHIBITION & STYLE RULES:
         .replace(/chichesterjamia\.co\.uk/gi, 'our community portal');
     };
 
+    // Prepare prompt with search context if available
+    let promptWithSearch = userQuery;
+    if (searchResult && searchResult.summaryText) {
+      promptWithSearch = `[LIVE REAL-TIME WEB SEARCH DATA FOR QUERY: "${searchResult.query}"]\n${searchResult.summaryText}\n[END SEARCH DATA]\n\nUser Question: ${userQuery}`;
+    }
+
     // 1. Try Google Gemini API (gemini-3.5-flash-lite)
     if (navigator.onLine !== false) {
       try {
@@ -1670,10 +1882,16 @@ STRICT PROHIBITION & STYLE RULES:
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
         const sysInstruction = chatHistory[0]?.content || "";
-        const geminiContents = chatHistory.slice(1).map(m => ({
-          role: m.role === 'assistant' ? 'model' : 'user',
-          parts: [{ text: m.content }]
-        }));
+        const geminiContents = chatHistory.slice(1).map((m, idx, arr) => {
+          let text = m.content;
+          if (idx === arr.length - 1 && m.role === 'user' && searchResult && searchResult.summaryText) {
+            text = promptWithSearch;
+          }
+          return {
+            role: m.role === 'assistant' ? 'model' : 'user',
+            parts: [{ text }]
+          };
+        });
 
         const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
         const response = await fetch(geminiUrl, {
@@ -1693,7 +1911,11 @@ STRICT PROHIBITION & STYLE RULES:
           if (botRaw) {
             botRaw = sanitizeOutput(botRaw);
             chatHistory.push({ role: "assistant", content: botRaw });
-            return formatAiResponseToHtml(botRaw);
+            let formatted = formatAiResponseToHtml(botRaw);
+            if (searchResult && searchResult.sources?.length) {
+              formatted += buildSourcesBarHtml(searchResult.sources);
+            }
+            return formatted;
           }
         }
       } catch (geminiErr) {
@@ -1704,6 +1926,14 @@ STRICT PROHIBITION & STYLE RULES:
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const orMessages = chatHistory.map((m, idx, arr) => {
+          let content = m.content;
+          if (idx === arr.length - 1 && m.role === 'user' && searchResult && searchResult.summaryText) {
+            content = promptWithSearch;
+          }
+          return { role: m.role, content };
+        });
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
@@ -1716,7 +1946,7 @@ STRICT PROHIBITION & STYLE RULES:
           signal: controller.signal,
           body: JSON.stringify({
             model: "openrouter/free",
-            messages: chatHistory
+            messages: orMessages
           })
         });
         clearTimeout(timeoutId);
@@ -1727,7 +1957,11 @@ STRICT PROHIBITION & STYLE RULES:
           if (botRaw) {
             botRaw = sanitizeOutput(botRaw);
             chatHistory.push({ role: "assistant", content: botRaw });
-            return formatAiResponseToHtml(botRaw);
+            let formatted = formatAiResponseToHtml(botRaw);
+            if (searchResult && searchResult.sources?.length) {
+              formatted += buildSourcesBarHtml(searchResult.sources);
+            }
+            return formatted;
           }
         }
       } catch (orErr) {
@@ -1735,8 +1969,8 @@ STRICT PROHIBITION & STYLE RULES:
       }
     }
 
-    // 3. Local Offline Fallback
-    return getLocalAiFallback(userQuery);
+    // 3. Local Offline Fallback (renders searchResult if retrieved)
+    return getLocalAiFallback(userQuery, searchResult);
   }
 
   function appendChatMessage(sender, text) {
@@ -1827,6 +2061,20 @@ STRICT PROHIBITION & STYLE RULES:
   }
   window.showInChatReportCard = showInChatReportCard;
 
+  const aiWebSearchHeaderBtn = document.getElementById('aiWebSearchHeaderBtn');
+  aiWebSearchHeaderBtn?.addEventListener('click', () => {
+    isWebSearchMode = !isWebSearchMode;
+    if (isWebSearchMode) {
+      aiWebSearchHeaderBtn.classList.add('active');
+      aiWebSearchHeaderBtn.textContent = '🌐 Search: ON';
+      showToast('Real-Time Web Search Enabled for AI Chat', 'info');
+    } else {
+      aiWebSearchHeaderBtn.classList.remove('active');
+      aiWebSearchHeaderBtn.textContent = '🌐 Web Search';
+      showToast('Real-Time Web Search Disabled');
+    }
+  });
+
   const aiReportIssueHeaderBtn = document.getElementById('aiReportIssueHeaderBtn');
   aiReportIssueHeaderBtn?.addEventListener('click', () => {
     showInChatReportCard();
@@ -1834,6 +2082,11 @@ STRICT PROHIBITION & STYLE RULES:
 
   const aiClearChatBtn = document.getElementById('aiClearChatBtn');
   aiClearChatBtn?.addEventListener('click', () => {
+    isWebSearchMode = false;
+    if (aiWebSearchHeaderBtn) {
+      aiWebSearchHeaderBtn.classList.remove('active');
+      aiWebSearchHeaderBtn.textContent = '🌐 Web Search';
+    }
     chatHistory = [
       {
         role: "system",
@@ -1850,7 +2103,7 @@ STRICT PROHIBITION & STYLE RULES:
         <div class="ai-msg bot">
           <div class="ai-msg-bubble">
             <p>Assalamu Alaikum! 🌙 I am the <strong>Chichester Jamia Centre AI Assistant</strong>.</p>
-            <p>I can help you with today's <strong>Prayer Times &amp; Fasting</strong>, our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>GoFundMe &amp; Lloyds Bank details</strong>, or you can <strong>report a website bug directly here</strong>!</p>
+            <p>I can help you with today's <strong>Prayer Times &amp; Fasting</strong>, our <strong>£580k property appeal</strong>, <strong>interactive brick wall</strong>, <strong>GoFundMe &amp; Lloyds Bank details</strong>, <strong>live web search (weather &amp; local facts)</strong>, or you can <strong>report a website bug directly here</strong>!</p>
           </div>
           <span class="ai-msg-time">Just now</span>
         </div>
@@ -1890,15 +2143,27 @@ STRICT PROHIBITION & STYLE RULES:
       aiChatInput.value = '';
       playSoftChime();
 
-      // Show typing indicator
+      // Show typing / search indicator
       const typingDiv = document.createElement('div');
       typingDiv.className = 'ai-msg bot';
-      typingDiv.innerHTML = '<div class="ai-msg-bubble"><em>Typing...</em></div>';
+      const isSearch = shouldTriggerWebSearch(userText);
+      typingDiv.innerHTML = isSearch
+        ? '<div class="ai-msg-bubble"><div class="ai-search-indicator"><span class="ai-search-radar"></span> Searching live web...</div></div>'
+        : '<div class="ai-msg-bubble"><em>Typing...</em></div>';
       aiChatMessages.appendChild(typingDiv);
       aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 
-      const botReply = await getAiResponse(userText);
-      aiChatMessages.removeChild(typingDiv);
+      const onProgress = (statusMsg) => {
+        const bubble = typingDiv.querySelector('.ai-msg-bubble');
+        if (bubble) {
+          bubble.innerHTML = `<div class="ai-search-indicator"><span class="ai-search-radar"></span> ${statusMsg}</div>`;
+        }
+      };
+
+      const botReply = await getAiResponse(userText, onProgress);
+      if (typingDiv.parentNode) {
+        aiChatMessages.removeChild(typingDiv);
+      }
       appendChatMessage('bot', botReply);
     });
   }
@@ -1915,15 +2180,27 @@ STRICT PROHIBITION & STYLE RULES:
         appendChatMessage('user', query);
         playSoftChime();
         
-        // Show typing indicator
+        // Show typing / search indicator
         const typingDiv = document.createElement('div');
         typingDiv.className = 'ai-msg bot';
-        typingDiv.innerHTML = '<div class="ai-msg-bubble"><em>Typing...</em></div>';
+        const isSearch = shouldTriggerWebSearch(query);
+        typingDiv.innerHTML = isSearch
+          ? '<div class="ai-msg-bubble"><div class="ai-search-indicator"><span class="ai-search-radar"></span> Searching live web...</div></div>'
+          : '<div class="ai-msg-bubble"><em>Typing...</em></div>';
         aiChatMessages.appendChild(typingDiv);
         aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
 
-        const botReply = await getAiResponse(query);
-        aiChatMessages.removeChild(typingDiv);
+        const onProgress = (statusMsg) => {
+          const bubble = typingDiv.querySelector('.ai-msg-bubble');
+          if (bubble) {
+            bubble.innerHTML = `<div class="ai-search-indicator"><span class="ai-search-radar"></span> ${statusMsg}</div>`;
+          }
+        };
+
+        const botReply = await getAiResponse(query, onProgress);
+        if (typingDiv.parentNode) {
+          aiChatMessages.removeChild(typingDiv);
+        }
         appendChatMessage('bot', botReply);
       }
     });
