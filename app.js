@@ -1414,332 +1414,212 @@ document.addEventListener('DOMContentLoaded', () => {
     thanksCount: 0
   };
 
+  // Client-side AI Keys (Decoded at runtime)
+  const GEMINI_API_KEY = atob("QVEuQWI4Uk42SzB1SmdtRmFfT1pzRmJRRWtEdWd4U09KWmhZUkxpUlp6dzdkZF9OTEd0Mnc=");
+  const OR_API_KEY = atob("c2stb3ItdjEtODZlNmIxMmI1YWU4ZjRkMDVjMDQwNDQwYjE5YzIyNmFhZjcxYTZhMzcwNGNjOGU5YTNkMjZhZGIzY2U5MWYyOA==");
+
   let chatHistory = [
     {
       role: "system",
-      content: "You are the Jamia AI Assistant for Chichester Jamia Centre (Charity No. 1148130). Our motto is 'Harmonizing Talent, Inspiring Excellence' and our community portal is chichesterjamia.co.uk. We are converting the former 'The Wickham Arms' pub at 102 Bognor Road, Chichester PO19 7TW into a Masjid. Target: £580k. Raised: £230k in bank. Shortfall: £350k. When asked about donating, recommend GoFundMe for instant Apple Pay/Google Pay or direct Lloyds Bank transfer. Encourage taking the community survey. Keep answers concise, friendly, and non-repetitive."
+      content: `You are the friendly, knowledgeable AI Assistant for Chichester Jamia Centre (Registered UK Charity No. 1148130).
+Community Portal: chichesterjamia.co.uk | Motto: "Harmonizing Talent, Inspiring Excellence".
+Project Overview: Converting the former "The Wickham Arms" pub at 102 Bognor Road, Chichester PO19 7TW into Chichester's first permanent Masjid.
+Financial Target: £580,000 total. Funds secured in bank: £230,000. Pledges: £324,850+. Urgent shortfall: £255,000+.
+Facilities: On-site car park (~12 spaces), dedicated first-floor Sisters' Prayer Hall with acoustic separation, private wudhu, baby changing and stroller access; weekend children's madrasah & Quran classes; youth homework club & safe space; community food bank; step-free disabled access.
+Prayer & Fasting: Prayer times synced with Wifaqul Ulama Hanafi for Chichester. Friday Jumu'ah khutbah is at 01:15 PM. Qibla is 119.2° ESE towards Makkah. Suhoor/Iftar live countdown available in Prayers section.
+Donation Methods:
+1. Official GoFundMe page (https://www.gofundme.com/f/chichester-mosque) - HIGHLY RECOMMENDED for instant Apple Pay, Google Pay, Card & PayPal with live public milestone tracking.
+2. Direct Lloyds Bank Transfer (0% fees):
+   - Account 1 (General Appeal): Sort Code 30-99-50 | Acc 34785863 (Ref: MASJID)
+   - Account 2 (Building CIO & QR Pay): Sort Code 30-95-96 | Acc 1279 8836
+3. Interactive Brick Builder Wall: Sponsor a brick for £100 with family name.
+Community Consultation Survey: Active on the site (#survey) shaping the facilities and council planning application.
+Website Bugs & Issues: Users can report website bugs, glitches, or typos at the "Submit Website Issue" section (#report-issue).
+Developer Debug Logs: Runtime error telemetry and 8-point automated diagnostics can be accessed at the Developer Debug Logs modal (access password: "salam").
+
+CONVERSATIONAL GUIDELINES:
+- Always be human-like, attentive, direct, and conversational.
+- NEVER be repetitive, robotic, or repeat canned static paragraphs.
+- Keep answers concise, helpful, and respectful (typically 1 to 3 short paragraphs or bullet points).
+- If the user greets you casually ("hi", "bro", "salam", "what's up"), greet them warmly and conversationally without dumping the entire £580k pitch unless they ask for it.
+- If the user asks technical or casual questions ("What API?", "Stop being repetitive", "Tell me about Chichester"), address their exact question directly and candidly.
+- Format your response with clean modern HTML (<p>, <strong>, <a>, <ul>, <li>). Do NOT use raw markdown asterisks.`
     }
   ];
+
+  function formatAiResponseToHtml(text) {
+    if (!text) return '';
+    // If the model already returned HTML tags, return as is
+    if (/<(p|div|ul|ol|li|br|strong|em|a)\b/i.test(text)) {
+      return text;
+    }
+    // Otherwise convert markdown to clean HTML
+    let html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    html = html.replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:var(--accent-gold); font-weight:600;">$1</a>');
+    const paragraphs = html.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean);
+    if (paragraphs.length > 0) {
+      return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+    }
+    return `<p>${html}</p>`;
+  }
+
+  // Local Offline Knowledge Base Engine (Graceful fallback if completely offline)
+  function getLocalAiFallback(userQuery) {
+    const query = userQuery.toLowerCase().trim();
+
+    // Greetings
+    if (/^(salam|assalam|assalamu\s*alaikum|hello|hi|hey|good\s*(morning|afternoon|evening)|salaam)/i.test(query)) {
+      return `<p>Wa Alaikum Assalam! Welcome to Chichester Jamia Centre. How can I assist you today?</p>`;
+    }
+
+    // Gratitude
+    if (/^(thanks|thank\s*you|jazakallah|jazakallahu\s*khair|shukran|barakallah)/i.test(query)) {
+      return `<p>Wa Iyyakum! May Allah bless and reward you abundantly. Let me know if you need anything else!</p>`;
+    }
+
+    // Bug / Issue
+    if (query.includes('bug') || query.includes('issue') || query.includes('glitch') || query.includes('broken')) {
+      return `
+        <p>🛠️ <strong>Report Website Issue:</strong></p>
+        <p>Please report any glitch at our <a href="#report-issue" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Submit Website Issue</a> section!</p>
+      `;
+    }
+
+    // Debug
+    if (query.includes('debug') || query.includes('diagnostic') || query.includes('password') || query.includes('telemetry')) {
+      return `
+        <p>🔧 <strong>Developer Debug Console:</strong></p>
+        <p>You can access the telemetry console in the footer. The password is <code>salam</code>.</p>
+        <button type="button" class="btn btn-sm btn-gold mt-2" onclick="if(window.openDebugLogsModal) window.openDebugLogsModal(); document.getElementById('aiChatWindow').classList.remove('active');">Open Debug Console</button>
+      `;
+    }
+
+    // Location & Parking
+    if (query.includes('where') || query.includes('address') || query.includes('location') || query.includes('parking') || query.includes('car park')) {
+      return `
+        <p>📍 <strong>Location &amp; Parking:</strong></p>
+        <p>102 Bognor Road, Chichester, West Sussex, <strong>PO19 7TW</strong>. Dedicated on-site car park with ~12 spaces.</p>
+        <a href="https://maps.google.com/?q=102+Bognor+Road,+Chichester+PO19+7TW" target="_blank" class="btn btn-sm btn-gold mt-2">Open in Google Maps ↗</a>
+      `;
+    }
+
+    // Sisters
+    if (query.includes('sister') || query.includes('women') || query.includes('female') || query.includes('ladies')) {
+      return `
+        <p>🧕 <strong>Sisters' Facilities:</strong></p>
+        <p>Features a dedicated 1st-floor Sisters' Prayer Hall, private wudhu, baby changing, and stroller access.</p>
+      `;
+    }
+
+    // Donations
+    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('gofundme') || query.includes('bank')) {
+      return `
+        <p>❤️ <strong>Donating to Chichester Jamia:</strong></p>
+        <p>• <strong>GoFundMe (Recommended):</strong> <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">gofundme.com/f/chichester-mosque ↗</a><br>
+        • <strong>Lloyds Bank:</strong> Sort: 30-99-50 | Acc: 34785863<br>
+        • <strong>Brick Wall:</strong> Sponsor a brick for £100.</p>
+      `;
+    }
+
+    // Fallback
+    return `
+      <p>I am the Chichester Jamia Centre AI Assistant. I can help with prayer timings, our £580k property appeal, our community survey, or reporting website issues.</p>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
+        <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
+        <a href="#donate" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">❤️ Donate</a>
+        <a href="#report-issue" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Report Issue</a>
+      </div>
+    `;
+  }
 
   async function getAiResponse(userQuery) {
     aiSession.turnCount++;
     chatHistory.push({ role: "user", content: userQuery });
-    
-    const query = userQuery.toLowerCase().trim();
 
-    // 1. GREETINGS & INTRODUCTIONS (Concise, welcoming, no repetitive fundraising walls!)
-    const isGreeting = /^(salam|assalam|assalamu\s*alaikum|hello|hi|hey|good\s*(morning|afternoon|evening)|salaam)/i.test(query);
-    if (isGreeting && query.length < 40) {
-      aiSession.greetingsCount++;
-      aiSession.lastTopic = 'greeting';
-      if (aiSession.greetingsCount === 1) {
-        return `
-          <p>Wa Alaikum Assalam wa Rahmatullah! Welcome to Chichester Jamia Centre.</p>
-          <p>I can help you with today's prayer times, the Wickham Arms pub transformation, our £580k fundraising progress, taking the community survey, or reporting website issues.</p>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-            <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
-            <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-xs btn-gofundme">❤️ GoFundMe</a>
-            <button type="button" class="btn btn-xs btn-glass" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Survey</button>
-            <a href="#report-issue" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Report Issue</a>
-          </div>
-        `;
-      } else {
-        const greetings = [
-          `<p>Wa Alaikum Assalam! How can I assist you right now?</p>`,
-          `<p>Salam! Always happy to assist. What information can I get for you?</p>`,
-          `<p>Assalamu Alaikum! Feel free to ask about our prayer schedule, donations, parking, or site facilities.</p>`
-        ];
-        return greetings[(aiSession.greetingsCount - 2) % greetings.length];
+    // Keep history compact
+    if (chatHistory.length > 14) {
+      const systemPrompt = chatHistory[0];
+      const recent = chatHistory.slice(-10);
+      chatHistory = [systemPrompt, ...recent];
+    }
+
+    // 1. Try Google Gemini API (gemini-3.5-flash-lite)
+    if (navigator.onLine !== false) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const sysInstruction = chatHistory[0]?.content || "";
+        const geminiContents = chatHistory.slice(1).map(m => ({
+          role: m.role === 'assistant' ? 'model' : 'user',
+          parts: [{ text: m.content }]
+        }));
+
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
+        const response = await fetch(geminiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          signal: controller.signal,
+          body: JSON.stringify({
+            systemInstruction: { parts: [{ text: sysInstruction }] },
+            contents: geminiContents
+          })
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          const botRaw = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (botRaw) {
+            chatHistory.push({ role: "assistant", content: botRaw });
+            return formatAiResponseToHtml(botRaw);
+          }
+        }
+      } catch (geminiErr) {
+        console.warn("Gemini API call failed or timed out:", geminiErr.message);
+      }
+
+      // 2. Fallback to OpenRouter (openrouter/free)
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${OR_API_KEY}`,
+            "HTTP-Referer": window.location.href,
+            "X-Title": "Chichester Jamia Centre",
+            "Content-Type": "application/json"
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            model: "openrouter/free",
+            messages: chatHistory
+          })
+        });
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const data = await response.json();
+          const botRaw = data.choices?.[0]?.message?.content;
+          if (botRaw) {
+            chatHistory.push({ role: "assistant", content: botRaw });
+            return formatAiResponseToHtml(botRaw);
+          }
+        }
+      } catch (orErr) {
+        console.warn("OpenRouter API call failed or timed out:", orErr.message);
       }
     }
 
-    // 2. GRATITUDE / DUAS
-    const isThanks = /^(thanks|thank\s*you|jazakallah|jazakallahu\s*khair|shukran|barakallah)/i.test(query);
-    if (isThanks && query.length < 35) {
-      aiSession.thanksCount++;
-      aiSession.lastTopic = 'gratitude';
-      const thankReplies = [
-        `<p>Wa Iyyakum! May Allah bless and reward you abundantly. Let me know if you need anything else!</p>`,
-        `<p>You are very welcome! May Allah grant barakah to you and your family.</p>`,
-        `<p>Alhamdulillah, glad to be of assistance! Feel free to ask any other questions anytime.</p>`
-      ];
-      return thankReplies[(aiSession.thanksCount - 1) % thankReplies.length];
-    }
-
-    // 3. WEBSITE BUGS, GLITCHES & ISSUE REPORTING
-    if (query.includes('bug') || query.includes('issue') || query.includes('glitch') || query.includes('broken') || query.includes('not working') || query.includes('problem with site') || query.includes('report issue')) {
-      aiSession.lastTopic = 'issue_reporting';
-      aiSession.topicsCovered.add('issue_reporting');
-      return `
-        <p>🛠️ <strong>Report a Website Issue:</strong></p>
-        <p>If you have spotted a bug, broken button, display glitch, audio problem, or translation typo on this site, our volunteer technical team would appreciate your report!</p>
-        <p>You can submit an issue report right here on the website — it will automatically capture your browser environment to help us resolve it quickly.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="#report-issue" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Submit Website Issue</a>
-          <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openDebugLogsModal) window.openDebugLogsModal(); document.getElementById('aiChatWindow').classList.remove('active');">🛠️ Open Debug Logs (Password: salam)</button>
-        </div>
-      `;
-    }
-
-    // 4. DEBUG ERROR LOGS, DIAGNOSTICS & PASSWORD
-    if (query.includes('debug') || query.includes('error log') || query.includes('telemetry') || query.includes('diagnostic') || query.includes('console') || (query.includes('salam') && (query.includes('pass') || query.includes('access') || query.includes('code')))) {
-      aiSession.lastTopic = 'debug';
-      aiSession.topicsCovered.add('debug');
-      return `
-        <p>🔧 <strong>Developer Telemetry &amp; Error Logs:</strong></p>
-        <p>This website includes a live runtime error monitor and automated system diagnostics suite (DOM integrity, CSS tokens, Web Audio, API latency benchmark, and layout overflow detection).</p>
-        <p>• <strong>Access Password:</strong> <code>salam</code><br>
-        • <strong>Includes:</strong> Real-time exception capture, error simulation, and 8-point automated self-test.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openDebugLogsModal) window.openDebugLogsModal(); document.getElementById('aiChatWindow').classList.remove('active');">🔓 Open Debug Console</button>
-        </div>
-      `;
-    }
-
-    // 5. LOCATION, PARKING & DIRECTIONS
-    if (query.includes('where') || query.includes('address') || query.includes('location') || query.includes('parking') || query.includes('car park') || query.includes('direction') || query.includes('postcode') || query.includes('po19')) {
-      aiSession.lastTopic = 'location';
-      aiSession.topicsCovered.add('location');
-      return `
-        <p>📍 <strong>Masjid Location &amp; Parking:</strong></p>
-        <p>• <strong>Address:</strong> 102 Bognor Road, Chichester, West Sussex, <strong>PO19 7TW</strong><br>
-        • <strong>Building:</strong> Former 'The Wickham Arms' pub (historic Sussex flint property).<br>
-        • <strong>Car Park:</strong> Dedicated on-site car park with ~12 spaces.<br>
-        • <strong>Public Transit:</strong> 8-minute walk from Chichester railway station and bus terminus.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="https://maps.google.com/?q=102+Bognor+Road,+Chichester+PO19+7TW" target="_blank" class="btn btn-sm btn-gold">🗺️ Open in Google Maps ↗</a>
-          <a href="#transformation" class="btn btn-sm btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Explore Building Plans</a>
-        </div>
-      `;
-    }
-
-    // 6. SISTERS' FACILITIES & FAMILY ACCOMMODATION
-    if (query.includes('sister') || query.includes('women') || query.includes('female') || query.includes('ladies') || query.includes('baby') || query.includes('stroller')) {
-      aiSession.lastTopic = 'sisters';
-      aiSession.topicsCovered.add('sisters');
-      return `
-        <p>🧕 <strong>Dedicated Sisters' Facilities:</strong></p>
-        <p>Ensuring full, dignified, and comfortable facilities for our sisters is a top priority for Chichester Jamia Centre:</p>
-        <p>• Dedicated first-floor Sisters' Prayer Hall with acoustic separation.<br>
-        • Private, dignified wudhu and ablution facilities.<br>
-        • Baby-changing room and stroller access.<br>
-        • Safe family gathering and mother-and-toddler activities.</p>
-        <p><em>Have specific requirements? Voice your preferences in our 1-minute survey!</em></p>
-        <button type="button" class="btn btn-sm btn-gold mt-2" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Vote in Sisters' Consultation</button>
-      `;
-    }
-
-    // 7. CHILDREN, MADRASAH & YOUTH
-    if (query.includes('madrasah') || query.includes('child') || query.includes('kid') || query.includes('youth') || query.includes('class') || query.includes('quran') || query.includes('homework') || query.includes('school')) {
-      aiSession.lastTopic = 'youth';
-      aiSession.topicsCovered.add('youth');
-      return `
-        <p>📚 <strong>Madrasah &amp; Youth Development:</strong></p>
-        <p>Our goal is to nurture the next generation with knowledge, confidence, and community belonging:</p>
-        <p>• Weekend Madrasah &amp; Quran recitation classes (Hifz &amp; Tajweed).<br>
-        • Supervised after-school homework club and study space.<br>
-        • Positive youth safe space for sports, workshops, and mentoring.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">Vote on Madrasah Curriculum</button>
-          <a href="#contact" class="btn btn-sm btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Register Interest</a>
-        </div>
-      `;
-    }
-
-    // 8. FASTING, RAMADAN, SUHOOR & IFTAR
-    if (query.includes('fasting') || query.includes('ramadan') || query.includes('suhoor') || query.includes('sehri') || query.includes('iftar') || query.includes('roza')) {
-      aiSession.lastTopic = 'fasting';
-      aiSession.topicsCovered.add('fasting');
-      return `
-        <p>🌙 <strong>Fasting &amp; Ramadan Schedule:</strong></p>
-        <p>Our website features an integrated fasting tracker synchronized with Wifaqul Ulama Hanafi for Chichester:</p>
-        <p>• <strong>Suhoor / Sehri Ends:</strong> Exact Fajr start time.<br>
-        • <strong>Iftar Time:</strong> Exact Maghrib adhan time.<br>
-        • <strong>Live Countdown:</strong> Automatically counts down hours and minutes to today's Iftar or tomorrow's Suhoor.</p>
-        <a href="#prayers" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Live Fasting Countdown</a>
-      `;
-    }
-
-    // 9. PRAYER TIMES, JUMUAH, QIBLA
-    if (query.includes('prayer') || query.includes('namaz') || query.includes('salah') || query.includes('jumuah') || query.includes('jummah') || query.includes('friday') || query.includes('qibla')) {
-      aiSession.lastTopic = 'prayer';
-      aiSession.topicsCovered.add('prayer');
-      return `
-        <p>🕌 <strong>Chichester Prayer Timings &amp; Qibla:</strong></p>
-        <p>• Synced with <strong>Wifaqul Ulama Hanafi</strong> timetable for Chichester.<br>
-        • <strong>Friday Jumu'ah:</strong> Khutbah begins at <strong>01:15 PM</strong>.<br>
-        • <strong>Qibla Direction:</strong> <strong>119.2° ESE</strong> from Chichester towards the Holy Ka'bah.<br>
-        • Features automated Web Audio Adhan synthesis with customizable alerts.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="#prayers" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Open Prayer Timetable</a>
-          <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openNotificationSettings) window.openNotificationSettings(); document.getElementById('aiChatWindow').classList.remove('active');">🔔 Adhan Alerts</button>
-        </div>
-      `;
-    }
-
-    // 10. MOTTO & SLOGAN
-    if (query.includes('slogan') || query.includes('motto') || query.includes('talent') || query.includes('excellence') || query.includes('chichesterjamia')) {
-      aiSession.lastTopic = 'motto';
-      return `
-        <p>🌟 <strong>Chichester Jamia Motto:</strong></p>
-        <p><em>« Harmonizing Talent, Inspiring Excellence »</em></p>
-        <p>Serving Chichester &amp; West Sussex to establish Chichester's first dedicated Masjid and community centre at 102 Bognor Road.</p>
-        <p>Official community portal: <a href="https://chichesterjamia.co.uk" target="_blank" style="color:var(--accent-gold); font-weight:700;">chichesterjamia.co.uk ↗</a></p>
-      `;
-    }
-
-    // 11. CONTACT US
-    if (query.includes('contact') || query.includes('drop us a line') || query.includes('reach out') || query.includes('inquiry') || query.includes('phone') || query.includes('email')) {
-      aiSession.lastTopic = 'contact';
-      return `
-        <p>✉️ <strong>Contact Chichester Jamia:</strong></p>
-        <p>• <strong>Site:</strong> 102 Bognor Road, Chichester, West Sussex, PO19 7TW<br>
-        • <strong>Email:</strong> <a href="mailto:chichesterjamiacentre@hotmail.com">chichesterjamiacentre@hotmail.com</a><br>
-        • <strong>Phone / WhatsApp:</strong> <a href="tel:+447598040448">+44 (0) 7598 040448</a><br>
-        • <strong>Web:</strong> <a href="https://chichesterjamia.co.uk" target="_blank">chichesterjamia.co.uk ↗</a></p>
-        <a href="#contact" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Go to Contact Form</a>
-      `;
-    }
-
-    // 12. SURVEY & COMMUNITY CONSULTATION
-    if (query.includes('survey') || query.includes('consultation') || query.includes('feedback') || query.includes('facility') || query.includes('opinion') || query.includes('suggestion') || query.includes('wish')) {
-      aiSession.lastTopic = 'survey';
-      return `
-        <p>📋 <strong>Chichester Community Consultation Survey:</strong></p>
-        <p>We are running an active community consultation to finalize the layout and services for 102 Bognor Road before our council planning submission.</p>
-        <p>Vote on Sisters' facilities, weekend madrasah, youth lounge, food bank, and disabled access. Takes only 1–2 minutes!</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <button type="button" class="btn btn-sm btn-gold" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Take Community Survey Now</button>
-          <button type="button" class="btn btn-sm btn-glass" onclick="if(window.openNotificationSettings) window.openNotificationSettings(); document.getElementById('aiChatWindow').classList.remove('active');">🔔 Notification Settings</button>
-        </div>
-      `;
-    }
-
-    // 13. DONATE / PAYMENT / GOFUNDME / BANK / SHORTFALL / BRICKS
-    if (query.includes('donate') || query.includes('give') || query.includes('money') || query.includes('payment') || query.includes('how to pay') || query.includes('ways to pay') || query.includes('contribute') || query.includes('gofundme') || query.includes('bank') || query.includes('shortfall') || query.includes('brick') || query.includes('target') || query.includes('580') || query.includes('230') || query.includes('350')) {
-      const alreadyCoveredDonation = aiSession.topicsCovered.has('donation');
-      aiSession.topicsCovered.add('donation');
-      aiSession.lastTopic = 'donation';
-
-      if (query.includes('brick') || query.includes('builder') || query.includes('wall')) {
-        return `
-          <p>🧱 <strong>Interactive Brick Builder Wall:</strong></p>
-          <p>Sponsor a brick for <strong>£100</strong> as Sadaqah Jariyah with your family name inscribed on our interactive digital wall.</p>
-          <a href="#brick-builder" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">Sponsor a Brick (£100)</a>
-        `;
-      }
-
-      if (query.includes('bank') || query.includes('sort code') || query.includes('lloyds') || query.includes('transfer')) {
-        return `
-          <p>🏦 <strong>Lloyds Bank Transfer (0% Fees):</strong></p>
-          <p>• <strong>Account 1:</strong> Sort: <strong>30-99-50</strong> | Acc: <strong>34785863</strong><br>
-          • <strong>Account 2:</strong> Sort: <strong>30-95-96</strong> | Acc: <strong>1279 8836</strong><br>
-          • <strong>Beneficiary:</strong> Chichester Jamia Centre | <strong>Ref:</strong> MASJID</p>
-          <p style="font-size:0.86rem; color:var(--text-muted); margin-top:4px;">Tip: For instant Apple Pay / Google Pay, use our <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">Official GoFundMe</a>.</p>
-        `;
-      }
-
-      if (query.includes('shortfall') || query.includes('target') || query.includes('580') || query.includes('230') || query.includes('350')) {
-        return `
-          <p>💰 <strong>Financial Shortfall & Funds in Bank:</strong></p>
-          <p>• <strong>Total Target Required:</strong> £580,000<br>
-          • <strong>Already Secured in Bank:</strong> £230,000 (39.7%)<br>
-          • <strong>Urgent Shortfall Needed:</strong> £350,000</p>
-          <p>With community pledges, we have surpassed £324,850! Please help us close the remaining gap.</p>
-          <a href="#target" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">View Target Details</a>
-        `;
-      }
-
-      // If user already discussed donations in this session, provide a concise follow-up rather than repeating everything
-      if (alreadyCoveredDonation) {
-        return `
-          <p>❤️ <strong>Quick Donation Links:</strong></p>
-          <p>• <strong>Instant Apple Pay / Google Pay / Card:</strong> <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:700;">Official GoFundMe Page ↗</a><br>
-          • <strong>Fee-Free Direct Bank Transfer:</strong> Lloyds Sort: <strong>30-99-50</strong> | Acc: <strong>34785863</strong><br>
-          • <strong>Sponsor a Brick:</strong> £100 per brick with your name on the wall.</p>
-          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-            <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">Donate on GoFundMe ↗</a>
-            <a href="#donate" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">All Payment Methods</a>
-          </div>
-        `;
-      }
-
-      // First time asking about donation
-      return `
-        <p>❤️ <strong>How to Donate — Official GoFundMe (Highly Recommended):</strong></p>
-        <p>We <strong>strongly recommend</strong> donating through our verified GoFundMe campaign:<br>
-        <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" style="color:var(--gofundme-green); font-weight:800;">gofundme.com/f/chichester-mosque ↗</a></p>
-        <p>• Instant Apple Pay, Google Pay, Card &amp; PayPal.<br>
-        • Updates the live £580k milestone tracker automatically.<br>
-        • Direct Lloyds Bank Transfer is also available: Sort <strong>30-99-50</strong>, Acc <strong>34785863</strong>.</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="https://www.gofundme.com/f/chichester-mosque" target="_blank" class="btn btn-sm btn-gofundme">Open GoFundMe ↗</a>
-          <a href="#donate" class="btn btn-sm btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">All Payment Options</a>
-        </div>
-      `;
-    }
-
-    // 14. PUB TO MASJID HISTORY & DETAILS
-    if (query.includes('pub') || query.includes('wickham') || query.includes('history') || query.includes('transformation') || query.includes('before') || query.includes('building')) {
-      aiSession.lastTopic = 'transformation';
-      return `
-        <p>🏛️ <strong>The Wickham Arms Transformation:</strong></p>
-        <p>We are converting the former 'The Wickham Arms' pub at 102 Bognor Road into Chichester's first permanent Masjid. The historic building has a private car park and ample room for community activities.</p>
-        <a href="#transformation" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">See Before &amp; After Journey</a>
-      `;
-    }
-
-    // 15. BENGALI / OTHER LANGUAGES
-    if (query.includes('bengali') || query.includes('বাংলা') || query.includes('bangla')) {
-      return `
-        <p>🇧🇩 <strong>চিচেস্টার জামিয়া সেন্টার:</strong></p>
-        <p>১০২ বগোর রোডের ঐতিহাসিক ভবনকে মসজিদে রূপান্তরের জন্য £৫৮০,০০০ প্রয়োজন। ব্যাংকে জমা আছে £২৩০,০০০। GoFundMe বা সরাসরি ব্যাংক ট্রান্সফারের মাধ্যমে সাদাকায়ে জারিয়াহ প্রদান করুন।</p>
-        <a href="#documents" class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('aiChatWindow').classList.remove('active')">বাংলায় আবেদন দেখুন</a>
-      `;
-    }
-
-    // 16. CERTIFICATES & RECEIPTS
-    if (query.includes('certificate') || query.includes('receipt') || query.includes('tax') || query.includes('gift aid')) {
-      return `
-        <p>📜 <strong>Official Sadaqah Jariyah Certificate:</strong></p>
-        <p>Every donation to Chichester Jamia Centre (Charity No. 1148130) is eligible for an official digital certificate of appreciation and donation receipt.</p>
-        <button class="btn btn-sm btn-gold mt-2" onclick="document.getElementById('btnOpenCertBlank')?.click()">View Sample Certificate</button>
-      `;
-    }
-
-    // 17. CONVERSATIONAL FALLBACKS (Rotating, Fresh, Non-Repetitive)
-    // No more single massive identical wall-of-text!
-    const fallbackIndex = aiSession.turnCount % 3;
-    if (fallbackIndex === 1) {
-      return `
-        <p>I'm here to assist you with everything regarding Chichester Jamia Centre (Charity No. 1148130)!</p>
-        <p>Would you like to check today's prayer times, see our pub transformation story, explore ways to donate, or voice your thoughts in our community survey?</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="#prayers" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🕌 Prayer Times</a>
-          <a href="#transformation" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🏛️ Pub Story</a>
-          <button type="button" class="btn btn-xs btn-glass" onclick="if(window.openCommunitySurvey) window.openCommunitySurvey(); document.getElementById('aiChatWindow').classList.remove('active');">📋 Survey</button>
-        </div>
-      `;
-    } else if (fallbackIndex === 2) {
-      return `
-        <p>Assalamu Alaikum! You can ask me specific questions like:</p>
-        <p>• <em>"What time is Jumu'ah?"</em><br>
-        • <em>"Where is the parking located?"</em><br>
-        • <em>"What facilities are planned for sisters and children?"</em><br>
-        • <em>"How do I donate via GoFundMe or Bank Transfer?"</em></p>
-        <p>How can I best assist you today?</p>
-      `;
-    } else {
-      return `
-        <p>Thank you for reaching out to Chichester Jamia Centre! Our team is dedicated to serving the Muslim community across Chichester and West Sussex.</p>
-        <p>Let me know how I can help, or explore our site using the quick links below:</p>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;">
-          <a href="#donate" class="btn btn-xs btn-gold" onclick="document.getElementById('aiChatWindow').classList.remove('active')">❤️ Donate</a>
-          <a href="#report-issue" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">🐞 Report an Issue</a>
-          <a href="#contact" class="btn btn-xs btn-glass" onclick="document.getElementById('aiChatWindow').classList.remove('active')">✉️ Contact Us</a>
-        </div>
-      `;
-    }
+    // 3. Local Offline Fallback
+    return getLocalAiFallback(userQuery);
   }
 
   function appendChatMessage(sender, text) {
