@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Survival · Lord of the Flies (Ayman &amp; Milo)</title>
+<style>
+  :root {
+    --ink: #16140f;
+    --paper: #f4ecde;
+    --paper-deep: #e6dac6;
+    --jungle: #0d1311;
+    --canopy: #16201c;
+    --canopy-hi: #1e2c27;
+    --fern: #2e4039;
+    --mist: #b6aa96;
+    --ember: #e86f38;
+    --ember-soft: rgba(232, 111, 56, 0.14);
+    --ember-border: rgba(232, 111, 56, 0.42);
+    --ember-ink: #381606;
+    --lagoon: #38a895;
+    --lagoon-soft: rgba(56, 168, 149, 0.14);
+    --gold: #e5b54f;
+    --sans: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    --display: Palatino, "Palatino Linotype", "Iowan Old Style", Georgia, serif;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --scale: 1;
+  }
+
+  html:has(body.projector) {
+    --scale: 1.16;
+  }
+
+  * { box-sizing: border-box; }
+  html {
+    -webkit-font-smoothing: antialiased;
+    font-size: calc(16px * var(--scale));
+  }
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background:
+      radial-gradient(circle at 88% 8%, rgba(232, 111, 56, 0.08), transparent 38%),
+      radial-gradient(circle at 12% 92%, rgba(56, 168, 149, 0.07), transparent 42%),
+      var(--jungle);
+    color: var(--paper);
+    font-family: var(--sans);
+    line-height: 1.55;
+  }
+
+  button { font: inherit; color: inherit; transition: all 0.15s ease; }
+  button:not(:disabled) { cursor: pointer; }
+  button:disabled { opacity: 0.35; cursor: not-allowed; }
+  button:focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
+
+  h1, h2, h3 { text-wrap: balance; font-family: var(--display); font-weight: 600; margin: 0; }
+  p { text-wrap: pretty; margin: 0; }
+  ul.plain, ol.plain { list-style: none; padding: 0; margin: 0; }
+
+  .shell { display: flex; flex-direction: column; min-height: 100dvh; }
+
+  /* Progress bar */
+  .progress-track {
+    height: 3px;
+    background: var(--canopy);
+    width: 100%;
+    position: relative;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--lagoon), var(--ember));
+    transition: width 0.3s ease;
+  }
+
+  /* Header & Footer */
+  header.topbar, footer.botbar {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border-color: var(--fern);
+    padding: 0.7rem 1rem;
+    background: rgba(13, 19, 17, 0.85);
+    backdrop-filter: blur(8px);
+  }
+  header.topbar { border-bottom: 1px solid var(--fern); flex-wrap: wrap; }
+  footer.botbar { border-top: 1px solid var(--fern); }
+
+  .brand { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+  .flame-badge {
+    width: 2.3rem; height: 2.3rem;
+    border-radius: 0.6rem;
+    background: var(--ember-soft);
+    border: 1px solid var(--ember-border);
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .brand strong { display: block; font-family: var(--display); font-size: 1.15rem; line-height: 1.1; }
+  .brand span { color: var(--mist); font-size: 0.78rem; display: block; }
+
+  .kicker {
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ember);
+    font-weight: 700;
+    font-size: 0.74rem;
+  }
+  .kicker.lagoon { color: var(--lagoon); }
+  .kicker.gold { color: var(--gold); }
+
+  .header-tools {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+  }
+
+  .clock-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--canopy);
+    border: 1px solid var(--fern);
+    border-radius: 0.55rem;
+    padding: 0.2rem 0.55rem;
+  }
+  .clock {
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 0 0.25rem;
+  }
+  .clock.late { color: var(--ember); }
+
+  .icon {
+    width: 2rem; height: 2rem;
+    border: 1px solid var(--fern);
+    border-radius: 0.45rem;
+    background: var(--canopy);
+    color: var(--paper);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+  }
+  .icon:hover { border-color: var(--mist); background: var(--canopy-hi); }
+
+  .body { display: flex; flex: 1; min-height: 0; }
+
+  /* Sidebar Nav */
+  nav {
+    display: none;
+    width: 14.5rem;
+    flex-direction: column;
+    gap: 0.35rem;
+    border-right: 1px solid var(--fern);
+    padding: 0.85rem 0.75rem;
+    flex-shrink: 0;
+    background: rgba(22, 32, 28, 0.35);
+  }
+  nav .nav-head {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--mist);
+    padding: 0 0.6rem 0.35rem;
+    font-weight: 700;
+  }
+  nav button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: left;
+    padding: 0.55rem 0.7rem;
+    border-radius: 0.5rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--mist);
+    font-size: 0.84rem;
+    gap: 0.5rem;
+  }
+  nav button .nav-left { display: flex; align-items: center; gap: 0.5rem; }
+  nav button small { font-family: var(--mono); font-size: 0.7rem; color: var(--ember); font-weight: 700; }
+  nav button .aim-pill { font-family: var(--mono); font-size: 0.68rem; color: var(--mist); opacity: 0.8; }
+  nav button:hover { background: var(--canopy); color: var(--paper); }
+  nav button[aria-current="page"] {
+    background: var(--canopy);
+    color: var(--paper);
+    border-color: var(--ember-border);
+    font-weight: 600;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+
+  .nav-footer {
+    margin-top: auto;
+    padding: 0.65rem;
+    border-radius: 0.55rem;
+    background: rgba(22, 32, 28, 0.65);
+    border: 1px solid var(--fern);
+    font-size: 0.72rem;
+    color: var(--mist);
+    line-height: 1.45;
+  }
+  .nav-footer kbd {
+    background: var(--jungle);
+    border: 1px solid var(--fern);
+    border-radius: 0.25rem;
+    padding: 0.05rem 0.3rem;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--paper);
+  }
+
+  /* Main Stage */
+  main { flex: 1; overflow-y: auto; padding: 1.5rem 1rem 2.2rem; }
+  .stage { max-width: 58rem; margin: 0 auto; display: flex; flex-direction: column; gap: 1.15rem; }
+
+  .slide-header {
+    border-bottom: 1px solid rgba(46, 64, 57, 0.75);
+    padding-bottom: 0.85rem;
+  }
+  .slide-header h1 { font-size: 2rem; margin-top: 0.2rem; line-height: 1.18; }
+  .slide-header .lede { color: var(--mist); font-size: 0.92rem; margin-top: 0.35rem; }
+
+  /* Cards & Surfaces */
+  .paper {
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 0.75rem;
+    padding: 1.25rem;
+  }
+  .paper.dark {
+    background: var(--canopy);
+    color: var(--paper);
+    border: 1px solid var(--fern);
+  }
+  .paper.ember-box {
+    background: var(--ember-soft);
+    border: 1px solid var(--ember-border);
+  }
+  .paper.lagoon-box {
+    background: var(--lagoon-soft);
+    border: 1px solid rgba(56, 168, 149, 0.42);
+  }
+
+  .quote { font-family: var(--display); font-size: 1.25rem; line-height: 1.48; }
+  .stack { display: flex; flex-direction: column; gap: 0.7rem; }
+  .row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+
+  /* Buttons & Pills */
+  .choice {
+    border: 1px solid var(--fern);
+    border-radius: 0.5rem;
+    background: var(--canopy);
+    padding: 0.48rem 0.82rem;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--paper);
+  }
+  .choice:hover { border-color: var(--mist); background: var(--canopy-hi); }
+  .choice[aria-pressed="true"], .choice[aria-selected="true"] {
+    background: var(--fern);
+    border-color: var(--paper);
+    font-weight: 600;
+  }
+  .choice.ember-active {
+    background: var(--ember-soft);
+    border-color: var(--ember);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .ember-btn {
+    border: 0;
+    border-radius: 0.55rem;
+    background: var(--ember);
+    color: var(--ember-ink);
+    font-weight: 700;
+    padding: 0.65rem 1.25rem;
+    font-size: 0.92rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 14px rgba(232, 111, 56, 0.25);
+  }
+  .ember-btn:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+  .ghost {
+    border: 1px solid var(--fern);
+    background: rgba(22, 32, 28, 0.6);
+    padding: 0.38rem 0.72rem;
+    border-radius: 0.45rem;
+    font-size: 0.78rem;
+  }
+  .ghost:hover { border-color: var(--mist); }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .pill.ember { background: var(--ember-soft); color: var(--ember); border: 1px solid var(--ember-border); }
+  .pill.lagoon { background: var(--lagoon-soft); color: var(--lagoon); border: 1px solid rgba(56,168,149,0.4); }
+  .pill.gold { background: rgba(229, 181, 79, 0.14); color: var(--gold); border: 1px solid rgba(229, 181, 79, 0.4); }
+
+  /* Ranking Rows */
+  .rank {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 0.55rem;
+    background: rgba(22, 32, 28, 0.75);
+    border: 1px solid var(--fern);
+  }
+  .rank-num {
+    width: 1.75rem; height: 1.75rem;
+    border-radius: 50%;
+    background: var(--fern);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .rank-num.top { background: var(--ember); color: var(--ember-ink); }
+
+  /* Split & Grid */
+  .split { display: grid; gap: 0.9rem; }
+  .grid2 { display: grid; gap: 0.85rem; }
+  .grid3 { display: grid; gap: 0.75rem; }
+
+  /* Presenter Script Box */
+  .lines {
+    border: 1px solid var(--fern);
+    border-radius: 0.75rem;
+    background: rgba(22, 32, 28, 0.55);
+    padding: 0.85rem 1rem;
+    margin-top: 0.35rem;
+  }
+  .cue-box {
+    padding: 0.9rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--fern);
+    background: var(--canopy);
+  }
+  .cue-box.ayman {
+    border-color: var(--ember-border);
+    background: rgba(232, 111, 56, 0.08);
+  }
+  .cue-box.milo {
+    border-color: rgba(56, 168, 149, 0.45);
+    background: rgba(56, 168, 149, 0.07);
+  }
+
+  .late-note {
+    border: 1px solid var(--ember-border);
+    background: var(--ember-soft);
+    padding: 0.7rem 0.9rem;
+    border-radius: 0.55rem;
+    font-size: 0.84rem;
+  }
+
+  /* Model Paragraph Highlighting */
+  .mark {
+    background: rgba(232, 111, 56, 0.26);
+    color: #ffd7c2;
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.28rem;
+    font-weight: 600;
+  }
+  .dim { opacity: 0.28; }
+
+  .mv-point { border-bottom: 2px solid #e86f38; }
+  .mv-context { border-bottom: 2px solid #38a895; }
+  .mv-evidence { border-bottom: 2px solid #e5b54f; }
+  .mv-zoom { background: rgba(232, 111, 56, 0.22); border-radius: 0.2rem; padding: 0 0.2rem; }
+  .mv-intention { border-bottom: 2px solid #a78bfa; }
+  .mv-grade9 { border-bottom: 2px solid #34d399; }
+
+  /* Quote Zoom Interactive Highlight */
+  .q-highlight {
+    background: rgba(232, 111, 56, 0.25);
+    color: #ffd5bf;
+    border-bottom: 2px solid var(--ember);
+    padding: 0.05rem 0.25rem;
+    border-radius: 0.25rem;
+    font-weight: 600;
+  }
+
+  /* Quiz Options */
+  .qopt {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    text-align: left;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--fern);
+    border-radius: 0.6rem;
+    background: var(--canopy);
+    font-size: 0.9rem;
+  }
+  .qopt:hover:not(:disabled) { border-color: var(--mist); background: var(--canopy-hi); }
+  .qopt b {
+    width: 1.7rem; height: 1.7rem;
+    border-radius: 0.4rem;
+    background: var(--jungle);
+    border: 1px solid var(--fern);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+  .qopt.answer { border-color: #22c55e; background: rgba(34, 197, 94, 0.16); color: #bbf7d0; font-weight: 600; }
+  .qopt.answer b { background: #22c55e; color: #052e16; border-color: #22c55e; }
+  .qopt.wrong { border-color: var(--ember); background: rgba(232, 111, 56, 0.2); color: #fed7aa; }
+  .qopt.fade { opacity: 0.35; }
+
+  /* Timeline Stepper */
+  .timeline-bar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.5rem;
+  }
+  .tl-node {
+    text-align: left;
+    padding: 0.65rem 0.75rem;
+    border-radius: 0.55rem;
+    border: 1px solid var(--fern);
+    background: rgba(13, 19, 17, 0.6);
+  }
+  .tl-node[aria-pressed="true"] {
+    border-color: var(--ember);
+    background: var(--ember-soft);
+  }
+
+  /* Table for Compare */
+  table.comp {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.83rem;
+  }
+  table.comp th, table.comp td {
+    padding: 0.55rem 0.65rem;
+    border-bottom: 1px solid var(--fern);
+    text-align: left;
+  }
+  table.comp th {
+    color: var(--mist);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* Print Handout Layout */
+  .print-only { display: none; }
+
+  @media (min-width: 680px) {
+    .grid2 { grid-template-columns: 1fr 1fr; }
+    .split { grid-template-columns: 1fr 1fr; }
+    header.topbar, footer.botbar, main { padding-left: 1.75rem; padding-right: 1.75rem; }
+  }
+  @media (min-width: 980px) {
+    nav { display: flex; }
+  }
+
+  @media print {
+    body { background: #fff !important; color: #111 !important; font-size: 10.5pt !important; }
+    .shell { display: none !important; }
+    .print-only { display: block !important; padding: 0.4cm; }
+    .print-only h1 { font-size: 18pt; border-bottom: 2px solid #111; padding-bottom: 4pt; margin-bottom: 8pt; }
+    .print-only h2 { font-size: 12pt; margin-top: 12pt; margin-bottom: 4pt; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #888; }
+    .print-only p, .print-only li, .print-only td, .print-only th { font-size: 9.5pt; line-height: 1.38; }
+    .print-only table { width: 100%; border-collapse: collapse; margin-top: 4pt; }
+    .print-only th, .print-only td { border: 1px solid #444; padding: 4pt 6pt; text-align: left; vertical-align: top; }
+    .print-only th { background: #eee; }
+    .print-box { border: 1px solid #444; padding: 6pt 8pt; margin-top: 4pt; border-radius: 3pt; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="progress-track"><div class="progress-fill" id="progressFill" style="width: 14.28%"></div></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="flame-badge" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e86f38" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>
+        </svg>
+      </div>
+      <div>
+        <strong>Survival · Lord of the Flies</strong>
+        <span>Group: Ayman (You) &amp; Milo · 12–15 Min Revision Lesson</span>
+      </div>
+    </div>
+
+    <div class="header-tools">
+      <div class="clock-wrap" title="15-minute lesson pacing timer">
+        <div class="clock" id="clock">00:00</div>
+        <button class="icon" id="play" type="button" aria-label="Start or pause lesson timer">▶</button>
+        <button class="icon" id="reset" type="button" aria-label="Reset lesson timer">↺</button>
+      </div>
+      <button class="choice" id="projBtn" type="button" title="Increase text size for classroom board">Board Zoom</button>
+      <button class="choice" id="scriptBtn" type="button" title="Toggle Ayman & Milo's speaking script">Script</button>
+      <button class="choice" id="printBtn" type="button" onclick="window.print()">Print Handout</button>
+    </div>
+  </header>
+
+  <div class="body">
+    <nav id="rail" aria-label="Lesson sections"></nav>
+    <main id="main"></main>
+  </div>
+
+  <footer class="botbar">
+    <button class="choice" id="back" type="button">← Previous</button>
+    <p id="status" style="margin:0 auto; font-size:0.84rem; color:var(--mist); text-align:center"></p>
+    <button class="choice" id="next" type="button">Next →</button>
+  </footer>
+</div>
+
+<!-- Dedicated Clean Student Handout for Printing -->
+<div class="print-only" id="printSheet"></div>
+
+<script>
+const NEEDS = [
+  ["fire", "A signal fire & smoke", "Smoke is how a ship spots you; represents moral duty, foresight, and rescue."],
+  ["rules", "Rules everyone obeys", "The conch, assemblies, and shared accountability before impulse takes over."],
+  ["leader", "A responsible leader", "Someone who enforces unglamorous, vital tasks like shelters and fire watches."],
+  ["shelter", "Shelters & huts", "Protection from storms and reassurance for frightened littluns at night."],
+  ["food", "Hunting & meat", "Fruit grows freely on the island; hunting pigs is a thrilling luxury, not a necessity."]
+];
+
+const PRESETS = {
+  ralph: ["fire", "rules", "leader", "shelter", "food"],
+  jack: ["food", "leader", "shelter", "rules", "fire"]
+};
+
+const PRESET_COPY = {
+  ralph: "Ralph’s Hierarchy (Civilised Survival): Rescue comes first. Rules exist so the signal fire stays lit even when boys get bored. Meat is last because fruit already keeps them alive — hunting is an obsession, not a necessity.",
+  jack: "Jack’s Hierarchy (Primal Survival): Meat, excitement, and a strong chief come first. The signal fire is dead last. In Chapter 4, this exact priority causes them to miss a passing rescue ship."
+};
+
+const TIMELINE = [
+  { ch: "Ch. 1–2", title: "Fire & Rules", state: "Moral High", desc: "Boys elect Ralph, establish the conch, and light the mountain fire with Piggy's glasses. Survival means rescue." },
+  { ch: "Ch. 4", title: "Ship Missed", state: "Split Opens", desc: "Jack lets the fire go out to kill his first pig. Physical appetite defeats long-term rescue." },
+  { ch: "Ch. 5–6", title: "Fear & Beast", state: "Decay", desc: "Fear of the 'beast' replaces logic. Simon warns 'maybe it's only us', recognizing the internal threat." },
+  { ch: "Ch. 8–9", title: "Pig's Head & Simon", state: "Tribalism", desc: "Jack forms a rival tribe. In a frenzied survival dance, the boys beat Simon to death." },
+  { ch: "Ch. 10–11", title: "Glasses & Piggy", state: "Collapse", desc: "Jack steals Piggy's glasses (reason/fire). Roger crushes Piggy and the conch with a boulder." },
+  { ch: "Ch. 12", title: "Ironic Rescue", state: "Pyrrhic", desc: "Ralph is hunted like a pig until a naval officer arrives. Their bodies survive, but innocence is dead." }
+];
+
+const CONTEXT = [
+  {
+    tag: "1939–45 · AO3",
+    title: "WWII & Royal Navy Trauma",
+    text: "Golding commanded a rocket-launching ship in the Royal Navy (including D-Day) and witnessed the aftermath of Nazi concentration camps. He realised atrocities weren't committed by 'monsters', but by ordinary, educated men stripped of restraint."
+  },
+  {
+    tag: "1858 · Intertextuality",
+    title: "Refuting 'The Coral Island'",
+    text: "In R.M. Ballantyne’s Victorian novel 'The Coral Island', British boys named Ralph and Jack stay polite, Christian, and heroic. Golding deliberately reuses their names to expose Victorian colonial arrogance as a dangerous fantasy."
+  },
+  {
+    tag: "1651 · Philosophy",
+    title: "Hobbes' State of Nature",
+    text: "Philosopher Thomas Hobbes argued in 'Leviathan' that without a strong social contract and laws, human instinct drives society into a war of all against all, leaving life 'solitary, poor, nasty, brutish, and short'."
+  },
+  {
+    tag: "1954 · Cold War Irony",
+    title: "The Naval Cruiser Ending",
+    text: "The British naval officer rescues the boys and scolds them for lacking 'a better show' — yet he steps back onto a warship fighting an atomic war. Golding warns that the 'civilised' adult world is playing the exact same deadly game."
+  }
+];
+
+const QUOTES = [
+  {
+    id: "rules",
+    text: "We’ve got to have rules and obey them. After all, we’re not savages. We’re English, and the English are best at everything.",
+    highlight: "not savages. We’re English",
+    who: "Jack",
+    chapter: "Chapter 2",
+    best: "civilised",
+    zoom: "‘savages’ / ‘English’ — Dramatic Irony & Jingoistic Hubris",
+    line: "Early Jack believes rules and English superiority automatically protect their humanity. Bitter dramatic irony: he becomes the painted chief of Castle Rock. Golding dismantles the myth that nationality equals civilisation.",
+    miss: "This isn't a practical plan for food or shelter. The sharper point is moral: Jack thinks being English guarantees moral survival. It doesn't.",
+    note: "Dramatic irony: Jack equates being English with civilisation, proving national pride cannot stop savagery."
+  },
+  {
+    id: "smoke",
+    text: "If a ship comes near the island they may not notice us. So we must make smoke on top of the mountain. We must make a fire.",
+    highlight: "must make smoke",
+    who: "Ralph",
+    chapter: "Chapter 2",
+    best: "both",
+    zoom: "‘must’ (Anaphoric modal verb of duty) & ‘smoke’ (Symbol of rescue)",
+    line: "Repeating the modal verb 'must' turns rescue into an ethical obligation. Smoke is physically needed for a ship to spot them, yet tending the fire requires discipline, cooperation, and Piggy's intellect (glasses).",
+    miss: "If you only pick 'physical', you miss the moral discipline required. If you only pick 'civilised', you forget a real ship needs real smoke.",
+    note: "Modal verb ‘must’ frames rescue as moral duty; smoke unites physical salvation with civilised discipline."
+  },
+  {
+    id: "hunt",
+    text: "Kill the pig. Cut her throat. Spill her blood.",
+    highlight: "Kill ... Cut ... Spill",
+    who: "The Hunters",
+    chapter: "Chapter 4",
+    best: "physical",
+    zoom: "‘Kill / Cut / Spill’ — Violent monosyllabic imperatives & ritual chant",
+    line: "Rhythmic, trochaic chanting overrides rational speech. Physical bloodlust replaces moral survival: the hunters get roast pork at the exact moment the fire dies and a real rescue ship sails past.",
+    miss: "This is primal appetite crushing moral duty. They win a short-term feast at the price of going home.",
+    note: "Violent monosyllables (‘Kill/Cut/Spill’) show ritual bloodlust replacing reason as the rescue ship passes."
+  },
+  {
+    id: "beast",
+    text: "Maybe there is a beast… maybe it’s only us.",
+    highlight: "maybe it’s only us",
+    who: "Simon",
+    chapter: "Chapter 5",
+    best: "civilised",
+    zoom: "‘only us’ — Inclusive first-person plural pronoun & hesitant modal ‘maybe’",
+    line: "Simon locates the threat inside human nature rather than the jungle. If the beast is internal, spears, meat, and shelters can never keep them safe — only moral self-restraint can.",
+    miss: "Simon gives no practical tip on hunting or shelter. He exposes that the true threat to survival is human evil.",
+    note: "Inclusive pronoun ‘us’ relocates the threat from the jungle into human nature itself."
+  },
+  {
+    id: "wept",
+    text: "Ralph wept for the end of innocence, the darkness of man’s heart, and the fall through the air of the true, wise friend called Piggy.",
+    highlight: "darkness of man’s heart",
+    who: "The Narrator",
+    chapter: "Chapter 12",
+    best: "civilised",
+    zoom: "‘darkness of man’s heart’ — Climactic tricolon & moral epiphany",
+    line: "A naval cruiser has just saved Ralph's life, yet he weeps uncontrollably. Physical survival arrives at the exact moment Ralph confronts the death of innocence, wisdom (Piggy), and human goodness.",
+    miss: "Physical survival is already guaranteed by the officer. Ralph weeps because moral survival has failed.",
+    note: "Tricolon climax: physical rescue is achieved, yet Ralph mourns the death of innocence and wisdom."
+  }
+];
+
+const MODEL_MOVES = [
+  { role: "point", cls: "mv-point", label: "1. Point", text: "Golding presents survival not as a heroic struggle against nature, but as a tragic moral dichotomy between democratic civilisation and primal depravity." },
+  { role: "context", cls: "mv-context", label: "2. Context", text: "Drawing on his naval trauma in the Second World War and refuting Ballantyne’s 'The Coral Island', Golding exposes civilisation as a fragile veneer." },
+  { role: "evidence", cls: "mv-evidence", label: "3. Evidence", text: "At Castle Rock, Ralph pleads, “Which is better, law and rescue, or hunting and breaking things up?”" },
+  { role: "zoom", cls: "mv-zoom", label: "4. Word Zoom", text: "The abstract nouns “law and rescue” grammatically bind physical salvation to civilised restraint, whereas the dynamic verbs “hunting” and “breaking” expose Jack’s destructive appetite. Ralph is then drowned out, symbolising noise defeating reason." },
+  { role: "intention", cls: "mv-intention", label: "5. Intention", text: "Golding warns his 1954 reader that when immediate instincts replace democratic law, humanity becomes the very beast it fears." },
+  { role: "grade9", cls: "mv-grade9", label: "6. Grade 9", text: "Ultimately, when the naval officer arrives, Ralph weeps for “the darkness of man’s heart”: their bodies survive, but their moral innocence is dead." }
+];
+
+const ROLE_HELP = {
+  point: "Open with a big conceptual idea — no quote yet. Contrast physical vs. moral survival.",
+  context: "Weave in WWII or 'The Coral Island' as a reason why Golding writes this way.",
+  evidence: "Embed a concise, high-value quotation smoothly inside your sentence.",
+  zoom: "Isolate specific word classes (abstract nouns, dynamic verbs) and explain their effect.",
+  intention: "Zoom out to Golding's warning to post-war readers about human nature.",
+  grade9: "End with structural irony — connecting back to the ending of the novel."
+};
+
+const QUIZ = [
+  {
+    host: "Ayman",
+    q: "What does Ralph’s signal fire primarily symbolise?",
+    opts: [
+      "A cooking fire to roast wild boar",
+      "A moral duty of rescue and their only link to civilisation",
+      "A weapon to burn down Castle Rock",
+      "A distress signal for passing planes"
+    ],
+    ans: 1,
+    why: "Ralph insists smoke is their only link to the civilised world. Jack turns fire into a tool for cooking meat — capturing the clash between moral and physical survival."
+  },
+  {
+    host: "Milo",
+    q: "Who boasts in Chapter 2 that the English are 'not savages' and 'best at everything'?",
+    opts: ["Ralph", "Piggy", "Jack", "Roger"],
+    ans: 2,
+    why: "Jack says this in Chapter 2 — heavy dramatic irony, since he becomes the painted tyrant who abandons every rule."
+  },
+  {
+    host: "Ayman",
+    q: "In Chapter 4, a ship passes on the horizon with no smoke on the mountain. Why?",
+    opts: [
+      "Jack stole Piggy's glasses",
+      "The hunters let the fire go out to kill their first pig",
+      "A tropical storm soaked the wood",
+      "Ralph forgot to assign fire duty"
+    ],
+    ans: 1,
+    why: "Jack's hunters prioritise immediate physical gratification (meat and hunting glory) over long-term rescue."
+  },
+  {
+    host: "Milo",
+    q: "When Simon suggests 'maybe it’s only us' in Chapter 5, how does he redefine survival?",
+    opts: [
+      "He proves the littluns imagined the beast",
+      "He shows spears and shelters cannot protect them from internal human evil",
+      "He warns that a naval battle is approaching",
+      "He argues they should move to Castle Rock"
+    ],
+    ans: 1,
+    why: "Simon sees that the threat isn't an external monster — it is human nature itself. Physical weapons cannot defeat an internal flaw."
+  },
+  {
+    host: "Ayman",
+    q: "Why are Piggy’s glasses crucial to an essay on survival?",
+    opts: [
+      "They are used to signal ships with reflections",
+      "They represent intellect and science, literally needed to spark the fire of rescue",
+      "They symbolise the authority of the conch",
+      "They prove Piggy is physically strongest"
+    ],
+    ans: 1,
+    why: "Reason lights the signal fire. When Jack steals the glasses in Chapter 10, he steals intellect and any hope of rescue."
+  },
+  {
+    host: "Milo",
+    q: "Why is the naval officer's arrival in Chapter 12 deeply ironic?",
+    opts: [
+      "Ralph refuses to leave the island",
+      "Their bodies are rescued, yet their innocence is destroyed — and the officer returns to an atomic war",
+      "Jack is arrested and put on trial",
+      "The island catches fire and sinks"
+    ],
+    ans: 1,
+    why: "Physical survival is granted at the cost of moral ruin, and the 'adult' warship saving them is fighting the exact same savage war on a global scale."
+  }
+];
+
+const CLASS_LINKS = [
+  ["Ralph (Charlie, Lucas & Sana)", "Champions moral survival through the signal fire, assemblies, and shelters."],
+  ["Jack (Amelia & Sophia)", "Embodies primal, physical survival of the fittest — hunting, meat, and tyranny."],
+  ["Piggy (Honour, Issy & Riley)", "Represents rational intellect; his glasses literally ignite the fire of rescue."],
+  ["Simon (Jasmine, Immi & Lily)", "Recognises that survival fails from within ('maybe it's only us'), not from an external beast."],
+  ["Roger (Eleanor & Azalia)", "Shows what happens when civilised taboos vanish: pure sadism replaces social restraint."],
+  ["Conflict (Freddie & Hadley)", "The central clash between Ralph and Jack IS the clash between moral rescue and savage appetite."],
+  ["Leadership (Azeen, Bastiaan & Rizwan)", "Democratic leadership preserves long-term survival; autocratic leadership feeds short-term bloodlust."],
+  ["Violence (Harry, Gerard & Jayden)", "Ritual violence ('Kill the pig') replaces law when physical survival overrides empathy."],
+  ["The Beast (Darcey & Luna)", "Fear of the beast drives the boys to abandon rescue for Jack's violent protection."],
+  ["The Island (Libby, Clem & Evie)", "Provides abundant fruit and water — proving human nature, not nature itself, destroys them."],
+  ["The Littluns (Alesha & Pru)", "How the older boys treat the vulnerable littluns tests whether civilised care survives."]
+];
+
+const FURTHER_READING = [
+  {
+    title: "Key Chapters to Re-read Tonight",
+    detail: "Ch. 2 (Fire on the Mountain), Ch. 4 (Painted Faces & Long Hair), Ch. 5 (Beast from Water), Ch. 11 (Castle Rock), Ch. 12 (Cry of the Hunters)."
+  },
+  {
+    title: "R.M. Ballantyne — 'The Coral Island' (1858)",
+    detail: "Read Chapters 1–4 to compare Ballantyne's cheerful, imperial boy-heroes with Golding's realistic breakdown of order."
+  },
+  {
+    title: "Thomas Hobbes — 'Leviathan' (1651, Ch. 13)",
+    detail: "Explains the 'State of Nature': why human beings need laws and shared authority to prevent life becoming 'brutish and short'."
+  },
+  {
+    title: "William Golding — 'Fable' (1965 Essay)",
+    detail: "Golding's own reflection on WWII, explaining why he wrote the novel to show that defects of society trace back to human nature."
+  }
+];
+
+const SLIDES = [
+  {
+    id: "title",
+    label: "Open",
+    aim: "0.5m",
+    who: "Ayman & Milo",
+    mark: 0,
+    ayman: "Good morning everyone. We’re Ayman and Milo, and our revision lesson is on Survival in Lord of the Flies. Not the Hollywood adventure version — Golding’s version: the difference between keeping your body alive and keeping your humanity alive. Get a pen and your exercise book ready.",
+    milo: "Every quote, word zoom, and sentence starter on screen today can go straight into your essay notes. Let’s dive straight into the Do Now."
+  },
+  {
+    id: "donow",
+    label: "Do now",
+    aim: "3m",
+    who: "Ayman sets · Milo takes answers",
+    mark: 0.5,
+    ayman: "Do Now: You have three minutes in silence in your books. You’ve crash-landed on an uninhabited island — no adults, no phones. Rank these five priorities from 1 to 5: Signal Fire, Rules, a Leader, Shelters, and Hunting Meat. Underneath, write one sentence on what goes wrong first if your number 1 is missing.",
+    milo: "Pens down — let’s hear two rankings from the room. [Take 2 hands and tap + on the board]. Look at the split on screen: Ralph puts the Fire and Rules first because he wants rescue. Jack puts Meat and Power first. That gap is the entire novel."
+  },
+  {
+    id: "idea",
+    label: "The Idea",
+    aim: "2.5m",
+    who: "Ayman (Thesis) · Milo (Context)",
+    mark: 3.5,
+    ayman: "Golding splits survival in two. Physical Survival is food, spears, and staying breathing — Jack’s tribe eats roast pork, so biologically they succeed. Moral Survival is rules, empathy, and staying human — Ralph and Piggy’s signal fire. In Golding’s eyes, a full stomach means nothing if your humanity is dead.",
+    milo: "Look at the timeline and context anchors. Golding served in the Royal Navy in WWII and saw civilised men commit atrocities. He wrote Lord of the Flies to refute 'The Coral Island' (1858) and show that without social rules, human darkness takes over."
+  },
+  {
+    id: "quotes",
+    label: "5 Quotes",
+    aim: "4m",
+    who: "Milo reads · Ayman zooms",
+    mark: 6,
+    ayman: "Five exam-ready quotes. When Milo reads each one, call out whether it shows 'Physical', 'Civilised', or 'Both'. I’ll click your vote, reveal the word zoom, and give you the one-line note to copy down.",
+    milo: "Quote 1, Chapter 2: 'We’ve got to have rules and obey them. After all, we’re not savages. We’re English, and the English are best at everything.' Shout it out — Physical, Civilised, or Both?"
+  },
+  {
+    id: "model",
+    label: "Model",
+    aim: "2m",
+    who: "Ayman reads · Milo unpacks",
+    mark: 10,
+    ayman: "Here is a Grade 9 analytical paragraph answering: 'How does Golding present survival in Lord of the Flies?' I’ll read it straight through first — listen to how smoothly the context and word zoom connect.",
+    milo: "Notice the six moves: Point, Context, Evidence, Word Zoom, Golding’s Intention, and Grade 9 Nuance. Without zooming into specific word classes like abstract nouns and dynamic verbs, an essay stays stuck at retelling the plot."
+  },
+  {
+    id: "quiz",
+    label: "Quiz",
+    aim: "2m",
+    who: "Ayman (1,3,5) · Milo (2,4,6)",
+    mark: 12,
+    ayman: "Six rapid-fire questions to lock it in. Shout A, B, C, or D. I’m hosting Questions 1, 3, and 5; Milo has 2, 4, and 6. Question 1: What does Ralph’s signal fire primarily symbolise?",
+    milo: "My turn — Question 2: Who boasts in Chapter 2 that the English are 'not savages' and 'best at everything'?"
+  },
+  {
+    id: "reading",
+    label: "Read on",
+    aim: "1m",
+    who: "Ayman & Milo close",
+    mark: 14,
+    ayman: "For tonight’s revision, re-read Chapters 2, 4, 5, 11, and 12, and check out Hobbes’ 'Leviathan' or Golding’s essay 'Fable'. Notice how Survival connects directly to every other group's topic in our class.",
+    milo: "One final line to keep for the exam: Survival in this novel is not just staying alive; it is the tragic, losing battle to stay human long enough to be rescued. Thanks everyone!"
+  }
+];
+
+const CLOSER = "Survival in this novel is not just staying alive; it is the tragic, losing battle to stay human long enough to be rescued.";
+const KIND = { physical: "Physical Survival", civilised: "Moral / Civilised Survival", both: "Both (Physical + Moral)" };
+
+const state = {
+  slide: 0,
+  elapsed: 0,
+  running: false,
+  script: false,
+  speaker: "ayman",
+  projector: false,
+  // Do Now
+  order: NEEDS.map(n => n[0]),
+  preset: null,
+  compareTable: false,
+  votes: { fire: 0, rules: 0, leader: 0, shelter: 0, food: 0 },
+  doNowSecs: 180,
+  doNowRunning: false,
+  // Idea & Context
+  tlIdx: 0,
+  contextTab: 0,
+  idea: false,
+  // Quotes
+  mode: "work",
+  qi: 0,
+  picks: {},
+  showZoom: false,
+  // Model
+  role: "all",
+  colorAll: true,
+  showFrame: false,
+  // Quiz
+  q: 0,
+  chosen: QUIZ.map(() => null)
+};
+
+const main = document.getElementById("main");
+const rail = document.getElementById("rail");
+const clock = document.getElementById("clock");
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => "&#" + c.charCodeAt(0) + ";");
+}
+function pad(n) {
+  return String(n).padStart(2, "0");
+}
+function fmtSecs(sec) {
+  return pad(Math.floor(sec / 60)) + ":" + pad(sec % 60);
+}
+function need(id) {
+  return NEEDS.find(n => n[0] === id);
+}
+
+function paintClock() {
+  clock.textContent = fmtSecs(state.elapsed);
+  const meta = SLIDES[state.slide];
+  clock.classList.toggle("late", state.running && state.slide > 0 && state.elapsed > meta.mark * 60 + 90);
+  document.getElementById("play").textContent = state.running ? "❚❚" : "▶";
+  const dnEl = document.getElementById("dnClock");
+  if (dnEl) dnEl.textContent = fmtSecs(state.doNowSecs);
+}
+
+function render() {
+  const y = main.scrollTop;
+  const meta = SLIDES[state.slide];
+
+  document.body.classList.toggle("projector", state.projector);
+  document.getElementById("projBtn").setAttribute("aria-pressed", state.projector);
+  document.getElementById("scriptBtn").setAttribute("aria-pressed", state.script);
+  document.getElementById("progressFill").style.width = (((state.slide + 1) / SLIDES.length) * 100).toFixed(2) + "%";
+
+  rail.innerHTML =
+    `<div class="nav-head">Lesson Roadmap</div>` +
+    SLIDES.map((s, i) =>
+      `<button type="button" data-go="${i}" ${i === state.slide ? 'aria-current="page"' : ""}>
+        <span class="nav-left"><small>0${i + 1}</small><span>${esc(s.label)}</span></span>
+        <span class="aim-pill">${esc(s.aim)}</span>
+      </button>`
+    ).join("") +
+    `<div class="nav-footer">
+      <div><kbd>←</kbd> <kbd>→</kbd> Change slide</div>
+      <div><kbd>Space</kbd> Start/Pause clock</div>
+      <div><kbd>P</kbd> Toggle presenter cues</div>
+    </div>`;
+
+  const late = state.running && state.slide > 0 && state.elapsed > meta.mark * 60 + 90;
+  main.innerHTML = `<div class="stage">
+    ${late ? '<p class="late-note"><strong>Pacing Cue (Ayman &amp; Milo):</strong> You are slightly over the 15-minute pacing mark — tighten discussion or jump ahead to Quiz / Read On.</p>' : ""}
+    ${view()}
+    ${lines()}
+  </div>`;
+
+  document.getElementById("status").innerHTML = `Slide ${state.slide + 1} of ${SLIDES.length} · <strong>${esc(meta.label)}</strong> (${esc(meta.who)})`;
+  document.getElementById("back").disabled = state.slide === 0;
+  document.getElementById("next").disabled = state.slide === SLIDES.length - 1;
+  paintClock();
+  main.scrollTop = y;
+}
+
+function head(kicker, title, lede) {
+  return `<div class="slide-header">
+    <p class="kicker">${esc(kicker)}</p>
+    <h1>${esc(title)}</h1>
+    <p class="lede">${esc(lede)}</p>
+  </div>`;
+}
+
+function lines() {
+  const s = SLIDES[state.slide];
+  return `<section class="lines">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+      <button class="ghost" type="button" data-act="script" aria-expanded="${state.script}">
+        🎙️ Presenter Cues &amp; Script ${state.script ? "▴" : "▾"}
+      </button>
+      <div class="row">
+        <button class="ghost" type="button" data-speaker="ayman" style="${state.speaker === 'ayman' ? 'background:var(--ember);color:var(--ember-ink);font-weight:700;border-color:var(--ember)' : ''}">★ Ayman (You)</button>
+        <button class="ghost" type="button" data-speaker="milo" style="${state.speaker === 'milo' ? 'background:var(--lagoon);color:#04241e;font-weight:700;border-color:var(--lagoon)' : ''}">Milo</button>
+      </div>
+    </div>
+    ${state.script ? `<div class="split" style="margin-top:.75rem">
+      <div class="cue-box ${state.speaker === 'ayman' ? 'ayman' : ''}">
+        <p class="kicker">Ayman (Your Cue)</p>
+        <p style="margin-top:.35rem;font-size:0.88rem;font-style:italic">“${esc(s.ayman)}”</p>
+      </div>
+      <div class="cue-box ${state.speaker === 'milo' ? 'milo' : ''}">
+        <p class="kicker lagoon">Milo’s Cue</p>
+        <p style="margin-top:.35rem;font-size:0.88rem;font-style:italic">“${esc(s.milo)}”</p>
+      </div>
+    </div>` : ""}
+  </section>`;
+}
+
+function view() {
+  const id = SLIDES[state.slide].id;
+  if (id === "title") return title();
+  if (id === "donow") return donow();
+  if (id === "idea") return idea();
+  if (id === "quotes") return quotes();
+  if (id === "model") return model();
+  if (id === "quiz") return quiz();
+  return reading();
+}
+
+function title() {
+  const rows = SLIDES.slice(1).map((s, idx) =>
+    `<li class="rank">
+      <div style="display:flex;align-items:center;gap:0.7rem">
+        <span class="rank-num">${idx + 2}</span>
+        <div>
+          <strong style="font-size:0.92rem">${esc(s.label)}</strong>
+          <span style="color:var(--mist);font-size:0.8rem;margin-left:0.4rem">· ${esc(s.who)}</span>
+        </div>
+      </div>
+      <span class="pill ember">${esc(s.aim)}</span>
+    </li>`
+  ).join("");
+
+  return `<div class="slide-header">
+      <div class="row" style="margin-bottom:0.45rem">
+        <span class="pill ember">GCSE / Literature Revision</span>
+        <span class="pill lagoon">12–15 Minute Lesson</span>
+      </div>
+      <h1 style="font-size:2.45rem">Survival in <span style="color:var(--ember);font-style:italic">Lord of the Flies</span></h1>
+      <p class="lede">William Golding (1954) · Taught by <strong>Ayman</strong> &amp; <strong>Milo</strong></p>
+    </div>
+
+    <div class="paper dark">
+      <p class="kicker">Big Question &amp; Lesson Objective</p>
+      <p class="quote" style="margin-top:.4rem;font-size:1.2rem">How does Golding contrast physical survival with moral survival through the signal fire, the hunt, and the ironic ending?</p>
+    </div>
+
+    <div class="row">
+      <button class="ember-btn" type="button" data-act="begin">Start Lesson &amp; Timer →</button>
+      <button class="choice" type="button" data-act="script">Show Ayman &amp; Milo's Script</button>
+    </div>
+
+    <div class="paper dark">
+      <h2 style="font-size:1.15rem;margin-bottom:0.65rem">Lesson Plan (All 6 Brief Elements Covered)</h2>
+      <ol class="plain stack">${rows}</ol>
+    </div>`;
+}
+
+function donow() {
+  const ranks = state.order.map((id, i) => {
+    const n = need(id);
+    const v = state.votes[id] || 0;
+    return `<li class="rank">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <span class="rank-num ${i === 0 ? 'top' : ''}">${i + 1}</span>
+        <div>
+          <strong style="font-size:0.92rem">${esc(n[1])}</strong>
+          <p style="font-size:0.78rem;color:var(--mist)">${esc(n[2])}</p>
+        </div>
+      </div>
+      <div class="row">
+        <span style="font-size:0.76rem;color:var(--mist);font-family:var(--mono)">Class Votes: <strong style="color:var(--ember)">${v}</strong></span>
+        <button class="icon" type="button" data-vote="${id}" data-delta="1" title="Add class vote" style="width:1.75rem;height:1.75rem">+</button>
+        <button class="icon" type="button" data-vote="${id}" data-delta="-1" title="Remove class vote" style="width:1.75rem;height:1.75rem">−</button>
+        <button class="icon" type="button" data-move="${i}" data-dir="-1" title="Move up" style="width:1.75rem;height:1.75rem">↑</button>
+        <button class="icon" type="button" data-move="${i}" data-dir="1" title="Move down" style="width:1.75rem;height:1.75rem">↓</button>
+      </div>
+    </li>`;
+  }).join("");
+
+  const compRows = [0, 1, 2, 3, 4].map(idx => {
+    const classId = state.order[idx];
+    const rId = PRESETS.ralph[idx];
+    const jId = PRESETS.jack[idx];
+    return `<tr>
+      <td><strong>#${idx + 1}</strong></td>
+      <td>${esc(need(classId)[1])}</td>
+      <td style="color:#86efac">${esc(need(rId)[1])}</td>
+      <td style="color:#fda4af">${esc(need(jId)[1])}</td>
+    </tr>`;
+  }).join("");
+
+  return head("Task 1 · Do Now (3 Minutes in Silence)", "The Deserted Island Survival Matrix", "In your exercise book, rank 1 (Most Critical) to 5 (Least Critical) before writing your consequence sentence.") +
+    `<div class="paper dark" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.8rem">
+      <div style="flex:1;min-width:240px">
+        <p class="quote" style="font-size:1.12rem">“You have crash-landed on an island. No adults. No phones. What do you secure first?”</p>
+        <p style="font-size:0.82rem;color:var(--mist);margin-top:0.45rem"><strong>Written Challenge:</strong> Complete this sentence: <em>“If [my #1 priority] is missing, the first thing that breaks down is…”</em></p>
+      </div>
+      <div style="background:var(--jungle);border:1px solid var(--fern);border-radius:0.6rem;padding:0.6rem 0.85rem;text-align:center">
+        <div style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mist)">Do Now Timer</div>
+        <div id="dnClock" style="font-family:var(--mono);font-size:1.45rem;font-weight:700;color:var(--ember)">${fmtSecs(state.doNowSecs)}</div>
+        <div class="row" style="justify-content:center;margin-top:0.3rem">
+          <button class="ghost" type="button" data-act="dnToggle">${state.doNowRunning ? "Pause" : "Start 3m"}</button>
+          <button class="ghost" type="button" data-act="dnReset">Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="choice" type="button" data-preset="ralph" ${state.preset === "ralph" ? 'aria-pressed="true"' : ""}>Ralph’s Order (Rescue)</button>
+      <button class="choice" type="button" data-preset="jack" ${state.preset === "jack" ? 'aria-pressed="true"' : ""}>Jack’s Order (Meat)</button>
+      <button class="choice" type="button" data-act="sortVotes">Sort by Class Votes</button>
+      <button class="choice" type="button" data-act="toggleCompare" ${state.compareTable ? 'aria-pressed="true"' : ""}>Compare All 3 Side-by-Side</button>
+    </div>
+
+    ${state.compareTable ? `<div class="paper dark">
+      <table class="comp">
+        <thead><tr><th>Rank</th><th>Current / Class Board</th><th>Ralph (Civilised)</th><th>Jack (Primal)</th></tr></thead>
+        <tbody>${compRows}</tbody>
+      </table>
+    </div>` : `<ol class="plain stack">${ranks}</ol>`}
+
+    ${state.preset ? `<div class="paper ember-box"><p style="font-size:0.88rem">${esc(PRESET_COPY[state.preset])}</p></div>` : ""}`;
+}
+
+function idea() {
+  const tl = TIMELINE[state.tlIdx];
+  const tlNodes = TIMELINE.map((node, i) =>
+    `<button class="tl-node" type="button" data-tl="${i}" aria-pressed="${i === state.tlIdx}">
+      <div class="kicker" style="font-size:0.68rem">${esc(node.ch)}</div>
+      <div style="font-weight:700;font-size:0.83rem;margin-top:0.15rem">${esc(node.title)}</div>
+      <div style="font-size:0.7rem;color:var(--mist);margin-top:0.15rem">${esc(node.state)}</div>
+    </button>`
+  ).join("");
+
+  const tab = CONTEXT[state.contextTab];
+  const tabs = CONTEXT.map((c, i) =>
+    `<button class="choice" type="button" data-ctx="${i}" ${i === state.contextTab ? 'aria-pressed="true"' : ""}>${esc(c.title)}</button>`
+  ).join("");
+
+  return head("Task 2 · Theme, Context & Golding's Intentions (3 Minutes)", "The Two Faces of Survival", "Keeping your body alive is not the same thing as surviving as a human being.") +
+    `<div class="grid2">
+      <div class="paper dark" style="border-left:4px solid var(--ember)">
+        <p class="kicker">01 · Physical Survival (The Body)</p>
+        <h2 style="font-size:1.25rem;margin-top:0.2rem">Jack’s Tribe: Meat &amp; Savagery</h2>
+        <p style="font-size:0.86rem;color:var(--mist);margin-top:0.45rem">Jack’s hunters master spear-making, face paint, and killing pigs. Biologically they are well-fed — yet they beat Wilfred and murder Simon and Piggy. A full stomach is defeat if empathy dies.</p>
+      </div>
+      <div class="paper dark" style="border-left:4px solid var(--lagoon)">
+        <p class="kicker lagoon">02 · Moral Survival (The Soul)</p>
+        <h2 style="font-size:1.25rem;margin-top:0.2rem">Ralph &amp; Piggy: Fire &amp; Reason</h2>
+        <p style="font-size:0.86rem;color:var(--mist);margin-top:0.45rem">The signal fire, the conch, and Piggy’s glasses. Ralph fights to preserve democratic rules and rescue, knowing that without restraint, the boys become the very beast they fear.</p>
+      </div>
+    </div>
+
+    <div class="paper dark">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.55rem">
+        <h3 style="font-size:1.05rem">Arc of Decay: Click a Stage in the Novel</h3>
+        <span class="pill gold">${esc(tl.ch)} · ${esc(tl.state)}</span>
+      </div>
+      <div class="timeline-bar">${tlNodes}</div>
+      <p style="margin-top:0.75rem;font-size:0.88rem;color:var(--paper);border-top:1px solid var(--fern);padding-top:0.65rem">
+        <strong>${esc(tl.title)}:</strong> ${esc(tl.desc)}
+      </p>
+    </div>
+
+    <div class="paper dark">
+      <h3 style="font-size:1.05rem;margin-bottom:0.55rem">AO3 Context &amp; Golding’s Intentions</h3>
+      <div class="row" style="margin-bottom:0.75rem">${tabs}</div>
+      <div style="border-top:1px solid var(--fern);padding-top:0.7rem">
+        <p class="kicker">${esc(tab.tag)} · ${esc(tab.title)}</p>
+        <p style="margin-top:0.35rem;font-size:0.88rem">${esc(tab.text)}</p>
+      </div>
+    </div>
+
+    <div class="paper ember-box">
+      <p class="kicker">Quick Discussion Check</p>
+      <p class="quote" style="font-size:1.12rem;margin-top:0.25rem">“A boy is well-fed, painted, and hunting another child. Has he survived?”</p>
+      <button class="ember-btn" type="button" data-act="idea" style="margin-top:0.65rem;padding:0.42rem 0.9rem;font-size:0.82rem">
+        ${state.idea ? "Hide Golding's Thesis" : "Reveal Golding's Thesis"}
+      </button>
+      ${state.idea ? '<p style="margin-top:0.55rem;font-size:0.88rem"><strong>Golding’s Thesis:</strong> Physically yes; morally no. Golding argues that society collapses not because of harsh island conditions, but because of the inherent darkness inside human nature.</p>' : ''}
+    </div>`;
+}
+
+function renderQuoteText(q) {
+  const raw = q.text;
+  if (!state.showZoom || !q.highlight) return esc(raw);
+  const idx = raw.indexOf(q.highlight);
+  if (idx === -1) return esc(raw);
+  return esc(raw.slice(0, idx)) +
+    `<span class="q-highlight">${esc(q.highlight)}</span>` +
+    esc(raw.slice(idx + q.highlight.length));
+}
+
+function quotes() {
+  const q = QUOTES[state.qi];
+  const pick = state.picks[q.id];
+  let body;
+
+  if (state.mode === "bank") {
+    body = `<ol class="plain stack">${QUOTES.map((item, i) =>
+      `<li class="paper dark">
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:0.4rem">
+          <p class="kicker">Quote ${i + 1} · ${esc(item.who)} (${esc(item.chapter)})</p>
+          <span class="pill ember">${esc(KIND[item.best])}</span>
+        </div>
+        <p class="quote" style="margin-top:.4rem;font-size:1.12rem">“${esc(item.text)}”</p>
+        <p style="margin-top:.4rem;font-size:0.84rem;color:var(--mist)"><strong>Zoom:</strong> ${esc(item.zoom)}</p>
+        <p style="margin-top:.3rem;font-size:0.84rem">${esc(item.line)}</p>
+      </li>`
+    ).join("")}</ol>`;
+  } else {
+    const tabs = QUOTES.map((item, i) =>
+      `<button class="choice" type="button" data-quote="${i}" ${i === state.qi ? 'aria-pressed="true"' : ""}>
+        Quote 0${i + 1} ${state.picks[item.id] ? "✓" : ""}
+      </button>`
+    ).join("");
+
+    const kinds = ["physical", "civilised", "both"].map(k =>
+      `<button class="choice" type="button" data-kind="${k}" ${pick === k ? 'aria-pressed="true"' : ""}>${KIND[k]}</button>`
+    ).join("");
+
+    let verdict = "";
+    if (pick) {
+      const hit = pick === q.best;
+      verdict = `<div class="paper dark" style="border-color:${hit ? '#22c55e' : 'var(--ember)'}">
+        <p class="kicker" style="color:${hit ? '#22c55e' : 'var(--ember)'}">${hit ? "✓ Spot on!" : "Examiner Nuance"} · Best Fit: ${KIND[q.best]}</p>
+        <p style="margin-top:.4rem;font-size:0.88rem">${esc(hit ? q.line : q.miss)}</p>
+        <div style="margin-top:0.65rem;padding-top:0.6rem;border-top:1px solid var(--fern)">
+          <p style="font-size:0.84rem;color:var(--gold)"><strong>🔍 Word Zoom:</strong> ${esc(q.zoom)}</p>
+          <p style="font-size:0.82rem;color:var(--mist);margin-top:0.25rem"><strong>✍️ Copy into Book:</strong> ${esc(q.note)}</p>
+        </div>
+      </div>`;
+    }
+
+    body = `<div class="row">${tabs}</div>
+      <div class="paper dark">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+          <p class="kicker">${esc(q.who)} · ${esc(q.chapter)}</p>
+          <button class="ghost" type="button" data-act="toggleZoom">${state.showZoom ? "Hide Zoom Highlight" : "🔍 Highlight Zoom Words"}</button>
+        </div>
+        <p class="quote" style="margin-top:0.5rem;font-size:1.32rem">“${renderQuoteText(q)}”</p>
+        <p style="font-size:0.82rem;color:var(--mist);margin-top:0.65rem"><strong>Class Activity:</strong> Vote aloud — does this show Physical Survival, Civilised Survival, or Both?</p>
+        <div class="row" style="margin-top:0.5rem">${kinds}</div>
+      </div>
+      ${verdict}`;
+  }
+
+  return head("Task 3 · 5 Key Quotes & Class Categorisation Activity (4 Minutes)", "The Survival Quote Spectrum", "Classify each quote with the class, then record the Word Zoom in your notes.") +
+    `<div class="row">
+      <button class="choice" type="button" data-mode="work" ${state.mode === "work" ? 'aria-pressed="true"' : ""}>Interactive Class Activity</button>
+      <button class="choice" type="button" data-mode="bank" ${state.mode === "bank" ? 'aria-pressed="true"' : ""}>All 5 Quotes Overview</button>
+    </div>${body}`;
+}
+
+function model() {
+  const roles = [
+    ["all", "Full Paragraph"],
+    ["point", "1. Point"],
+    ["context", "2. Context"],
+    ["evidence", "3. Evidence"],
+    ["zoom", "4. Zoom"],
+    ["intention", "5. Intention"],
+    ["grade9", "6. Grade 9"]
+  ];
+
+  const buttons = roles.map(([id, label]) =>
+    `<button class="choice" type="button" data-role="${id}" ${state.role === id ? 'aria-pressed="true"' : ""}>${label}</button>`
+  ).join("");
+
+  const text = MODEL_MOVES.map(m => {
+    const dim = state.role !== "all" && state.role !== m.role ? "dim" : "";
+    const active = state.role === m.role ? "mark" : (state.role === "all" && state.colorAll ? m.cls : "");
+    return `<span class="${dim} ${active}">${esc(m.text)} </span>`;
+  }).join("");
+
+  return head("Task 4 · Model Analytical Paragraph (2 Minutes)", "Steal the Structure, Not Just the Words", "Question: How does Golding present the theme of survival in 'Lord of the Flies'?") +
+    `<div class="row">
+      ${buttons}
+      <button class="ghost" type="button" data-act="colorAll" style="margin-left:auto">${state.colorAll ? "Hide Underlines" : "Show Move Underlines"}</button>
+    </div>
+
+    <div class="paper dark">
+      <div class="row" style="margin-bottom:0.6rem">
+        <span class="pill ember">AO1: Thesis &amp; Quotes</span>
+        <span class="pill gold">AO2: Word-Level Zoom</span>
+        <span class="pill lagoon">AO3: WWII &amp; Coral Island</span>
+      </div>
+      <p class="quote" style="font-size:1.08rem;line-height:1.68">${text}</p>
+    </div>
+
+    ${state.role !== "all" ? `<div class="paper ember-box" style="font-size:0.86rem">
+      <strong style="color:var(--ember)">Move Breakdown (${state.role.toUpperCase()}):</strong> ${ROLE_HELP[state.role]}
+    </div>` : ""}
+
+    <div class="grid2">
+      <div class="paper dark">
+        <h3 style="font-size:1rem">High-Scoring Sentence Starters</h3>
+        <ul style="font-size:0.83rem;color:var(--mist);margin-top:0.45rem;padding-left:1.15rem;display:flex;flex-direction:column;gap:0.35rem">
+          <li>Golding presents survival not merely as a biological struggle, but as a moral test between…</li>
+          <li>The abstract nouns “[word]” and “[word]” link physical rescue to…</li>
+          <li>Writing in the wake of WWII and refuting <em>The Coral Island</em>, Golding warns that…</li>
+        </ul>
+      </div>
+      <div class="paper dark">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="font-size:1rem">Your Turn: Guided Writing Frame</h3>
+          <button class="ghost" type="button" data-act="toggleFrame">${state.showFrame ? "Hide" : "Show Frame"}</button>
+        </div>
+        ${state.showFrame
+          ? `<p style="font-size:0.82rem;color:var(--paper);margin-top:0.45rem;line-height:1.5">
+              “While Jack equates survival with <strong>[quote/action]</strong>, Golding suggests true survival requires <strong>[moral value]</strong>. The <strong>[word class]</strong> ‘<strong>[word]</strong>’ reveals that…”
+            </p>`
+          : `<p style="font-size:0.82rem;color:var(--mist);margin-top:0.45rem">Click ‘Show Frame’ if you want a scaffolded template to write your own paragraph for homework.</p>`}
+      </div>
+    </div>`;
+}
+
+function quiz() {
+  const letters = ["A", "B", "C", "D"];
+  const item = QUIZ[state.q];
+  const pick = state.chosen[state.q];
+  const score = state.chosen.reduce((n, p, i) => n + (p === QUIZ[i].ans ? 1 : 0), 0);
+  const answered = state.chosen.filter(n => n !== null).length;
+
+  const nums = QUIZ.map((qObj, i) =>
+    `<button class="choice" type="button" data-q="${i}" ${i === state.q ? 'aria-pressed="true"' : ""}>
+      Q${i + 1} (${qObj.host[0]}) ${state.chosen[i] !== null ? (state.chosen[i] === qObj.ans ? "✓" : "✕") : ""}
+    </button>`
+  ).join("");
+
+  const opts = item.opts.map((opt, i) => {
+    let cls = "qopt";
+    if (pick !== null) {
+      if (i === item.ans) cls += " answer";
+      else if (i === pick) cls += " wrong";
+      else cls += " fade";
+    }
+    return `<button class="${cls}" type="button" data-opt="${i}" ${pick !== null ? "disabled" : ""}>
+      <b>${letters[i]}</b><span>${esc(opt)}</span>
+    </button>`;
+  }).join("");
+
+  const why = pick === null ? "" :
+    `<div class="paper dark" style="margin-top:0.75rem;border-color:${pick === item.ans ? '#22c55e' : 'var(--ember)'}">
+      <p style="font-size:0.9rem"><strong>${pick === item.ans ? "✓ Spot on!" : "Not " + letters[pick] + " — the correct answer is " + letters[item.ans] + "."}</strong></p>
+      <p style="font-size:0.84rem;color:var(--mist);margin-top:0.3rem">${esc(item.why)}</p>
+      ${state.q < QUIZ.length - 1 ? `<button class="ember-btn" type="button" data-q="${state.q + 1}" style="margin-top:0.65rem;padding:0.4rem 0.9rem;font-size:0.82rem">Next Question →</button>` : ""}
+    </div>`;
+
+  const completeBanner = answered === QUIZ.length
+    ? `<div class="paper lagoon-box" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+        <div>
+          <p class="kicker lagoon">Quiz Complete!</p>
+          <p style="font-size:0.95rem;font-weight:600">Class Score: ${score} / ${QUIZ.length} — ${score >= 5 ? "Grade 8/9 Survival Mastery!" : "Solid foundation — review the missed zooms!"}</p>
+        </div>
+        <button class="ghost" type="button" data-act="resetQuiz">Reset Quiz</button>
+      </div>`
+    : "";
+
+  return head(`Task 5 · Understanding Quiz (${score} / ${answered} Correct)`, `Question ${state.q + 1} of ${QUIZ.length}`, "Shout A, B, C, or D (or press keys A–D on the laptop).") +
+    `<div class="row">${nums}</div>
+    <div class="paper dark">
+      <div style="margin-bottom:0.45rem">
+        <span class="pill ${item.host === 'Ayman' ? 'ember' : 'lagoon'}">🎙️ Hosted by ${esc(item.host)}</span>
+      </div>
+      <h2 style="font-size:1.3rem">${esc(item.q)}</h2>
+      <div class="stack" style="margin-top:.85rem">${opts}</div>
+      ${why}
+    </div>
+    ${completeBanner}`;
+}
+
+function reading() {
+  const further = FURTHER_READING.map(f =>
+    `<li class="rank">
+      <div>
+        <strong style="color:var(--gold);font-size:0.9rem">${esc(f.title)}</strong>
+        <p style="font-size:0.82rem;color:var(--mist);margin-top:0.2rem">${esc(f.detail)}</p>
+      </div>
+    </li>`
+  ).join("");
+
+  const links = CLASS_LINKS.map(l =>
+    `<li class="rank" style="padding:0.55rem 0.75rem">
+      <div>
+        <strong style="color:var(--ember);font-size:0.84rem">${esc(l[0])}</strong>
+        <p style="font-size:0.78rem;color:var(--mist);margin-top:0.15rem">${esc(l[1])}</p>
+      </div>
+    </li>`
+  ).join("");
+
+  return head("Task 6 · Further Reading & Whole-Class Connections (1 Minute)", "Where to Go Next with Survival", "Re-read key chapters and link Survival to every other revision group in our class.") +
+    `<div class="split">
+      <div class="paper dark">
+        <h2 style="font-size:1.1rem;margin-bottom:0.6rem">📚 Suggestions for Further Reading</h2>
+        <ol class="plain stack">${further}</ol>
+      </div>
+      <div class="paper dark">
+        <h2 style="font-size:1.1rem;margin-bottom:0.6rem">🔗 Links to All 11 Other Class Groups</h2>
+        <ol class="plain stack" style="max-height:22rem;overflow-y:auto;padding-right:0.25rem">${links}</ol>
+      </div>
+    </div>
+
+    <div class="paper ember-box" style="text-align:center;padding:1.35rem">
+      <p class="kicker">Final Thesis Statement to Memorise</p>
+      <p class="quote" style="font-size:1.22rem;margin-top:0.4rem;font-weight:600">“${CLOSER}”</p>
+      <p style="color:var(--mist);font-size:0.82rem;margin-top:0.5rem">— Lesson by <strong>Ayman &amp; Milo</strong> · Click ‘Print Handout’ in the top bar for a 1-page revision sheet.</p>
+    </div>`;
+}
+
+function buildPrintSheet() {
+  const quoteRows = QUOTES.map((q, i) =>
+    `<tr>
+      <td><strong>${i + 1}. ${esc(q.who)} (${esc(q.chapter)})</strong><br>“${esc(q.text)}”</td>
+      <td>${esc(KIND[q.best])}</td>
+      <td><strong>${esc(q.zoom)}</strong><br>${esc(q.note)}</td>
+    </tr>`
+  ).join("");
+
+  document.getElementById("printSheet").innerHTML = `
+    <h1>Lord of the Flies — Revision Handout: Survival</h1>
+    <p><strong>Group Presenters:</strong> Ayman &amp; Milo &nbsp;|&nbsp; <strong>Core Thesis:</strong> ${esc(CLOSER)}</p>
+
+    <h2>1. Do Now: Island Survival Ranking</h2>
+    <div class="print-box">
+      <p>Rank 1 (Most Critical) to 5 (Least Critical): &nbsp; [ &nbsp; ] Signal Fire &nbsp;&nbsp; [ &nbsp; ] Rules &nbsp;&nbsp; [ &nbsp; ] Leader &nbsp;&nbsp; [ &nbsp; ] Shelters &nbsp;&nbsp; [ &nbsp; ] Hunting Meat</p>
+      <p style="margin-top:4pt"><strong>Sentence task:</strong> If my #1 priority is missing, the first thing that breaks down is: _____________________________________________________</p>
+    </div>
+
+    <h2>2. The Two Faces of Survival &amp; AO3 Context</h2>
+    <p><strong>Physical Survival (Jack):</strong> Hunting, meat, and biological survival — achieved at the cost of empathy and murder.<br>
+    <strong>Moral Survival (Ralph &amp; Piggy):</strong> The signal fire, democratic rules, and Piggy’s intellect — keeping humanity alive until rescue.<br>
+    <strong>Context:</strong> Golding’s WWII Royal Navy service + refuting R.M. Ballantyne’s <em>The Coral Island</em> (1858) + Hobbes’ <em>Leviathan</em>.</p>
+
+    <h2>3. Five Key Quotes &amp; Word Zooms</h2>
+    <table>
+      <thead><tr><th style="width:42%">Quotation</th><th style="width:18%">Category</th><th style="width:40%">Word Zoom &amp; Exam Note</th></tr></thead>
+      <tbody>${quoteRows}</tbody>
+    </table>
+
+    <h2>4. Grade 9 Model Paragraph</h2>
+    <div class="print-box">
+      <p>${MODEL_MOVES.map(m => esc(m.text)).join(" ")}</p>
+    </div>
+
+    <h2>5. Further Reading</h2>
+    <p><strong>Key Chapters:</strong> Ch. 2, Ch. 4, Ch. 5, Ch. 11, Ch. 12 &nbsp;|&nbsp; <strong>Extension Texts:</strong> <em>The Coral Island</em> (Ballantyne, 1858); <em>Leviathan</em> Ch. 13 (Hobbes, 1651); Golding’s essay <em>Fable</em> (1965).</p>
+  `;
+}
+
+function go(n) {
+  state.slide = Math.max(0, Math.min(SLIDES.length - 1, n));
+  render();
+}
+document.getElementById("back").onclick = () => go(state.slide - 1);
+document.getElementById("next").onclick = () => go(state.slide + 1);
+
+let timer = null;
+function toggleClock() {
+  state.running = !state.running;
+  if (state.running) {
+    if (!timer) timer = setInterval(() => { state.elapsed++; paintClock(); }, 1000);
+  } else {
+    clearInterval(timer);
+    timer = null;
+  }
+  paintClock();
+}
+document.getElementById("play").onclick = toggleClock;
+document.getElementById("reset").onclick = () => { state.elapsed = 0; paintClock(); };
+
+document.getElementById("projBtn").onclick = () => { state.projector = !state.projector; render(); };
+document.getElementById("scriptBtn").onclick = () => { state.script = !state.script; render(); };
+
+let dnTimer = null;
+function toggleDoNow() {
+  state.doNowRunning = !state.doNowRunning;
+  if (state.doNowRunning) {
+    if (!dnTimer) {
+      dnTimer = setInterval(() => {
+        if (state.doNowSecs > 0) {
+          state.doNowSecs--;
+          paintClock();
+        } else {
+          state.doNowRunning = false;
+          clearInterval(dnTimer);
+          dnTimer = null;
+          render();
+        }
+      }, 1000);
+    }
+  } else {
+    clearInterval(dnTimer);
+    dnTimer = null;
+  }
+  render();
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-go],[data-act],[data-vote],[data-move],[data-preset],[data-ctx],[data-tl],[data-mode],[data-quote],[data-kind],[data-role],[data-q],[data-opt],[data-speaker]");
+  if (!t) return;
+
+  if (t.dataset.go) go(Number(t.dataset.go));
+  if (t.dataset.act === "begin") {
+    state.slide = 1;
+    state.elapsed = 0;
+    if (!state.running) toggleClock();
+    render();
+  }
+  if (t.dataset.act === "script") { state.script = !state.script; render(); }
+  if (t.dataset.speaker) { state.speaker = t.dataset.speaker; render(); }
+  if (t.dataset.act === "dnToggle") { toggleDoNow(); }
+  if (t.dataset.act === "dnReset") {
+    state.doNowRunning = false;
+    clearInterval(dnTimer);
+    dnTimer = null;
+    state.doNowSecs = 180;
+    render();
+  }
+  if (t.dataset.act === "sortVotes") {
+    state.order = state.order.slice().sort((a, b) => (state.votes[b] || 0) - (state.votes[a] || 0));
+    state.preset = null;
+    render();
+  }
+  if (t.dataset.act === "toggleCompare") { state.compareTable = !state.compareTable; render(); }
+  if (t.dataset.preset) {
+    state.preset = t.dataset.preset;
+    state.order = PRESETS[t.dataset.preset].slice();
+    render();
+  }
+  if (t.dataset.tl) { state.tlIdx = Number(t.dataset.tl); render(); }
+  if (t.dataset.ctx) { state.contextTab = Number(t.dataset.ctx); render(); }
+  if (t.dataset.act === "idea") { state.idea = !state.idea; render(); }
+  if (t.dataset.mode) { state.mode = t.dataset.mode; render(); }
+  if (t.dataset.quote) { state.qi = Number(t.dataset.quote); render(); }
+  if (t.dataset.act === "toggleZoom") { state.showZoom = !state.showZoom; render(); }
+  if (t.dataset.kind) {
+    state.picks[QUOTES[state.qi].id] = t.dataset.kind;
+    state.showZoom = true;
+    render();
+  }
+  if (t.dataset.role) { state.role = t.dataset.role; render(); }
+  if (t.dataset.act === "colorAll") { state.colorAll = !state.colorAll; render(); }
+  if (t.dataset.act === "toggleFrame") { state.showFrame = !state.showFrame; render(); }
+  if (t.dataset.q) { state.q = Number(t.dataset.q); render(); }
+  if (t.dataset.opt) { state.chosen[state.q] = Number(t.dataset.opt); render(); }
+  if (t.dataset.act === "resetQuiz") {
+    state.chosen = QUIZ.map(() => null);
+    state.q = 0;
+    render();
+  }
+  if (t.dataset.vote) {
+    const id = t.dataset.vote;
+    state.votes[id] = Math.max(0, (state.votes[id] || 0) + Number(t.dataset.delta));
+    render();
+  }
+  if (t.hasAttribute("data-move")) {
+    const i = Number(t.dataset.move);
+    const target = i + Number(t.dataset.dir);
+    if (target >= 0 && target < state.order.length) {
+      const copy = state.order.slice();
+      const item = copy.splice(i, 1)[0];
+      copy.splice(target, 0, item);
+      state.order = copy;
+      state.preset = null;
+      render();
+    }
+  }
+});
+
+document.addEventListener("keydown", e => {
+  if (e.altKey || e.ctrlKey || e.metaKey || e.repeat) return;
+  if (e.target.closest('input, textarea, select, button, a, [role="button"], [contenteditable="true"]')) return;
+  if (e.key === "ArrowRight") { e.preventDefault(); go(state.slide + 1); }
+  if (e.key === "ArrowLeft") { e.preventDefault(); go(state.slide - 1); }
+  if (e.key === " ") { e.preventDefault(); toggleClock(); }
+  if (e.key === "p" || e.key === "P") { e.preventDefault(); state.script = !state.script; render(); }
+  if (SLIDES[state.slide].id === "quiz" && state.chosen[state.q] === null) {
+    const k = e.key.toUpperCase();
+    const map = { A: 0, B: 1, C: 2, D: 3 };
+    if (k in map) {
+      state.chosen[state.q] = map[k];
+      render();
+    }
+  }
+});
+
+buildPrintSheet();
+render();
+</script>
+</body>
+</html>
