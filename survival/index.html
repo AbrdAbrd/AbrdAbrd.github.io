@@ -488,9 +488,9 @@ function classroomCoach(s){
  if(['quiz','game-intro'].includes(s.type))return '';
  const configs={
  sponsor:['trump','LET’S GET STARTED.','Turn to your partner. Get ready to survive.'],
- cover:['netanyahu','PENS OUT. EYES FRONT.','Ayman and Milo are running the island today.'],
- donow:['trump','YOUR TOP THREE. NOW.','Choose your priorities. Explain your first choice.'],
- idea:['netanyahu','ALIVE… BUT HUMAN?','Discuss the difference between physical and moral survival.'],
+ cover:['charlie-kirk','PENS OUT. EYES FRONT.','Ayman and Milo are running the island today.'],
+ donow:['charlie-kirk','YOUR TOP THREE. NOW.','Choose your priorities. Explain your first choice.'],
+ idea:['charlie-kirk','ALIVE… BUT HUMAN?','Discuss the difference between physical and moral survival.'],
  context:['trump','CONNECT THE CONTEXT.','Choose a chapter. Explain what changes and why.'],
  activity:['netanyahu','SHOW ME THE EVIDENCE.','Physical, moral, or both? Pick a word and explain it.'],
  quote:[s.quoteIndex%2?'netanyahu':'trump','CHOOSE. THEN PROVE IT.','Answer once: +100 Israeli Shekels for a correct answer, −50 Israeli Shekels otherwise.'],
@@ -500,7 +500,7 @@ function classroomCoach(s){
  closing:['netanyahu','ONE QUOTE. YOUR VERDICT.','Have they really survived? Convince the class.']
  };
  const [person,line,detail]=configs[s.type];
- return `<aside class="classroom-coach" aria-label="Class activity reminder"><div class="coach-bubble"><strong>${esc(line)}</strong><p>${esc(detail)}</p></div><img src="./public/lesson-assets/${person}-pointing.webp" alt="Cartoon of ${person==='trump'?'Donald Trump':'Benjamin Netanyahu'} pointing toward the audience" width="640" height="853" decoding="async"></aside>`;
+ return `<aside class="classroom-coach" aria-label="Class activity reminder"><div class="coach-bubble"><strong>${esc(line)}</strong><p>${esc(detail)}</p></div><img src="./public/lesson-assets/${person}-pointing.webp" alt="Cartoon of ${{trump:'Donald Trump',netanyahu:'Benjamin Netanyahu','charlie-kirk':'Charlie Kirk'}[person]} pointing toward the audience" width="640" height="853" decoding="async"></aside>`;
 }
 
 function render(){
