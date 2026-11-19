@@ -531,7 +531,40 @@ function slideCornerLogo(){
  return `<button type="button" class="slide-corner-logo ${cornerLogoPaused?'is-paused':'motion-opt-in'}" data-corner-logo aria-label="${label}" aria-pressed="${cornerLogoPaused}" title="${label}"><img src="./public/lesson-assets/aipac-spinning-logo.png" alt="AIPAC logo" width="638" height="638" decoding="async"></button>`;
 }
 
+let renderedSlideIndex=null;
+let activeSlideTransitions=[];
+let slideTransitionGeneration=0;
+function stopSlideTransition(){
+ slideTransitionGeneration++;
+ activeSlideTransitions.forEach(animation=>animation.cancel());
+ activeSlideTransitions=[];
+ delete slideEl.dataset.transitionRunning;
+}
+function animateSlideTransition(direction,previousBackground){
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const targets=[...slideEl.querySelector('.slide-content-root').children];
+ const generation=slideTransitionGeneration;
+ slideEl.dataset.transitionDirection=direction>0?'forward':'backward';
+ slideEl.dataset.transitionRunning='true';
+ activeSlideTransitions=targets.filter(el=>typeof el.animate==='function').map(el=>{
+  // The opening artwork uses absolute positioning; a fade keeps its layout fixed.
+  const fadeOnly=reduced||(slideEl.classList.contains('sponsor-slide')&&el.classList.contains('slide-body'));
+  const frames=fadeOnly?[{opacity:0},{opacity:1}]:[{opacity:0,transform:`translateX(${direction*32}px)`},{opacity:1,transform:'translateX(0)'}];
+  return el.animate(frames,{duration:reduced?180:420,easing:'cubic-bezier(.22,.61,.36,1)'});
+ });
+ const background=getComputedStyle(slideEl).backgroundColor;
+ if(previousBackground!==background&&typeof slideEl.animate==='function')activeSlideTransitions.push(slideEl.animate([{backgroundColor:previousBackground},{backgroundColor:background}],{duration:reduced?180:420,easing:'ease-out'}));
+ Promise.allSettled(activeSlideTransitions.map(animation=>animation.finished)).then(()=>{
+  if(generation!==slideTransitionGeneration)return;
+  activeSlideTransitions=[];
+  delete slideEl.dataset.transitionRunning;
+ });
+}
+
 function render(){
+ const previousIndex=renderedSlideIndex;
+ const previousBackground=getComputedStyle(slideEl).backgroundColor;
+ stopSlideTransition();
  saveProgress();
  const s=slides[state.index];
  slideEl.className=`slide ${s.type==='sponsor'?'sponsor-slide':''} ${s.type==='cover'?'cover':''} ${s.type==='closing'?'closing':''} ${s.type==='reading'?'reading-slide':''} ${s.type==='donow'?'donow-slide':''} ${s.type==='model'?'model-slide':''} ${s.type==='quiz'?'game-slide':''} ${s.type==='game-intro'?'game-intro-slide':''} ${['quiz','game-intro','closing'].includes(s.type)?'':'with-coach'} coach-${s.type}`;
@@ -560,6 +593,8 @@ function render(){
  document.getElementById('aymanTab').classList.toggle('active',state.speaker==='ayman');
  document.getElementById('miloTab').classList.toggle('active',state.speaker==='milo');
  paintTaskTimer();resize();
+ renderedSlideIndex=state.index;
+ if(previousIndex!==null&&previousIndex!==state.index)animateSlideTransition(state.index>previousIndex?1:-1,previousBackground);
 }
 
 function go(n){
